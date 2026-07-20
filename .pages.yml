@@ -1,0 +1,183 @@
+media:
+  input: images
+  output: images
+
+content:
+  - name: accueil
+    label: Page d'accueil
+    type: file
+    path: contenu.json
+    icon: home
+    fields:
+      - name: bandeau
+        label: Bandeau rouge en haut du site
+        type: string
+        description: Laissez vide pour masquer le bandeau.
+
+      - name: une
+        label: Article du jour
+        type: object
+        fields:
+          - name: rubrique
+            label: Surtitre
+            type: string
+          - name: titre1
+            label: Titre — première ligne (pleine)
+            type: string
+          - name: titre2
+            label: Titre — deuxième ligne (contour)
+            type: string
+          - name: chapo
+            label: Chapô
+            type: text
+          - name: bouton
+            label: Texte du bouton
+            type: string
+          - name: lien
+            label: Lien du bouton
+            type: string
+          - name: meta
+            label: Ligne d'information
+            type: string
+          - name: image
+            label: Photo de fond
+            type: image
+
+      - name: match
+        label: Bandeau match
+        type: object
+        fields:
+          - name: etiquette
+            label: Étiquette rouge
+            type: string
+          - name: equipe1
+            label: Équipe de gauche
+            type: string
+          - name: centre
+            label: Heure ou score
+            type: string
+          - name: equipe2
+            label: Équipe de droite
+            type: string
+          - name: competition
+            label: Compétition
+            type: string
+          - name: lien
+            label: Lien
+            type: string
+
+      - name: articles
+        label: À la une
+        type: object
+        list: true
+        fields:
+          - name: categorie
+            label: Compétition ou rubrique
+            type: select
+            options:
+              values:
+                - Coupe du monde
+                - Euro
+                - Ligue des Nations
+                - Ligue des champions
+                - Europa League
+                - Conference League
+                - Ligue 1
+                - Premier League
+                - Liga
+                - Serie A
+                - Bundesliga
+                - Histoire
+                - Récit
+                - Analyse
+                - Édito
+          - name: titre
+            label: Titre
+            type: string
+          - name: meta
+            label: Ligne d'information
+            type: string
+          - name: image
+            label: Photo
+            type: image
+          - name: lien
+            label: Lien
+            type: string
+
+      - name: magazine
+        label: Section magazine
+        type: object
+        fields:
+          - name: surtitre
+            label: Surtitre
+            type: string
+          - name: titre
+            label: Titre
+            type: string
+          - name: texte
+            label: Texte
+            type: text
+          - name: bouton
+            label: Texte du bouton
+            type: string
+          - name: lien
+            label: Lien du bouton
+            type: string
+          - name: couverture
+            label: Couverture du numéro
+            type: image
+          - name: pastille
+            label: Pastille rouge
+            type: string
+
+      - name: videos
+        label: Vidéos
+        type: object
+        list: true
+        fields:
+          - name: titre
+            label: Titre
+            type: string
+          - name: meta
+            label: Ligne d'information
+            type: string
+          - name: url
+            label: Lien YouTube complet
+            type: string
+          - name: identifiant
+            label: Identifiant de la vidéo
+            type: string
+            description: La partie après v= ou après /shorts/ dans le lien YouTube.
+          - name: format
+            label: Format
+            type: select
+            options:
+              values:
+                - paysage
+                - vertical
+
+      - name: manifeste
+        label: Manifeste
+        type: object
+        fields:
+          - name: numero
+            label: Surtitre
+            type: string
+          - name: citation1
+            label: Citation — première partie
+            type: string
+          - name: citation2
+            label: Citation — partie dorée
+            type: string
+          - name: texte
+            label: Texte
+            type: text
+
+  - name: numeros
+    label: Numéros (PDF)
+    type: collection
+    path: numeros
+    filename: '{primary}'
+    extension: pdf
+    view:
+      fields: [name]
