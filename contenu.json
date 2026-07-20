@@ -1,0 +1,75 @@
+{
+  "bandeau": "Le numéro 12 est en ligne · Argentine–Angleterre, le match qui n'a jamais pris fin",
+  "une": {
+    "rubrique": "Article du jour · Coupe du monde 2026",
+    "titre1": "Le match",
+    "titre2": "qui n'a jamais pris fin.",
+    "chapo": "Argentine–Angleterre à Atlanta. De Wembley aux Malouines jusqu'à la main de Maradona : soixante ans de mémoire tiennent dans une demi-finale.",
+    "bouton": "Lire le journal",
+    "lien": "lecteur.html?pdf=numeros/n12.pdf",
+    "meta": "N°12 · 15 juillet 2026 · 28 pages · Par la rédaction",
+    "image": "images/messi-atlanta.jpg"
+  },
+  "match": {
+    "etiquette": "À suivre",
+    "equipe1": "Argentine",
+    "centre": "20:30",
+    "equipe2": "Angleterre",
+    "competition": "Demi-finale",
+    "lien": "#"
+  },
+  "articles": [
+    {
+      "categorie": "Coupe du monde",
+      "titre": "Atlanta, le poids de soixante ans d'histoire",
+      "meta": "Numéro 12 · 28 pages · Par Thomas Giroud",
+      "image": "images/mercedes-benz-stadium.jpg",
+      "lien": "lecteur.html?pdf=numeros/n12.pdf"
+    },
+    {
+      "categorie": "Histoire",
+      "titre": "1986, le match devenu éternel",
+      "meta": "Quatre minutes qui ont tout changé",
+      "image": "images/maradona-1986.jpg",
+      "lien": "lecteur.html?pdf=numeros/n12.pdf"
+    },
+    {
+      "categorie": "Récit",
+      "titre": "Beckham, Simeone et les nouvelles blessures",
+      "meta": "1998–2005 · Chapitre IV",
+      "image": "images/beckham-simeone.jpg",
+      "lien": "lecteur.html?pdf=numeros/n12.pdf"
+    }
+  ],
+  "magazine": {
+    "surtitre": "Le magazine · N°12",
+    "titre": "Un numéro qui se feuillette",
+    "texte": "Chaque numéro est mis en page comme une revue, puis publié ici en lecture page à page. Sur ordinateur, la double page. Sur téléphone, une page à la fois. Aucune application à installer.",
+    "bouton": "Ouvrir le numéro 12",
+    "lien": "lecteur.html?pdf=numeros/n12.pdf",
+    "couverture": "images/couverture-n12.jpg",
+    "pastille": "N°12"
+  },
+  "videos": [
+    {
+      "titre": "Pourquoi la Norvège peut choquer le monde du football",
+      "meta": "Documentaire · YouTube",
+      "url": "https://www.youtube.com/watch?v=1-P7M9-hAOU",
+      "identifiant": "1-P7M9-hAOU",
+      "format": "paysage"
+    },
+    {
+      "titre": "La caméra qui a changé le destin de la Norvège",
+      "meta": "Short · YouTube",
+      "url": "https://www.youtube.com/shorts/myHmWDN37ak",
+      "identifiant": "myHmWDN37ak",
+      "format": "vertical"
+    }
+  ],
+  "manifeste": {
+    "numero": "Notre manifeste — 01",
+    "citation1": "Le score raconte le résultat.",
+    "citation2": "Nous racontons ce qu'il signifie.",
+    "texte": "TomsoFoot refuse le bruit permanent et l'analyse jetable. Ici, le football est traité comme une culture : avec du recul, une identité visuelle forte et le goût des histoires qui restent après le coup de sifflet."
+  }
+}
