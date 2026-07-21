@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TomsoFoot — Lecteur</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#07101f;--navy:#091a33;--blue:#1167ff;--red:#ef3340;--paper:#f3f0e9;--line:rgba(243,240,233,.14);--muted:#8f9cad}
+  *{box-sizing:border-box}html,body{height:100%;margin:0}
+  body{font-family:Inter,Arial,sans-serif;color:var(--paper);background:var(--ink);display:flex;flex-direction:column;min-height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px clamp(14px,4vw,32px);flex:0 0 auto;border-bottom:1px solid var(--line)}
+  .brand{font-family:"Archivo Black";font-size:clamp(15px,2vw,21px);letter-spacing:-.05em}.brand i{color:var(--red);font-style:normal}
+  .back{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);padding:9px 14px;transition:.2s}
+  .back:hover{color:#fff;border-color:var(--red)}
+  .stage{flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:8px clamp(6px,3vw,26px) 0;min-height:0}
+  #book{width:100%;max-width:1180px;margin:0 auto;touch-action:pan-y}
+  .stf__wrapper{filter:drop-shadow(0 24px 40px rgba(0,0,0,.6))}
+  .loader{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;width:min(320px,80vw)}
+  .loader p{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  .bar{height:2px;background:var(--line);overflow:hidden}.bar span{display:block;height:100%;width:0;background:var(--red);transition:width .3s}
+  .err{max-width:440px;text-align:center;font-size:14px;line-height:1.6;color:var(--muted)}
+  .err strong{display:block;color:var(--paper);font-size:16px;margin-bottom:8px}
+  .ctrl{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 16px calc(14px + env(safe-area-inset-bottom))}
+  .prog{width:min(520px,72vw);height:2px;background:var(--line)}.prog span{display:block;height:100%;width:0;background:var(--red);transition:width .45s}
+  .row{display:flex;align-items:center;gap:16px}
+  .nav{appearance:none;border:1px solid var(--line);background:transparent;color:var(--paper);width:44px;height:44px;cursor:pointer;font-size:18px;display:grid;place-items:center;transition:.18s}
+  .nav:hover{border-color:var(--red);color:var(--red)}.nav:active{transform:scale(.94)}
+  .nav:disabled{opacity:.3;cursor:default}
+  .count{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--muted);min-width:108px;text-align:center;text-transform:uppercase}
+  .count b{color:var(--paper)}
+  .fs{appearance:none;border:1px solid var(--line);background:transparent;color:var(--muted);width:38px;height:38px;cursor:pointer;display:grid;place-items:center;transition:.18s;font-size:15px}
+  .fs:hover{color:var(--paper);border-color:var(--paper)}
+  .hint{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:rgba(7,16,31,.72);border:1px solid var(--line);padding:7px 14px;pointer-events:none;transition:opacity .6s}
+  .hint.gone{opacity:0}
+  @media(max-width:560px){.hint{bottom:100px}.nav{width:40px;height:40px}}
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">TOMSO<i>FOOT</i></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="fs" id="fs" aria-label="Plein écran" title="Plein écran">⤢</button>
+      <a class="back" href="index.html">Retour au site</a>
+    </div>
+  </header>
+
+  <main class="stage" style="position:relative">
+    <div id="book" aria-label="Journal TomsoFoot, tournez les pages"></div>
+    <div class="loader" id="loader">
+      <p id="loadtxt">Ouverture du numéro…</p>
+      <div class="bar"><span id="loadbar"></span></div>
+    </div>
+  </main>
+
+  <div class="hint" id="hint">Glissez ou cliquez pour tourner</div>
+
+  <footer class="ctrl">
+    <div class="prog"><span id="prog"></span></div>
+    <div class="row">
+      <button class="nav" id="prev" aria-label="Page précédente">‹</button>
+      <div class="count">Page <b id="cur">–</b> / <span id="tot">–</span></div>
+      <button class="nav" id="next" aria-label="Page suivante">›</button>
+    </div>
+  </footer>
+
+<script src="lib/page-flip.js"></script>
+<script type="module">
+import * as pdfjsLib from './lib/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = './lib/pdf.worker.min.mjs';
+
+const params = new URLSearchParams(location.search);
+const pdfUrl = params.get('pdf') || 'numeros/n12.pdf';
+
+const loader = document.getElementById('loader');
+const loadtxt = document.getElementById('loadtxt');
+const loadbar = document.getElementById('loadbar');
+const hint = document.getElementById('hint');
+
+const TARGET_HALF_WIDTH = 1000;
+const SPREAD_RATIO = 1.25;
+
+function halfOf(canvas, side){
+  const c = document.createElement('canvas');
+  c.width = Math.floor(canvas.width / 2);
+  c.height = canvas.height;
+  c.getContext('2d').drawImage(canvas, side * c.width, 0, c.width, c.height, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.84);
+}
+
+function fail(message){
+  loader.innerHTML = '<div class="err"><strong>Numéro introuvable</strong>' + message + '</div>';
+}
+
+(async () => {
+  let pdf;
+  try {
+    const task = pdfjsLib.getDocument({url: pdfUrl});
+    task.onProgress = ({loaded, total}) => {
+      if (total) loadbar.style.width = Math.round(loaded / total * 45) + '%';
+    };
+    pdf = await task.promise;
+  } catch (e) {
+    fail('Le fichier <code>' + pdfUrl + '</code> n\'a pas pu être chargé. Vérifiez qu\'il est bien présent dans le dossier du site.');
+    return;
+  }
+
+  loadtxt.textContent = 'Préparation des pages…';
+  const images = [];
+  for (let i = 1; i <= pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const base = page.getViewport({scale: 1});
+    const isSpread = base.width / base.height > SPREAD_RATIO;
+    const halfWidth = isSpread ? base.width / 2 : base.width;
+    const scale = Math.min(2.6, TARGET_HALF_WIDTH / halfWidth);
+    const viewport = page.getViewport({scale});
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    const ctx = canvas.getContext('2d');
+    await page.render({canvas, canvasContext: ctx, viewport}).promise;
+    if (isSpread){
+      images.push(halfOf(canvas, 0), halfOf(canvas, 1));
+    } else {
+      images.push(canvas.toDataURL('image/jpeg', 0.84));
+    }
+    loadbar.style.width = (45 + Math.round(i / pdf.numPages * 55)) + '%';
+  }
+
+  if (!images.length){ fail('Ce document ne contient aucune page.'); return; }
+
+  loader.remove();
+  const total = images.length;
+  document.getElementById('tot').textContent = total;
+
+  const first = new Image();
+  first.src = images[0];
+  await new Promise(r => { first.onload = r; first.onerror = r; });
+  const ratio = (first.naturalHeight && first.naturalWidth) ? first.naturalHeight / first.naturalWidth : 1.3;
+
+  const flip = new St.PageFlip(document.getElementById('book'), {
+    width: 550,
+    height: Math.round(550 * ratio),
+    size: 'stretch',
+    minWidth: 250, maxWidth: 620,
+    minHeight: Math.round(250 * ratio), maxHeight: Math.round(620 * ratio),
+    showCover: false,
+    maxShadowOpacity: 0.5,
+    drawShadow: true,
+    flippingTime: 760,
+    usePortrait: true,
+    mobileScrollSupport: true,
+    useMouseEvents: true,
+    clickEventForward: true,
+    swipeDistance: 28
+  });
+  flip.loadFromImages(images);
+
+  const curEl = document.getElementById('cur');
+  const prog = document.getElementById('prog');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  let hintGone = false;
+  const dropHint = () => { if (!hintGone){ hint.classList.add('gone'); hintGone = true; } };
+  setTimeout(dropHint, 5000);
+
+  const refresh = () => {
+    const i = flip.getCurrentPageIndex() + 1;
+    curEl.textContent = i;
+    prog.style.width = (i / total * 100) + '%';
+    prev.disabled = i <= 1;
+    next.disabled = i >= total;
+  };
+  flip.on('init', refresh);
+  flip.on('flip', () => { refresh(); dropHint(); });
+  refresh();
+
+  prev.addEventListener('click', () => { flip.flipPrev(); dropHint(); });
+  next.addEventListener('click', () => { flip.flipNext(); dropHint(); });
+  window.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft'){ flip.flipPrev(); dropHint(); }
+    if (e.key === 'ArrowRight'){ flip.flipNext(); dropHint(); }
+  });
+})();
+
+document.getElementById('fs').addEventListener('click', () => {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+});
+</script>
+</body>
+</html>
