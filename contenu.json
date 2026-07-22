@@ -1,5 +1,5 @@
 {
-  "bandeau": "LIGUE 1 UNE RENCONTRE QUI TOURNE AU FIASCO",
+  "bandeau": "Le numéro 12 est en ligne · Argentine–Angleterre, le match qui n'a jamais pris fin",
   "une": {
     "rubrique": "Article du jour · Coupe du monde 2026",
     "titre1": "Le match",
@@ -52,18 +52,46 @@
   },
   "videos": [
     {
-      "titre": "Pourquoi la Norvège peut choquer le monde du football",
-      "meta": "Documentaire · YouTube",
-      "url": "https://www.youtube.com/watch?v=1-P7M9-hAOU",
-      "identifiant": "1-P7M9-hAOU",
+      "titre": "Japon : comment les Samouraïs comptent devenir champions du monde",
+      "meta": "Vidéo · YouTube",
+      "url": "https://www.youtube.com/watch?v=pXNzsY7_Sdg",
+      "identifiant": "pXNzsY7_Sdg",
       "format": "paysage"
     },
     {
-      "titre": "La caméra qui a changé le destin de la Norvège",
-      "meta": "Short · YouTube",
-      "url": "https://www.youtube.com/shorts/myHmWDN37ak",
-      "identifiant": "myHmWDN37ak",
-      "format": "vertical"
+      "titre": "Mohamed Salah, l'histoire d'un joueur hors norme",
+      "meta": "Vidéo · YouTube",
+      "url": "https://www.youtube.com/watch?v=PSHdb7z2MRs",
+      "identifiant": "PSHdb7z2MRs",
+      "format": "paysage"
+    },
+    {
+      "titre": "1998, l'histoire méconnue des bannis de l'équipe de France",
+      "meta": "Vidéo · YouTube",
+      "url": "https://www.youtube.com/watch?v=v0d_MKZTrIw",
+      "identifiant": "v0d_MKZTrIw",
+      "format": "paysage"
+    },
+    {
+      "titre": "L'histoire du foot allemand",
+      "meta": "Documentaire · YouTube",
+      "url": "https://www.youtube.com/watch?v=u1LcvJoWA4A",
+      "identifiant": "u1LcvJoWA4A",
+      "format": "paysage"
+    },
+    {
+      "titre": "Gaël Kakuta, le mystère : analyse d'un destin brisé",
+      "meta": "Documentaire · YouTube",
+      "url": "https://www.youtube.com/watch?v=lhKJSSCBTcU",
+      "identifiant": "lhKJSSCBTcU",
+      "format": "paysage"
+    },
+    {
+      "titre": "Le plus grand gâchis du Bayern Munich",
+      "meta": "Documentaire · YouTube",
+      "url": "https://www.youtube.com/watch?v=7QtXVa182pA",
+      "identifiant": "7QtXVa182pA",
+      "format": "paysage"
     }
   ],
   "manifeste": {
