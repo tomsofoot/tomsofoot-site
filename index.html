@@ -24,6 +24,7 @@
     .newsletter{background:var(--red);color:#fff}.news-inner{max-width:var(--max);margin:auto;padding:75px var(--pad);display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:end}.news-inner h2{margin:8px 0 0;font-family:"Archivo Black";font-size:clamp(42px,5vw,75px);line-height:.9;letter-spacing:-.06em;text-transform:uppercase}.form{display:flex;padding-bottom:10px;border-bottom:2px solid #fff}.form input{flex:1;min-width:0;border:0;background:none;color:#fff;font-size:17px;outline:0}.form input::placeholder{color:rgba(255,255,255,.7)}.form button{border:0;background:#fff;color:var(--ink);padding:14px 18px;font-weight:900;text-transform:uppercase}
     footer{position:relative;overflow:hidden;background:#030913;color:#fff}.footer-inner{position:relative;z-index:2;max-width:var(--max);margin:auto;padding:85px var(--pad) 32px}.footer-manifesto{max-width:780px;font-family:"Source Serif 4";font-size:clamp(28px,4vw,58px);line-height:1.08}.footer-grid{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:45px;margin:70px 0;padding:42px 0;border-top:1px solid #263247;border-bottom:1px solid #263247}.footer-grid strong{display:block;margin-bottom:18px;color:var(--gold);font-size:9px;letter-spacing:.15em;text-transform:uppercase}.footer-grid a{display:block;margin:10px 0;color:#a6b2c2;font-size:12px}.footer-brand{position:absolute;left:-.04em;right:0;bottom:-.23em;font-family:"Archivo Black";font-size:17vw;letter-spacing:-.09em;color:rgba(255,255,255,.025)}.legal{display:flex;justify-content:space-between;color:#6f7d90;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
     .reveal{opacity:0;transform:translateY(26px);transition:.75s var(--ease)}.reveal.visible{opacity:1;transform:none}
+    .carousel-wrap{position:relative}.carousel{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 2px 10px;scrollbar-width:none}.carousel::-webkit-scrollbar{display:none}.doc{flex:0 0 clamp(280px,33%,380px);scroll-snap-align:start;display:block;transition:.35s var(--ease)}.doc:hover{transform:translateY(-4px)}.doc-thumb{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--ink)}.doc-thumb img{width:100%;height:100%;object-fit:cover;transition:.55s var(--ease)}.doc:hover .doc-thumb img{transform:scale(1.05)}.doc-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.6);border-radius:50%;background:rgba(7,16,31,.5);backdrop-filter:blur(6px);color:#fff;font-size:19px;opacity:0;transition:.25s}.doc:hover .doc-play{opacity:1}.doc-body{padding:16px 2px 0}.doc-body h3{margin:0 0 6px;font-family:"Archivo Black";font-size:clamp(16px,1.5vw,21px);font-weight:400;line-height:1.05;letter-spacing:-.03em;text-transform:uppercase}.doc-body .meta{font-size:10px;color:#6b7686;letter-spacing:.08em;text-transform:uppercase}.carousel-nav{position:absolute;z-index:5;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(7,16,31,.14);background:rgba(255,255,255,.94);color:var(--ink);font-size:24px;line-height:1;box-shadow:0 10px 26px rgba(7,16,31,.16);transition:.2s var(--ease)}.carousel-nav:hover{background:var(--gold);border-color:var(--gold);color:var(--ink)}.carousel-nav.prev{left:-6px}.carousel-nav.next{right:-6px}@media(max-width:640px){.doc{flex-basis:82%}.carousel-nav{display:none}}
     .nv-toast{position:fixed;z-index:80;right:24px;bottom:24px;width:min(340px,calc(100vw - 32px));display:flex;align-items:stretch;background:#0a1c33;color:#f5f2eb;border:1px solid rgba(245,242,235,.12);box-shadow:0 20px 55px rgba(0,0,0,.5);cursor:pointer;transform:translateY(160%);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .5s ease;overflow:hidden}.nv-toast.show{transform:translateY(0);opacity:1}.nv-toast__thumb{flex:0 0 92px;position:relative;background:#071426;overflow:hidden}.nv-toast__thumb img{width:100%;height:100%;object-fit:cover}.nv-toast__body{flex:1;min-width:0;padding:12px 30px 12px 14px;display:flex;flex-direction:column;justify-content:center;gap:6px}.nv-toast__tag{display:inline-flex;align-items:center;gap:8px;color:var(--red);font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.nv-toast__dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulse 1.7s infinite}.nv-toast__title{font-size:.82rem;font-weight:600;line-height:1.3;color:#f5f2eb;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.nv-toast__close{position:absolute;top:6px;right:8px;z-index:2;display:grid;place-items:center;width:24px;height:24px;border:0;background:transparent;color:var(--grey);cursor:pointer}.nv-toast__close svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.nv-toast__close:hover{color:#f5f2eb}@media(max-width:600px){.nv-toast{right:12px;left:12px;bottom:12px;width:auto}}
     @keyframes pulse{50%{opacity:.45;transform:scale(.75)}}@keyframes heroZoom{from{transform:scale(1.05)}to{transform:scale(1)}}@keyframes scrollLine{50%{transform:scaleX(.35);opacity:.45}}
     @media(max-width:1000px){.nav-links,.nav-tools>a{display:none}.nav{grid-template-columns:1fr auto}.brand{justify-self:start}.nav-tools{display:flex}.menu{display:grid}.hero-grid{grid-template-columns:1fr}.hero-index{display:none}.cards{grid-template-columns:1fr 1fr}.card.main{grid-column:1/-1}.video-feature{grid-template-columns:1fr}.video-visual{min-height:420px}.mag-inner{grid-template-columns:1fr}.covers{max-width:520px;width:100%;margin:auto}.rec-grid{grid-template-columns:1fr 1fr}.rec:first-child{grid-column:1/-1}.news-inner{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}.article-demo.open{grid-template-columns:1fr}.article-aside{display:none}}
@@ -78,6 +79,8 @@
       </article>
       <p class="video-error" data-youtube-error hidden>La dernière vidéo est momentanément indisponible. Retrouve-les toutes sur <a href="https://www.youtube.com/@Tomso-Foot" style="color:#fff;text-decoration:underline" target="_blank" rel="noopener">la chaîne YouTube</a>.</p>
     </div></section>
+
+    <section class="section reveal" id="documentaires" hidden><div class="head"><div><span class="kicker">La chaîne</span><h2>Les documentaires</h2></div><a class="all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Toute la chaîne →</a></div><div class="carousel-wrap"><div class="carousel" id="cms-videos"></div><button class="carousel-nav prev" id="vprev" type="button" aria-label="Documentaire précédent" hidden>‹</button><button class="carousel-nav next" id="vnext" type="button" aria-label="Documentaire suivant" hidden>›</button></div></section>
 
     <section class="magazine reveal" id="magazine"><div class="mag-inner"><div class="covers"><img class="cover" data-cms-src="magazine.couverture" src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=700&q=85" alt="Couverture du magazine"><img class="cover" src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=700&q=80" alt="Ancien numéro du magazine"><img class="cover" src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=700&q=80" alt="Ancien numéro du magazine"></div><div class="mag-copy"><span class="kicker" data-cms="magazine.surtitre">Le magazine · Numéro 12</span><h2 data-cms="magazine.titre">Un objet à lire, garder, transmettre.</h2><p data-cms="magazine.texte">Des récits longs, des archives et des analyses conçus comme un véritable objet éditorial. Découvrez quelques pages avant d'ouvrir le numéro complet.</p><div class="preview-pages"><img src="https://images.unsplash.com/photo-1527871252447-4ce32da643c6?auto=format&fit=crop&w=500&q=75" alt="Aperçu d'une page"><img src="https://images.unsplash.com/photo-1553778263-73a83bab9b0c?auto=format&fit=crop&w=500&q=75" alt="Aperçu d'une page"><img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=500&q=75" alt="Aperçu d'une page"></div><div class="actions"><a class="btn primary" style="background:var(--ink);color:#fff;border-color:var(--ink)" data-cms-href="magazine.lien" href="#" data-cms="magazine.bouton">Feuilleter le numéro</a><a class="btn" style="color:var(--ink);border-color:#89909a" href="#">Voir les archives →</a></div></div></div></section>
 
@@ -139,6 +142,59 @@
       if (bandeau) {
         if (data.bandeau && data.bandeau.trim()) { bandeau.textContent = data.bandeau; }
         else { const tl = bandeau.closest('.topline'); if (tl) tl.style.display = 'none'; }
+      }
+
+      // --- Carrousel "Les documentaires" (6 vidéos de contenu.json) ---
+      const vids = document.getElementById('cms-videos');
+      const section = document.getElementById('documentaires');
+      if (vids && section && Array.isArray(data.videos) && data.videos.length) {
+        const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        vids.innerHTML = data.videos.map(v => {
+          const id = esc(v.identifiant);
+          const thumb = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
+          return '<a class="doc" href="' + esc(v.url) + '" target="_blank" rel="noopener">'
+            + '<div class="doc-thumb"><img src="' + thumb + '" alt="' + esc(v.titre) + '" loading="lazy"><span class="doc-play" aria-hidden="true">&#9654;</span></div>'
+            + '<div class="doc-body"><h3>' + esc(v.titre) + '</h3><div class="meta">' + esc(v.meta) + '</div></div></a>';
+        }).join('');
+        section.hidden = false;
+
+        const track = vids;
+        const wrap = track.parentElement;
+        const prev = document.getElementById('vprev');
+        const next = document.getElementById('vnext');
+        const firstThumb = () => track.querySelector('.doc-thumb');
+        const positionArrows = () => {
+          const th = firstThumb();
+          if (!th || !prev || !next) return;
+          const wr = wrap.getBoundingClientRect();
+          const tr = th.getBoundingClientRect();
+          const y = (tr.top - wr.top) + tr.height / 2;
+          prev.style.top = y + 'px';
+          next.style.top = y + 'px';
+        };
+        const updateArrows = () => {
+          if (!prev || !next) return;
+          const max = track.scrollWidth - track.clientWidth;
+          const scrollable = max > 4;
+          prev.hidden = !scrollable || track.scrollLeft <= 2;
+          next.hidden = !scrollable || track.scrollLeft >= max - 2;
+        };
+        const move = dir => track.scrollBy({ left: dir * track.clientWidth * 0.85, behavior: 'smooth' });
+        if (prev && next) {
+          prev.addEventListener('click', () => move(-1));
+          next.addEventListener('click', () => move(1));
+          track.addEventListener('scroll', updateArrows, { passive: true });
+          window.addEventListener('resize', () => { positionArrows(); updateArrows(); });
+          if (window.ResizeObserver) {
+            const ro = new ResizeObserver(() => { positionArrows(); updateArrows(); });
+            ro.observe(wrap);
+            const t0 = firstThumb();
+            if (t0) ro.observe(t0);
+          }
+          positionArrows();
+          updateArrows();
+          setTimeout(() => { positionArrows(); updateArrows(); }, 300);
+        }
       }
     })();
   </script>
