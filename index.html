@@ -31,18 +31,19 @@
     @media(max-width:640px){.topline{font-size:8px}.header{top:31px}.nav{height:68px}.hero,.hero-inner{min-height:760px}.hero-inner{padding-top:145px;padding-bottom:65px}h1{font-size:clamp(50px,16vw,72px)}.lead{font-size:18px}.actions .btn{width:100%}.scroll-cue{display:none}.now-inner{height:60px}.now-label{padding-right:16px}.topics{padding-left:16px;gap:16px}.topics a:after{margin-left:16px}.section,.dark-inner,.rec-inner{padding-top:75px;padding-bottom:75px}.head{align-items:flex-start}.all{display:none}.cards{grid-template-columns:1fr}.card.main,.card{min-height:470px}.mag-inner{padding-top:75px;padding-bottom:75px;gap:20px}.covers{min-height:480px}.preview-pages{display:none}.rec-grid{grid-template-columns:1fr}.rec:first-child{grid-column:auto}.rec{min-height:320px}.news-inner{padding-top:60px;padding-bottom:60px;gap:35px}.form{display:grid;gap:15px;border:0}.form input{padding:15px 0;border-bottom:2px solid #fff}.footer-grid{grid-template-columns:1fr 1fr}.legal{flex-direction:column;gap:12px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}}
   </style>
+  <link rel="stylesheet" href="jogadle.css">
 </head>
 <body>
   <div class="progress" aria-hidden="true"></div>
   <div class="topline"><span class="dot"></span><span id="cms-bandeau">Ce soir · Espagne–Argentine en direct sur Twitch · 20 h 30</span></div>
   <header class="header">
     <nav class="nav" aria-label="Navigation principale">
-      <div class="nav-links"><a href="#actualites">Actualités</a><a href="#video">Vidéos</a><a href="#magazine">Magazine</a></div>
+      <div class="nav-links"><a href="#actualites">Actualités</a><a href="#video">Vidéos</a><a href="#magazine">Magazine</a><a href="#jeu">Jeu</a></div>
       <a class="brand" href="#">TOMSO<span>FOOT</span></a>
       <div class="nav-tools"><a href="#newsletter">Newsletter</a><a href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">YouTube ↗</a><button class="search" aria-label="Rechercher"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="menu" aria-label="Ouvrir le menu" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button></div>
     </nav>
   </header>
-  <nav class="mobile-nav" aria-label="Navigation mobile"><a href="#actualites">Actualités</a><a href="#video">Vidéos</a><a href="#magazine">Magazine</a><a href="#recommandations">Sélection</a><small>TomsoFoot — Le football, raconté autrement.</small></nav>
+  <nav class="mobile-nav" aria-label="Navigation mobile"><a href="#actualites">Actualités</a><a href="#video">Vidéos</a><a href="#magazine">Magazine</a><a href="#jeu">Jeu</a><a href="#recommandations">Sélection</a><small>TomsoFoot — Le football, raconté autrement.</small></nav>
 
   <main>
     <section class="hero">
@@ -59,6 +60,29 @@
       <a class="card" data-cms-href="articles.2.lien" href="#"><img data-cms-src="articles.2.image" src="https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1000&q=85" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1000&q=85'" alt="" loading="lazy"><span class="card-arrow">↗</span><div class="card-body"><span class="card-tag" data-cms="articles.2.categorie">Histoire</span><h3 data-cms="articles.2.titre">1966, le Mondial qui ne finit jamais</h3><div class="meta" data-cms="articles.2.meta">Dossier · 24 pages</div></div></a>
     </div>
     <article class="article-demo" id="article-demo"><aside class="article-aside"><strong>Dans cet article</strong><a href="#article-demo">Le poids de l'histoire</a><a href="#article-demo">Une génération</a><a href="#article-demo">Le match invisible</a></aside><div class="article-content"><span class="kicker">Grand format</span><h3>Une finale contre l'histoire</h3><div class="article-stats" style="display:flex;gap:22px;flex-wrap:wrap;margin:18px 0 32px;padding:16px 0;border-top:1px solid var(--muted);border-bottom:1px solid var(--muted);color:#657185"><span>Par <strong style="color:var(--ink)">Thomas Giroud</strong></span><span>14 min de lecture</span></div><p class="intro">Au-delà du score, cette affiche raconte une génération, un style et la manière dont un pays se regarde à travers son équipe.</p><blockquote>« Le score raconte le résultat. TomsoFoot raconte ce qu'il signifie. »</blockquote><button class="btn primary" style="background:var(--ink);color:#fff" data-close-article>Refermer l'aperçu</button></div></article>
+    </section>
+
+        <section class="jogadle" id="jeu">
+      <div class="td-hero">
+        <div class="td-eyebrow"><i></i> Le joueur du jour</div>
+        <h2>Un joueur.<br><em>Autant d’essais qu’il faut.</em></h2>
+        <p>Le Jogadle : retrouvez le footballeur mystère grâce aux indices révélés après chaque proposition.</p>
+        <div class="daily-meta"><span>Édition <strong id="td-puzzle">—</strong></span><span class="separator"></span><span>Nouveau joueur à <strong>minuit</strong></span></div>
+        <div class="top-actions"><button class="icon-button" type="button" data-td-help aria-label="Comment jouer">?</button><button class="icon-button" type="button" data-td-stats aria-label="Statistiques">↗</button></div>
+      </div>
+      <div class="game-shell">
+        <div class="progress-row"><span>Propositions</span><div class="attempt-count" id="td-count" aria-live="polite" aria-label="Nombre de propositions">00</div><strong>Essais illimités</strong></div>
+        <div class="search-wrap" id="td-search">
+          <label for="td-input">Quel est le joueur mystère ?</label>
+          <div class="search-field" id="td-field"><span aria-hidden="true">⌕</span><input id="td-input" type="text" autocomplete="off" spellcheck="false" placeholder="Rechercher un joueur…"></div>
+          <div class="suggestions" id="td-suggestions" hidden></div>
+        </div>
+        <div id="td-board-area"></div>
+        <div id="td-end"></div>
+        <div class="legend"><span><i class="correct"></i> Bonne réponse</span><span><i class="wrong"></i> Mauvaise réponse</span><span><b>↑</b> Plus grand</span><span><b>↓</b> Plus petit</span></div>
+      </div>
+      <div class="modal-backdrop" id="td-modal" hidden><div class="modal"><button class="modal-close" type="button" aria-label="Fermer">×</button><div id="td-modal-body"></div></div></div>
+      <div class="td-toast" id="td-toast" hidden role="status"></div>
     </section>
 
     <section class="dark reveal" id="video"><div class="dark-inner"><span class="kicker">La chaîne TomsoFoot</span><h2>La dernière histoire</h2>
@@ -293,5 +317,7 @@
 
     document.addEventListener("DOMContentLoaded", loadLatestYouTubeVideo);
   </script>
+  <script src="jogadle-data.js"></script>
+  <script src="jogadle.js" defer></script>
 </body>
 </html>
