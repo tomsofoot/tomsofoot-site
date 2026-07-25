@@ -1,17 +1,17 @@
 /* Jogadle — styles isolés sous .jogadle pour ne pas percuter le CSS du site.
    Palette identique à TomsoFoot (navy #07101f, rouge #ef3340). */
-.jogadle{--td-navy:#07101f;--td-navy2:#0d203a;--td-red:#ef3340;--td-cream:#f5f0e7;--td-gold:#c8a967;position:relative;color:var(--td-cream);font-family:Inter,Arial,sans-serif;background:radial-gradient(circle at 50% 12%,#112b49 0,transparent 520px),linear-gradient(180deg,#07101f 0%,#091524 100%);padding:0 0 20px;scroll-margin-top:120px}
+.jogadle{--td-navy:#07101f;--td-navy2:#0d203a;--td-red:#ef3340;--td-cream:#f5f0e7;--td-gold:#c8a967;position:relative;color:var(--td-cream);font-family:Inter,Arial,sans-serif;background:radial-gradient(circle at 50% 12%,rgba(58,30,99,.5) 0,transparent 520px),linear-gradient(180deg,rgba(26,15,48,.86) 0%,rgba(13,8,25,.92) 100%),url("jeu-fond.jpg") center 20%/cover no-repeat,#0d0819;padding:0 0 20px;scroll-margin-top:120px}
 .jogadle *{box-sizing:border-box}
 .jogadle button,.jogadle input{font:inherit}
 .jogadle button{cursor:pointer}
 
 .jogadle .td-hero{position:relative;text-align:center;padding:96px 24px 44px;max-width:860px;margin:auto}
-.jogadle .td-eyebrow{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--td-gold);letter-spacing:.19em;font-size:11px;font-weight:800;text-transform:uppercase}
+.jogadle .td-eyebrow{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--td-gold);letter-spacing:.19em;font-size:11px;font-family:"Archivo Black",sans-serif;font-weight:400;text-transform:uppercase}
 .jogadle .td-eyebrow i{width:25px;height:3px;background:var(--td-red);display:inline-block}
 .jogadle .td-hero h2{margin:18px auto;max-width:1050px;font-family:"Archivo Black",sans-serif;font-size:clamp(40px,6.2vw,74px);font-weight:400;line-height:.96;letter-spacing:-.055em;text-transform:uppercase;color:#fff}
-.jogadle .td-hero h2 em{color:var(--td-red);font-family:"Source Serif 4",Georgia,serif;font-style:italic;text-transform:none;font-weight:700;letter-spacing:-.045em}
-.jogadle .td-hero>p{max-width:600px;margin:22px auto;color:#bdc6d2;font-size:16px;line-height:1.7}
-.jogadle .daily-meta{display:flex;align-items:center;justify-content:center;gap:16px;color:#8e9aab;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.jogadle .td-hero h2 em{color:var(--td-red);font-family:"Archivo Black",sans-serif;font-style:normal;font-weight:400;letter-spacing:-.055em}
+.jogadle .td-hero>p{max-width:600px;margin:22px auto;color:#bdc6d2;font-size:15px;line-height:1.65;font-family:"Archivo Black",sans-serif}
+.jogadle .daily-meta{display:flex;align-items:center;justify-content:center;gap:16px;color:#8e9aab;font-size:10px;letter-spacing:.12em;font-family:"Archivo Black",sans-serif;text-transform:uppercase}
 .jogadle .daily-meta strong{color:#fff}
 .jogadle .daily-meta .separator{width:3px;height:3px;border-radius:50%;background:var(--td-red)}
 .jogadle .top-actions{display:flex;gap:10px;justify-content:center;margin-top:22px}
@@ -19,7 +19,7 @@
 .jogadle .icon-button:hover{border-color:var(--td-red);background:rgba(239,51,64,.13)}
 
 .jogadle .game-shell{width:min(1180px,92vw);margin:0 auto;padding-bottom:40px}
-.jogadle .progress-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);padding:17px 3px;font-size:10px;font-weight:800;letter-spacing:.15em;color:#8390a2}
+.jogadle .progress-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);padding:17px 3px;font-size:10px;font-family:"Archivo Black",sans-serif;font-weight:400;letter-spacing:.15em;color:#8390a2}
 .jogadle .progress-row>strong{justify-self:end;color:#bdc6d2}
 .jogadle .attempt-count{min-width:54px;height:32px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.17);color:#fff;font-family:"Archivo Black";font-size:14px;background:#0d1b2e}
 
@@ -95,16 +95,17 @@
 .jogadle .modal ul{padding-left:18px}
 .jogadle .modal-close{position:absolute;right:16px;top:12px;border:0;background:transparent;font-size:30px;color:#536071;line-height:1}
 .jogadle .win-pop{text-align:center}
+.jogadle .win-pop,.jogadle .win-pop *{font-family:"Archivo Black","Arial Black",sans-serif}
 .jogadle .win-pop .win-eyebrow{display:flex;align-items:center;justify-content:center;gap:9px;color:#94783f;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
 .jogadle .win-pop .win-eyebrow i{width:22px;height:3px;background:var(--td-red);display:inline-block}
 .jogadle .win-pop .win-title{font-family:"Archivo Black",sans-serif;font-size:40px;text-transform:uppercase;color:var(--td-navy);margin:10px 0 4px;letter-spacing:-.01em}
 .jogadle .win-pop .win-sub{color:#536071;font-size:15px;margin:0 0 22px}
 .jogadle .win-pop .win-sub b{color:var(--td-navy)}
-.jogadle .win-pop .win-next{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:17px 20px;background:var(--td-red);color:#fff;border:0;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;box-shadow:0 10px 28px rgba(239,51,64,.32)}
+.jogadle .win-pop .win-next{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:17px 20px;background-color:#e5332f;background-image:linear-gradient(135deg,rgba(230,42,52,.74),rgba(255,116,38,.74)),url("celebration.jpg");background-size:cover;background-position:center 30%;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.55);border:0;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;box-shadow:0 10px 28px rgba(239,51,64,.32)}
 .jogadle .win-pop .win-next:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(239,51,64,.42)}
-.jogadle .win-pop .win-countdown{display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:16px;padding:13px 16px;background:rgba(7,16,31,.05);border:1px solid #e2dccf;border-radius:8px}
-.jogadle .win-pop .win-cd-label{color:#94783f;font-size:10px;font-weight:800;letter-spacing:.17em;text-transform:uppercase}
-.jogadle .win-pop .win-clock{font-family:Inter,Arial,sans-serif;font-variant-numeric:tabular-nums;font-weight:900;font-size:23px;letter-spacing:.02em;color:var(--td-navy)}
+.jogadle .win-pop .win-countdown{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 18px;padding:18px 16px;border-radius:8px;border:1px solid rgba(0,0,0,.15);overflow:hidden;background:linear-gradient(rgba(6,9,18,.66),rgba(6,9,18,.8)),url("countdown-bg.jpg") center 58%/cover}
+.jogadle .win-pop .win-cd-label{color:#e7cd8f;font-size:10px;font-weight:800;letter-spacing:.17em;text-transform:uppercase;text-shadow:0 1px 4px rgba(0,0,0,.55)}
+.jogadle .win-pop .win-clock{font-variant-numeric:tabular-nums;font-size:26px;font-weight:900;letter-spacing:.06em;color:#fff;min-width:158px;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.65)}
 /* Néon : filet bleu permanent + comète (tête + traînée) qui court le long du cadre — classe réutilisable */
 @property --nangle{syntax:"<angle>";initial-value:0deg;inherits:false}
 .jogadle .halo-frame{position:relative;display:block;border-radius:10px;z-index:0}
