@@ -7,7 +7,7 @@
   if (!root || !Array.isArray(PLAYERS) || !PLAYERS.length) return;
 
   const DAY_MS = 86400000;
-  const REVEAL_MS = 3100; // durée totale de la révélation (7 cases x 350 ms + marge)
+  const REVEAL_MS = 3100; // délai de secours si le moteur premium est indisponible
 
   // ---------- Utilitaires ----------
   function dayNumber() {
@@ -203,7 +203,21 @@
       if (row) { row.classList.remove("revealing"); row.classList.add("revealed"); }
       if (won()) { showEnd(); } else { el.input.focus(); }
     };
-    if (reduced) finish(); else setTimeout(finish, REVEAL_MS + 200);
+    if (reduced) {
+      finish();
+    } else {
+      const row = el.boardArea.querySelector('.guess-row[data-id="' + cssEscape(player.id) + '"]');
+      if (window.JogadleAnimation && row) {
+        window.JogadleAnimation.play(row)
+          .then(finish)
+          .catch((error) => {
+            console.error("Animation Jogadle :", error);
+            setTimeout(finish, REVEAL_MS + 200);
+          });
+      } else {
+        setTimeout(finish, REVEAL_MS + 200);
+      }
+    }
   }
   function cssEscape(s) { return String(s).replace(/["\\]/g, "\\$&"); }
   function lockInput(on) {
