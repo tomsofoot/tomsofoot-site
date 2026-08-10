@@ -1,0 +1,67 @@
+/* Jogadle — Identité championnat : bloc discret dans le panneau + modale d'auth.
+   Visuel uniquement. Aucune règle de points ici. */
+.jg-identity{ margin:2px 4px 12px; }
+.jgid-join{ width:100%; display:flex; flex-direction:column; gap:2px; align-items:flex-start; text-align:left; cursor:pointer;
+  padding:11px 14px; border-radius:9px; border:1px solid rgba(121,87,255,.42);
+  background:linear-gradient(100deg,rgba(52,34,120,.34),rgba(10,10,32,.5)); color:#eceaff; transition:.18s; }
+.jgid-join:hover{ border-color:rgba(150,120,255,.8); background:linear-gradient(100deg,rgba(70,46,150,.5),rgba(14,12,40,.6)); }
+.jgid-join b{ font-family:"Archivo Black",Inter,sans-serif; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#fff; }
+.jgid-join span{ font-size:10.5px; color:#a9adca; }
+.jg-identity.is-connected{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:9px 13px; border-radius:9px; border:1px solid rgba(121,87,255,.42); background:linear-gradient(100deg,rgba(52,34,120,.4),rgba(10,10,32,.5)); }
+.jgid-me{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+.jgid-pseudo{ font-family:"Archivo Black",Inter,sans-serif; font-size:14px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.jgid-meta{ font-size:10px; color:#b9b0ff; text-transform:uppercase; letter-spacing:.04em; } .jgid-meta b{ color:#fff; }
+.jgid-signout{ flex:0 0 auto; border:1px solid rgba(255,255,255,.2); background:transparent; color:#c7c9dd; border-radius:7px; padding:7px 10px; font-size:10px; text-transform:uppercase; cursor:pointer; }
+.jgid-signout:hover{ border-color:#ff5366; color:#ff8a98; }
+
+/* Modale d'authentification */
+.jgid-modal{ position:fixed; inset:0; z-index:3000; display:grid; place-items:center; padding:18px; background:rgba(3,3,13,.82); backdrop-filter:blur(10px); }
+.jgid-modal[hidden]{ display:none; }
+.jgid-card{ position:relative; width:min(432px,100%); padding:30px 26px 22px; border-radius:15px; border:1px solid rgba(126,106,238,.5);
+  background:linear-gradient(160deg,#181640,#0a0b20); box-shadow:0 40px 100px rgba(0,0,12,.7); color:#f3f2ff; }
+.jgid-close{ position:absolute; right:12px; top:10px; width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.16); background:transparent; color:#cfd0e6; font-size:22px; line-height:1; cursor:pointer; }
+.jgid-eyebrow{ color:#9d91ff; font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.jgid-title{ font-family:"Archivo Black",Inter,sans-serif; font-size:23px; margin:6px 0 6px; text-transform:uppercase; }
+.jgid-sub{ color:#b7bad4; font-size:12.5px; margin:0 0 18px; line-height:1.5; }
+.jgid-google{ width:100%; display:flex; align-items:center; justify-content:center; gap:11px; min-height:48px; border-radius:9px; border:1px solid rgba(255,255,255,.22); background:#fff; color:#1b1b2b; font-weight:800; font-size:14px; cursor:pointer; }
+.jgid-google:hover{ filter:brightness(.97); }
+.jgid-google svg{ width:19px; height:19px; }
+.jgid-or{ display:flex; align-items:center; gap:12px; color:#8a8fb0; font-size:11px; text-transform:uppercase; margin:14px 0; }
+.jgid-or::before,.jgid-or::after{ content:""; height:1px; flex:1; background:rgba(140,130,210,.25); }
+.jgid-field{ display:block; color:#c4c6e0; font-size:11px; margin:0 0 7px; text-transform:uppercase; letter-spacing:.04em; }
+.jgid-emailrow{ display:grid; grid-template-columns:1fr auto; gap:8px; }
+.jgid-input{ width:100%; min-height:46px; border-radius:9px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.04); color:#fff; padding:0 13px; font-size:14px; outline:none; }
+.jgid-input:focus{ border-color:#836dff; }
+.jgid-send,.jgid-primary{ min-height:46px; border-radius:9px; border:1px solid rgba(121,87,255,.7); background:linear-gradient(135deg,#4030a4,#5446cb); color:#fff; font-weight:800; font-size:13px; padding:0 16px; cursor:pointer; }
+.jgid-primary{ width:100%; margin-top:14px; }
+.jgid-hint{ margin:7px 0 0; color:#8a8fb0; font-size:11px; }
+.jgid-note{ margin:16px 0 0; color:#8a8fb0; font-size:10.5px; line-height:1.5; }
+.jgid-msg{ margin:11px 0 0; font-size:12px; min-height:16px; } .jgid-msg.err{ color:#ff6d7d; } .jgid-msg.ok{ color:#49d18a; }
+.jgid-test-badge{ display:inline-block; margin-top:14px; padding:5px 9px; border-radius:6px; border:1px dashed rgba(255,190,90,.6); color:#ffcf7a; font-size:9px; letter-spacing:.1em; text-transform:uppercase; }
+.jgid-back{ margin-top:14px; background:transparent; border:0; color:#9aa0c4; font-size:11px; cursor:pointer; text-decoration:underline; }
+@media(max-width:1099px){ .jg-identity{ margin-inline:0; } }
+
+/* ===== P3 — écran de connexion, bloc identité, mode invité ===== */
+.jg-auth{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:rgba(4,4,16,.72);backdrop-filter:blur(4px)}
+.jg-auth__card{width:min(420px,92vw);padding:26px 26px 22px;border:1px solid rgba(139,112,255,.4);border-radius:20px;background:linear-gradient(165deg,#141334,#0a0a22);color:#ececf7;text-align:center;box-shadow:0 30px 90px rgba(2,2,16,.6);font-family:Inter,Arial,sans-serif;position:relative}
+.jg-auth__close{position:absolute;top:12px;right:14px;border:0;background:transparent;color:#9aa0c0;font-size:22px;cursor:pointer;line-height:1}
+.jg-auth__eyebrow{font:800 10px Inter,Arial;letter-spacing:.15em;text-transform:uppercase;color:#9d91ff}
+.jg-auth__title{margin:6px 0 6px;font-family:"Archivo Black",Inter,sans-serif;font-size:24px}
+.jg-auth__sub{margin:0 0 18px;color:#b9bad2;font-size:13px;line-height:1.5}
+.jg-auth__btn{width:100%;padding:12px 16px;border-radius:11px;border:1px solid rgba(139,112,255,.5);background:linear-gradient(135deg,#4030a4,#5446cb);color:#fff;font:800 13px Inter,Arial;cursor:pointer;margin-top:8px}
+.jg-auth__google{background:#fff;color:#20233a;border-color:#fff}
+.jg-auth__or{margin:14px 0 6px;color:#8f93b4;font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+.jg-auth__magic{display:flex;gap:8px}
+.jg-auth__email{flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid rgba(139,112,255,.4);background:rgba(9,10,34,.9);color:#fff;font:600 13px Inter,Arial}
+.jg-auth__magic .jg-auth__btn{width:auto;margin-top:0;white-space:nowrap}
+.jg-auth__guest{margin-top:16px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
+.jg-auth__ghost{background:transparent;border:1px solid rgba(255,255,255,.18);color:#d7d8e6;padding:10px 14px;border-radius:10px;font:700 12px Inter,Arial;cursor:pointer}
+.jg-auth__pseudo{width:100%;padding:12px 14px;border-radius:11px;border:1px solid rgba(139,112,255,.45);background:rgba(9,10,34,.9);color:#fff;font:800 16px Inter,Arial;text-align:center;margin:6px 0}
+.jg-auth__err{color:#ff6b85;font-size:12px;margin:2px 0}
+/* Bloc identité dans le panneau */
+.jg-id-join{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:11px 13px;border-radius:10px;border:1px solid rgba(139,112,255,.35);background:linear-gradient(100deg,rgba(52,34,120,.35),rgba(8,9,30,.5));color:#e7e7f4;cursor:pointer}
+.jg-id-join b{font-size:12px;letter-spacing:.02em}.jg-id-join small{color:#9aa0c0;font-size:10.5px}
+.jg-id-connected{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1px solid rgba(139,112,255,.3);background:rgba(94,83,217,.12)}
+.jg-id-pseudo{font:800 13px Inter,Arial;color:#fff}.jg-id-meta{color:#9aa0c0;font-size:10.5px;margin-right:auto}
+.jg-id-logout{border:1px solid rgba(255,255,255,.16);background:transparent;color:#cfd0e6;border-radius:8px;padding:6px 9px;font:700 10px Inter,Arial;cursor:pointer}
