@@ -1,0 +1,52 @@
+/* Jogadle — bouton « ⚠ Règlement & points » + fenêtre modale (violet/bleu premium, touches dorées). */
+.jg-rules-btn{
+  display:inline-flex;align-items:center;gap:9px;margin:18px auto 0;
+  padding:12px 20px;border-radius:999px;cursor:pointer;
+  font-family:"Archivo Black",Inter,sans-serif;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;
+  color:#fff;border:1px solid rgba(226,186,110,.55);
+  background:linear-gradient(135deg,#3a2b8f,#5446cb 60%,#4030a4);
+  box-shadow:0 14px 34px rgba(40,26,120,.5), inset 0 1px rgba(255,255,255,.22);
+}
+.td-hero .jg-rules-btn{margin-top:16px}
+.jg-rules-btn:hover{border-color:rgba(240,200,120,.9);transform:translateY(-1px)}
+.jg-rules-btn__warn{color:#ffd479;font-size:15px;line-height:1;filter:drop-shadow(0 1px 4px rgba(255,190,70,.5))}
+
+.jg-rules-lock{overflow:hidden}
+.jg-rules-overlay{position:fixed;inset:0;z-index:4000;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:rgba(4,5,18,.72);backdrop-filter:blur(6px)}
+.jg-rules-modal{width:min(760px,100%);max-height:88vh;display:flex;flex-direction:column;
+  border-radius:18px;border:1px solid rgba(121,87,255,.5);overflow:hidden;
+  background:linear-gradient(180deg,#12112f,#0a0a22);
+  box-shadow:0 40px 120px rgba(0,0,15,.7), inset 0 1px rgba(255,255,255,.06)}
+.jg-rules-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;
+  border-bottom:1px solid rgba(121,87,255,.28);background:linear-gradient(135deg,rgba(58,43,143,.5),rgba(31,25,85,.35))}
+.jg-rules-head h2{margin:0;font-family:"Archivo Black",Inter,sans-serif;font-size:19px;color:#fff;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+.jg-rules-warn{color:#ffd479;filter:drop-shadow(0 1px 5px rgba(255,190,70,.5))}
+.jg-rules-close{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.22);
+  background:rgba(10,10,30,.6);color:#fff;font-size:22px;line-height:1;cursor:pointer;flex:0 0 auto}
+.jg-rules-close:hover{border-color:rgba(240,200,120,.8)}
+/* Texte explicatif en Helvetica (lisible, i minuscules normaux), titres de section en Archivo Black.
+   Corps agrandi (~+50 % vs l'origine) pour un bon confort de lecture. */
+.jg-rules-body{padding:22px 24px 28px;overflow-y:auto;color:#d7d8ea;font:400 17.5px/1.6 Helvetica,"Helvetica Neue",Arial,sans-serif;letter-spacing:0}
+.jg-rules-sec{padding:16px 0;border-bottom:1px solid rgba(132,126,190,.12)}
+.jg-rules-sec:last-child{border-bottom:0}
+.jg-rules-sec h3{margin:0 0 10px;font-family:"Archivo Black",Inter,Arial;font-weight:400;font-size:19px;letter-spacing:.01em;color:#fff}
+.jg-rules-sec p{margin:8px 0}
+.jg-rules-sec b{color:#fff}
+.jg-rules-sec ul{margin:8px 0 0;padding-left:20px}.jg-rules-sec li{margin:7px 0}
+.jg-rules-summary{background:linear-gradient(90deg,rgba(87,63,194,.22),rgba(31,25,85,.14));border-radius:12px;padding:16px 18px;border-bottom:0;margin-bottom:6px}
+.jg-rules-ex{color:#a9adcb;font-size:16.5px;line-height:1.55}
+.jg-rules-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.jg-rules-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:19.5px}
+.jg-rules-tbl th{text-align:left;color:#b9bcda;font-weight:700;font-size:15px;letter-spacing:.01em;padding:8px 10px;border-bottom:1px solid rgba(132,126,190,.24)}
+.jg-rules-tbl td{padding:8px 10px;border-bottom:1px solid rgba(132,126,190,.1)}
+.jg-rules-tbl td:last-child{text-align:right;font-weight:800;color:#fff}
+.jg-rules-foot{margin-top:16px;color:#8f93b4;font-size:16.5px;line-height:1.55}
+@media(max-width:640px){
+  .jg-rules-overlay{padding:0}
+  .jg-rules-modal{width:100%;max-height:100vh;border-radius:0}
+  .jg-rules-two{grid-template-columns:1fr}
+  .jg-rules-body{font-size:17px}
+  .jg-rules-sec h3{font-size:18.5px}
+  .jg-rules-tbl{font-size:17px}
+}
