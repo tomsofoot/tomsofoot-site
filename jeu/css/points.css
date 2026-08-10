@@ -16,12 +16,31 @@
 #jg-points-live .jg-points-penalty{font-size:.85em;text-transform:none;letter-spacing:0}
 /* Récapitulatif championnat dans le bloc Bravo */
 .end-card .jg-score-breakdown{margin-top:16px;text-align:left}
+
+/* ===== Récapitulatif détaillé de fin de partie (valeurs venues du serveur) ===== */
+.bravo-recap{display:grid;gap:.5rem;max-width:360px;margin:16px auto 4px;padding:14px 16px;border:1px solid rgba(139,112,255,.32);border-radius:14px;background:rgba(9,10,34,.72);text-align:left;font-family:Inter,Arial,sans-serif}
+.bravo-recap__row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;color:#aaa9bf;font-size:13px}
+.bravo-recap__row b{color:#fff;font-weight:800}
+.bravo-recap__row b.is-neg{color:#ff8fa6}
+.bravo-recap__row--won{margin-top:2px;padding-top:.55rem;border-top:1px solid rgba(255,255,255,.1);color:#dfe0f0;font-size:14px}
+.bravo-recap__row--won b{color:#35e59a;font-size:1.12em;text-shadow:0 0 16px rgba(53,229,154,.2)}
+.bravo-recap__total{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-top:.5rem;padding-top:.6rem;border-top:1px solid rgba(255,255,255,.1);color:#aaa9bf;font-size:13px}
+.bravo-recap__total em{font-style:normal;color:#c9cbe0}
+.bravo-recap__total b{color:#fff;font-weight:800;font-size:1.06em}
+.bravo-recap__pos{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-top:.35rem;color:#c5b8ff;font-size:13px;font-weight:700}
+.bravo-recap__pos em{font-style:normal;color:#fff;display:inline-flex;align-items:baseline;gap:.4rem}
+.bravo-recap__pos sup{font-size:.62em}
+.bravo-recap__pos i{font-style:normal;font-size:.82em;font-weight:800}
+.bravo-recap__pos i.up{color:#35e59a}
+.bravo-recap__pos i.down{color:#ff6b85}
+.bravo-recap__pos i.flat{color:#9aa0c0}
+.bravo-recap__mt{color:#e7c96b;font-size:13px;line-height:1.5;font-weight:600}
 /* Bouton « Révéler la réponse » (MODE TEST) */
 .jg-reveal-btn{display:block;margin:14px auto 0;padding:9px 16px;border-radius:10px;border:1px solid rgba(240,73,111,.5);background:rgba(40,10,26,.6);color:#ff8fa6;font:700 12px Inter,Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;transition:background .15s,border-color .15s}
 .jg-reveal-btn:hover{background:rgba(240,73,111,.16);border-color:rgba(240,73,111,.8)}
 .jg-reveal-dialog{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;background:rgba(4,4,16,.62);backdrop-filter:blur(3px)}
 .jg-reveal-card{max-width:420px;margin:16px;padding:22px 24px;border:1px solid rgba(139,112,255,.4);border-radius:18px;background:linear-gradient(160deg,#141334,#0a0a22);color:#e9e9f6;box-shadow:0 24px 70px rgba(2,2,16,.6);font-family:Inter,Arial,sans-serif;text-align:center}
-.jg-reveal-card h4{margin:0 0 8px;font-family:"Archivo Black",Inter,sans-serif;font-size:20px}
+.jg-reveal-card h4{margin:0 0 8px;font-family:"Archivo Black",Inter,sans-serif}font-size:20px}
 .jg-reveal-card p{margin:6px 0;color:#b9bad2;font-size:13px}
 .jg-reveal-penalty{color:#ffd7df !important}.jg-reveal-penalty b{color:#ff4d6d}
 .jg-reveal-penalty small{color:#9aa0c0}
