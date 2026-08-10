@@ -41,10 +41,25 @@
   el.input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); var b = el.sugg.querySelector("button[data-id]"); if (b) pick(b.getAttribute("data-id")); } else if (e.key === "Escape") hideSugg(); });
   document.addEventListener("click", function (e) { if (!el.search.contains(e.target)) hideSugg(); });
   function hideSugg() { el.sugg.hidden = true; el.sugg.innerHTML = ""; }
+  // Prénom du joueur (nom complet moins le nom de famille = short_name).
+  function firstNameOf(p) {
+    var full = String(p.name || "").trim(), last = String(p.short_name || "").trim();
+    if (last && full.toLowerCase().slice(-last.length) === last.toLowerCase()) return full.slice(0, full.length - last.length).trim();
+    var parts = full.split(/\s+/); return parts.length > 1 ? parts.slice(0, -1).join(" ") : "";
+  }
+  function isGuessed(id) { return state.guesses.some(function (g) { return g.player && g.player.id === id; }); }
   async function runSearch(q) {
     var res = await API.searchPlayers(q); if (!res || !res.length) { hideSugg(); return; }
     res.forEach(function (p) { state.playersById[p.id] = p; });
-    el.sugg.innerHTML = res.map(function (p) { return '<button type="button" data-id="' + esc(p.id) + '"><span>' + esc(p.short_name || p.name) + '</span><small>' + esc(p.club || "") + '</small></button>'; }).join("");
+    // À gauche le NOM de famille, à droite le PRÉNOM (plus le club). Un joueur déjà
+    // essayé réapparaît avec la mention stylisée « joueur déjà utilisé » (non cliquable).
+    el.sugg.innerHTML = res.map(function (p) {
+      var last = esc(p.short_name || p.name), first = esc(firstNameOf(p));
+      if (isGuessed(p.id)) {
+        return '<div class="sugg-used" aria-disabled="true"><span>' + last + '</span><em class="sugg-used__tag">joueur déjà utilisé</em><small>' + first + '</small></div>';
+      }
+      return '<button type="button" data-id="' + esc(p.id) + '"><span>' + last + '</span><small>' + first + '</small></button>';
+    }).join("");
     el.sugg.hidden = false;
     el.sugg.querySelectorAll("button[data-id]").forEach(function (b) { b.addEventListener("mousedown", function (e) { e.preventDefault(); pick(b.getAttribute("data-id")); }); });
   }
@@ -62,6 +77,9 @@
       state.status = r.status || (r.isWin ? "won" : "active");
       renderBoard(true);                              // la ligne fraîche se retourne case par case
       updateCount(); refreshHint(); refreshPoints();
+      // Bruitage : « bonne réponse » quand la dernière case (verte) se retourne, sinon « mauvaise réponse ».
+      var soundDelay = REDUCED ? 0 : (7 * CELL_STAGGER + 250);
+      setTimeout(function () { if (global.JogadleSound) { r.isWin ? global.JogadleSound.correct() : global.JogadleSound.wrong(); } }, soundDelay);
       // Fin de la révélation SÉQUENTIELLE : on attend que les 8 cases aient fini de se retourner
       // avant de figer la ligne et, le cas échéant, d'afficher le Bravo.
       var finish = function () {

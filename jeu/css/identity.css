@@ -64,4 +64,7 @@
 .jg-id-join b{font-size:12px;letter-spacing:.02em}.jg-id-join small{color:#9aa0c0;font-size:10.5px}
 .jg-id-connected{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1px solid rgba(139,112,255,.3);background:rgba(94,83,217,.12)}
 .jg-id-pseudo{font:800 13px Inter,Arial;color:#fff}.jg-id-meta{color:#9aa0c0;font-size:10.5px;margin-right:auto}
+.jg-id-actions{display:flex;align-items:center;gap:7px}
 .jg-id-logout{border:1px solid rgba(255,255,255,.16);background:transparent;color:#cfd0e6;border-radius:8px;padding:6px 9px;font:700 10px Inter,Arial;cursor:pointer}
+.jg-id-rename{border:1px solid rgba(139,112,255,.5);background:rgba(94,83,217,.18);color:#e7e3ff;border-radius:8px;padding:6px 9px;font:700 10px Inter,Arial;cursor:pointer;white-space:nowrap}
+.jg-id-rename:hover{border-color:rgba(139,112,255,.85);background:rgba(94,83,217,.32)}

@@ -84,7 +84,17 @@
       pseudo = String(pseudo || "").trim();
       if (RESERVED.test(pseudo) || /admin|tomsofoot|jogadle/i.test(pseudo)) return { error: "pseudo_reserved" };
       if (pseudo.toLowerCase() === "kingcarlos") return { error: "pseudo_taken" }; // démontre l'erreur d'unicité
-      MOCK_PROFILE = { public_ref: "pubref-" + Date.now().toString(16), display_name: pseudo, league: "pro", rank: 15, points: 1523 };
+      MOCK_PROFILE = { public_ref: "pubref-" + Date.now().toString(16), display_name: pseudo, league: "pro", rank: 15, points: 1523, changes_left: 1 };
+      return MOCK_PROFILE;
+    },
+    // Changement de pseudo : un seul autorisé (démo).
+    async updatePseudo(pseudo) {
+      pseudo = String(pseudo || "").trim();
+      if (!MOCK_PROFILE) return { error: "no_profile" };
+      if (RESERVED.test(pseudo) || /admin|tomsofoot|jogadle/i.test(pseudo)) return { error: "pseudo_reserved" };
+      if (pseudo.toLowerCase() === "kingcarlos") return { error: "pseudo_taken" };
+      if ((MOCK_PROFILE.changes_left || 0) <= 0) return { error: "change_used" };
+      MOCK_PROFILE = Object.assign({}, MOCK_PROFILE, { display_name: pseudo, changes_left: 0 });
       return MOCK_PROFILE;
     },
     // Attributs publics des joueurs déjà proposés (reprise) — jamais la cible.
@@ -110,9 +120,10 @@
       return { status: "revealed", penalty: penalty, answer: { name: TARGET.short_name || TARGET.name } };
     },
     async searchPlayers(q) {
+      // Comme le vrai serveur (search-players) : renvoie TOUS les joueurs correspondants, y compris
+      // ceux déjà proposés — c'est le client qui les marque « joueur déjà utilisé ».
       q = (q || "").trim().toLowerCase(); if (q.length < 2) return [];
       return P.filter(function (p) { return p.name.toLowerCase().includes(q) || p.short_name.toLowerCase().includes(q); })
-              .filter(function (p) { return !guesses.some(function (g) { return g.guess_player_id === p.id; }); })
               .slice(0, 6);
     },
     isGuest() { return !global.__JOGADLE_ME; },

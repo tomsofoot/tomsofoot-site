@@ -22,10 +22,14 @@
     if (isConnected()) {
       var m = me();
       var ligue = m.league && m.league !== "unranked" ? ("Ligue " + m.league) : "Hors Ligue";
+      var canRename = (m.changesLeft == null ? 1 : m.changesLeft) > 0;
       mount.innerHTML = '<div class="jg-id-connected"><span class="jg-id-pseudo">' + esc(m.pseudo || m.display_name) +
         '</span><span class="jg-id-meta">' + esc(ligue) + (m.points != null ? (" · " + m.points + " pts") : "") + '</span>' +
-        '<button type="button" class="jg-id-logout">Se déconnecter</button></div>';
+        '<div class="jg-id-actions">' +
+        (canRename ? '<button type="button" class="jg-id-rename">Modifier le pseudo</button>' : '') +
+        '<button type="button" class="jg-id-logout">Se déconnecter</button></div></div>';
       mount.querySelector(".jg-id-logout").addEventListener("click", logout);
+      var rn = mount.querySelector(".jg-id-rename"); if (rn) rn.addEventListener("click", openRename);
     } else {
       mount.innerHTML = '<button type="button" class="jg-id-join"><b>Rejoindre le championnat</b><small>Créez votre identité Jogadle et entrez dans la compétition.</small></button>';
       mount.querySelector(".jg-id-join").addEventListener("click", openConnect);
@@ -106,8 +110,50 @@
       public_ref: p.public_ref, pseudo: p.display_name || p.pseudo,
       display_name: p.display_name || p.pseudo, league: p.league || null,
       rank: p.rank != null ? p.rank : null, points: p.points != null ? p.points : null,
+      changesLeft: p.changes_left != null ? p.changes_left : 1,   // 1 changement de pseudo autorisé
     };
     closeAuth(); renderIdentityBlock(); emit();
+  }
+
+  // ------- Modifier le pseudo (UN SEUL changement autorisé) -------
+  function openRename() {
+    if (document.querySelector(".jg-auth")) return;
+    var o = document.createElement("div");
+    o.className = "jg-auth";
+    o.innerHTML =
+      '<div class="jg-auth__card">' +
+      '<button class="jg-auth__close" aria-label="Fermer">×</button>' +
+      '<div class="jg-auth__eyebrow">Changer de pseudo</div>' +
+      '<h3 class="jg-auth__title">Nouveau pseudo</h3>' +
+      '<p class="jg-auth__sub">Attention : vous ne pouvez le changer qu\'<b>une seule fois</b>. Unique, 20 caractères maximum.</p>' +
+      '<input type="text" maxlength="20" class="jg-auth__pseudo" placeholder="Votre nouveau pseudo">' +
+      '<div class="jg-auth__err" style="display:none"></div>' +
+      '<button class="jg-auth__btn jg-auth__save">Valider le changement</button>' +
+      '</div>';
+    document.body.appendChild(o);
+    o.querySelector(".jg-auth__close").addEventListener("click", function () { o.remove(); });
+    o.addEventListener("click", function (e) { if (e.target === o) o.remove(); });
+    var input = o.querySelector(".jg-auth__pseudo"); input.focus();
+    var saveBtn = o.querySelector(".jg-auth__save");
+    function fail(msg) { var err = o.querySelector(".jg-auth__err"); err.textContent = msg; err.style.display = ""; saveBtn.disabled = false; }
+    saveBtn.addEventListener("click", function () {
+      var v = input.value.trim();
+      if (v.length < 2 || v.length > 20) { fail("Entre 2 et 20 caractères."); return; }
+      saveBtn.disabled = true;
+      var api = API();
+      if (!api || !api.updatePseudo) { fail("Service indisponible."); return; }
+      api.updatePseudo(v).then(function (r) {
+        if (r && r.error) {
+          if (r.error === "pseudo_taken") return fail("Ce pseudo est déjà pris.");
+          if (r.error === "pseudo_reserved") return fail("Pseudo réservé ou trompeur refusé.");
+          if (r.error === "change_used") return fail("Vous avez déjà utilisé votre changement de pseudo.");
+          return fail("Changement impossible. Réessayez.");
+        }
+        if (r && r.public_ref) { o.remove(); setMe(r); }
+        else fail("Réponse inattendue du serveur.");
+      }).catch(function () { fail("Changement impossible. Réessayez."); });
+    });
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter") saveBtn.click(); });
   }
 
   // ------- Création du pseudo permanent (après 1re connexion) -------

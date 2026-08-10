@@ -234,6 +234,11 @@ button { color: inherit; }
 .suggestions button:hover, .suggestions button:focus-visible { outline:0; background:linear-gradient(90deg, rgba(87,63,194,.36), rgba(31,25,85,.36)); }
 .suggestions button span { font-weight:800; }
 .suggestions button small { color:#9397b7; }
+/* Joueur déjà proposé : réapparaît, non cliquable, avec la mention stylisée « joueur déjà utilisé ». */
+.suggestions .sugg-used { width:100%; min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 22px; border-bottom:1px solid rgba(132,126,190,.12); opacity:.72; cursor:not-allowed; }
+.suggestions .sugg-used span { font-weight:800; color:#c9c9df; }
+.suggestions .sugg-used small { color:#8a8fb0; }
+.suggestions .sugg-used__tag { flex:0 0 auto; font-style:normal; font-size:10px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; color:#ffb3c1; padding:4px 10px; border-radius:999px; border:1px solid rgba(240,73,111,.5); background:rgba(60,14,30,.55); box-shadow:inset 0 1px rgba(255,255,255,.06); }
 
 /* ---------- BOARD ---------- */
 #td-board-area { margin-top: 30px; }

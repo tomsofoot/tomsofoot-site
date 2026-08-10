@@ -76,6 +76,7 @@
     // Profil serveur (jamais de public_ref fabriqué côté client).
     async getMyProfile() { return call("get-my-profile", {}); },
     async getOrCreateProfile(pseudo) { return call("get-or-create-profile", { pseudo: pseudo }); },
+    async updatePseudo(pseudo) { return call("update-pseudo", { pseudo: pseudo }); },
     async chooseUltimateCard(seasonId, variant) { return call("choose-ultimate-card", { seasonId: seasonId, variant: variant }); },
     isGuest() { return !connected(); },
   };
