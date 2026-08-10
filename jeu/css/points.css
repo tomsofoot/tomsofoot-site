@@ -1,0 +1,108 @@
+.jg-points-live{display:inline-flex;align-items:center;gap:.65rem;padding:.55rem .8rem;border:1px solid rgba(139,112,255,.35);border-radius:12px;background:rgba(11,12,40,.72);color:#a7a5bf;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.jg-points-live strong{color:#fff;font-size:1.18em;letter-spacing:.02em}
+.jg-points-live.is-perfect strong{color:#35e59a;text-shadow:0 0 18px rgba(53,229,154,.22)}
+.jg-points-penalty{color:#ff496f;font-weight:800}
+.jg-rank-moving{position:relative;will-change:transform;pointer-events:none}
+.jg-rank-overtake{z-index:20!important;box-shadow:0 0 24px rgba(105,74,255,.22)}
+.jg-score-breakdown{display:grid;gap:.5rem;max-width:520px;margin-inline:auto;padding:1rem 1.1rem;border:1px solid rgba(139,112,255,.32);border-radius:16px;background:rgba(9,10,34,.86)}
+.jg-score-breakdown__row{display:flex;justify-content:space-between;gap:1rem;color:#aaa9bf}
+.jg-score-breakdown__row strong{color:#fff}
+.jg-score-breakdown__total{margin-top:.3rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.1);font-size:1.25rem}
+.jg-active-badge{display:inline-flex;margin-left:.5rem;padding:.15rem .4rem;border:1px solid rgba(158,132,255,.35);border-radius:999px;color:#c5b8ff;font-size:.68em;font-weight:800;line-height:1.2;vertical-align:middle;white-space:nowrap}
+
+/* ===== Compléments championnat (placement en-jeu, révélation, banc d'essai) ===== */
+/* POINTS EN JEU : centré sous la barre de progression */
+#jg-points-live{display:flex;justify-content:center;margin:6px auto 2px;width:max-content;font-size:11px}
+#jg-points-live .jg-points-penalty{font-size:.85em;text-transform:none;letter-spacing:0}
+/* Récapitulatif championnat dans le bloc Bravo */
+.end-card .jg-score-breakdown{margin-top:16px;text-align:left}
+/* Bouton « Révéler la réponse » (MODE TEST) */
+.jg-reveal-btn{display:block;margin:14px auto 0;padding:9px 16px;border-radius:10px;border:1px solid rgba(240,73,111,.5);background:rgba(40,10,26,.6);color:#ff8fa6;font:700 12px Inter,Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;transition:background .15s,border-color .15s}
+.jg-reveal-btn:hover{background:rgba(240,73,111,.16);border-color:rgba(240,73,111,.8)}
+.jg-reveal-dialog{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;background:rgba(4,4,16,.62);backdrop-filter:blur(3px)}
+.jg-reveal-card{max-width:420px;margin:16px;padding:22px 24px;border:1px solid rgba(139,112,255,.4);border-radius:18px;background:linear-gradient(160deg,#141334,#0a0a22);color:#e9e9f6;box-shadow:0 24px 70px rgba(2,2,16,.6);font-family:Inter,Arial,sans-serif;text-align:center}
+.jg-reveal-card h4{margin:0 0 8px;font-family:"Archivo Black",Inter,sans-serif;font-size:20px}
+.jg-reveal-card p{margin:6px 0;color:#b9bad2;font-size:13px}
+.jg-reveal-penalty{color:#ffd7df !important}.jg-reveal-penalty b{color:#ff4d6d}
+.jg-reveal-penalty small{color:#9aa0c0}
+.jg-reveal-actions{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.jg-reveal-actions button{padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.16);font:700 12px Inter,Arial;cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
+.jg-reveal-cancel{background:rgba(255,255,255,.06);color:#d7d8e6}
+.jg-reveal-confirm{background:linear-gradient(135deg,#b3203f,#f0496f);color:#fff;border-color:rgba(240,73,111,.7)}
+
+/* ===== Banc d'essai Championnat (MODE TEST uniquement) ===== */
+.jg-bench{position:fixed;z-index:3800;left:16px;bottom:16px;width:360px;max-width:calc(100vw - 32px);max-height:78vh;display:flex;flex-direction:column;border:1px solid rgba(139,112,255,.4);border-radius:14px;background:linear-gradient(165deg,rgba(20,19,52,.98),rgba(8,8,26,.98));box-shadow:0 20px 60px rgba(2,2,16,.55);font-family:Inter,Arial,sans-serif;color:#e9e9f6}
+.jg-bench.is-collapsed{width:auto}
+.jg-bench.is-collapsed .jg-bench__body{display:none}
+.jg-bench__head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;cursor:pointer;border-bottom:1px solid rgba(139,112,255,.22)}
+.jg-bench.is-collapsed .jg-bench__head{border-bottom:0}
+.jg-bench__title{font:800 11px Inter,Arial;letter-spacing:.08em;text-transform:uppercase;color:#c5b8ff}
+.jg-bench__title b{display:inline-block;margin-right:7px;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#4030a4,#5446cb);color:#fff;font-size:9px}
+.jg-bench__toggle{border:0;background:transparent;color:#9aa0c0;font-size:16px;cursor:pointer;line-height:1}
+.jg-bench__body{padding:12px 13px;overflow:auto}
+.jg-bench__group{margin-bottom:12px}
+.jg-bench__group h5{margin:0 0 7px;font:800 10px Inter,Arial;letter-spacing:.05em;text-transform:uppercase;color:#8f93b4}
+.jg-bench__row{display:flex;flex-wrap:wrap;gap:7px}
+.jg-bench button.jg-b{flex:1 1 auto;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid rgba(139,112,255,.35);background:rgba(94,83,217,.14);color:#dfe0f0;font:700 11px Inter,Arial;cursor:pointer;transition:background .15s}
+.jg-bench button.jg-b:hover{background:rgba(94,83,217,.28)}
+.jg-bench button.jg-b.alt{border-color:rgba(240,73,111,.4);background:rgba(240,73,111,.12);color:#ff9db0}
+.jg-bench__log{margin-top:6px;max-height:34vh;overflow:auto;border:1px solid rgba(129,116,209,.2);border-radius:9px;background:rgba(4,5,20,.5);padding:9px 10px;font:500 11px/1.5 ui-monospace,Menlo,Consolas,monospace;color:#c9cbe0;white-space:pre-wrap}
+.jg-bench__log .ok{color:#35e59a}.jg-bench__log .bad{color:#ff6b85}.jg-bench__log .hd{color:#c5b8ff;font-weight:800}
+
+/* Célébration champion + partage */
+.jg-champ{position:fixed;inset:0;z-index:4200;display:grid;place-items:center;background:rgba(3,3,14,.72);backdrop-filter:blur(4px)}
+.jg-champ__card{width:min(440px,92vw);padding:26px 26px 22px;border:1px solid rgba(158,132,255,.45);border-radius:20px;background:linear-gradient(165deg,#171640,#0a0a24);color:#f2f2fb;text-align:center;box-shadow:0 30px 90px rgba(2,2,16,.7);font-family:Inter,Arial,sans-serif;position:relative}
+.jg-champ__close{position:absolute;top:12px;right:14px;border:0;background:transparent;color:#9aa0c0;font-size:22px;cursor:pointer;line-height:1}
+.jg-champ__icon{width:74px;height:74px;margin:2px auto 10px;display:grid;place-items:center;font-size:40px}
+.jg-champ__eyebrow{font:800 10px Inter,Arial;letter-spacing:.14em;text-transform:uppercase;color:#c5b8ff}
+.jg-champ__title{margin:6px 0 2px;font-family:"Archivo Black",Inter,sans-serif;font-size:26px;text-transform:uppercase;letter-spacing:-.02em}
+.jg-champ__sub{color:#b9bad2;font-size:13px;margin:0 0 14px}
+.jg-champ__actions{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-top:6px}
+.jg-champ__actions button{padding:10px 14px;border-radius:10px;border:1px solid rgba(139,112,255,.4);background:rgba(94,83,217,.16);color:#e6e6f5;font:700 11px Inter,Arial;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+.jg-champ__actions button.primary{background:linear-gradient(135deg,#4030a4,#5446cb);color:#fff;border-color:rgba(129,116,209,.7)}
+
+/* ===== Sélecteur cartes officielles « Le Roi des Rois » (champion Ligue Ultime) ===== */
+.jg-champ--ultime .jg-champ__card{width:min(760px,94vw);max-height:92vh;overflow:auto;text-align:center}
+.jg-uc__eyebrow{font:800 10px Inter,Arial;letter-spacing:.16em;text-transform:uppercase;color:#e7c96b}
+.jg-uc__title{margin:4px 0 2px;font-family:"Archivo Black",Inter,sans-serif;font-size:30px;letter-spacing:.02em;background:linear-gradient(180deg,#ffe9a8,#d9a53a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.jg-uc__sub{margin:0 0 12px;color:#b9bad2;font-size:12.5px}
+.jg-uc__namerow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:2px 0 6px}
+.jg-uc__namerow label{font:700 11px Inter,Arial;text-transform:uppercase;letter-spacing:.05em;color:#9aa0c0}
+.jg-uc__input{padding:9px 12px;border-radius:9px;border:1px solid rgba(158,132,255,.45);background:rgba(9,10,34,.9);color:#fff;font:700 14px Inter,Arial;min-width:230px;text-align:center}
+.jg-uc__hint{width:100%;color:#8f93b4;font-size:10.5px;margin-top:2px}
+.jg-uc__tests{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:2px 0 12px}
+.jg-uc__tests button{padding:5px 9px;border-radius:999px;border:1px solid rgba(139,112,255,.3);background:rgba(94,83,217,.12);color:#cfd0e6;font:700 10px Inter,Arial;cursor:pointer}
+.jg-uc__tests button:hover{background:rgba(94,83,217,.26)}
+.jg-uc__models{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 12px}
+.jg-uc__model{cursor:pointer;border:2px solid transparent;border-radius:12px;padding:6px 6px 8px;background:rgba(255,255,255,.03);transition:border-color .15s,background .15s}
+.jg-uc__model:hover{background:rgba(94,83,217,.14)}
+.jg-uc__model.is-selected{border-color:#e7c96b;background:rgba(231,201,107,.12)}
+.jg-uc__model canvas{width:100%;height:auto;border-radius:8px;display:block}
+.jg-uc__model span{display:block;margin-top:6px;font:800 10px Inter,Arial;text-transform:uppercase;letter-spacing:.05em;color:#c9cbe0}
+.jg-uc__preview{width:100%;max-width:300px;height:auto;border-radius:12px;margin:2px auto 10px;display:block;box-shadow:0 16px 44px rgba(2,2,16,.6)}
+.jg-uc__actions{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.jg-uc__actions button{padding:10px 14px;border-radius:10px;border:1px solid rgba(139,112,255,.4);background:rgba(94,83,217,.16);color:#e6e6f5;font:700 11px Inter,Arial;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+.jg-uc__actions button.primary{background:linear-gradient(135deg,#b98a2a,#e7c96b);color:#20160a;border-color:rgba(231,201,107,.7)}
+.jg-uc__actions button:disabled{opacity:.5;cursor:not-allowed}
+.jg-uc__lock{margin-top:10px;font:700 11px Inter,Arial;color:#e7c96b;min-height:14px}
+.jg-uc__social{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:8px}
+.jg-uc__social button{padding:7px 10px;border-radius:8px;border:1px solid rgba(139,112,255,.28);background:rgba(9,10,34,.7);color:#cfd0e6;font:700 10px Inter,Arial;cursor:pointer}
+
+/* ===== Simulation immersive : sacre Champion Ligue Ultime ===== */
+.jg-b.win{flex:1 1 100%;background:linear-gradient(135deg,#b98a2a,#e7c96b);color:#20160a;border-color:rgba(231,201,107,.7);font-weight:800}
+.jg-b.win:hover{filter:brightness(1.05)}
+.jg-win{position:fixed;inset:0;z-index:4300;display:grid;place-items:center;background:radial-gradient(circle at 50% 28%,rgba(70,46,140,.55),rgba(3,3,14,.92));overflow:hidden}
+.jg-win__confetti{position:absolute;inset:0;pointer-events:none}
+.jg-win__card{position:relative;z-index:2;width:min(460px,92vw);padding:24px 26px 22px;border:1px solid rgba(231,201,107,.5);border-radius:22px;background:linear-gradient(165deg,#1a1440,#0a0a24);color:#f4f1fb;text-align:center;box-shadow:0 30px 90px rgba(2,2,16,.7),0 0 70px rgba(231,201,107,.16);animation:jgWinPop .5s cubic-bezier(.2,.9,.25,1) both}
+@keyframes jgWinPop{from{transform:translateY(14px) scale(.94);opacity:0}to{transform:none;opacity:1}}
+.jg-win__crown{width:92px;height:92px;margin:0 auto 6px;filter:drop-shadow(0 8px 20px rgba(231,201,107,.55));animation:jgCrown 2.6s ease-in-out infinite}
+@keyframes jgCrown{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.jg-win__eyebrow{font:800 11px Inter,Arial;letter-spacing:.2em;text-transform:uppercase;color:#e7c96b}
+.jg-win__title{margin:6px 0 2px;font-family:"Archivo Black",Inter,sans-serif;font-size:23px;text-transform:uppercase;line-height:1.06;background:linear-gradient(180deg,#ffe9a8,#d9a53a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.jg-win__pseudo{margin:10px 0 2px;font-family:"Archivo Black",Inter,sans-serif;font-size:30px;color:#fff}
+.jg-win__nameinput{margin:10px auto 2px;display:block;padding:8px 12px;border-radius:9px;border:1px solid rgba(231,201,107,.4);background:rgba(9,10,34,.9);color:#fff;font:800 18px Inter,Arial;text-align:center;max-width:260px}
+.jg-win__sub{color:#c8c9dc;font-size:12.5px;margin:4px 0 16px}
+.jg-win__actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.jg-win__actions button{padding:11px 16px;border-radius:11px;border:1px solid rgba(231,201,107,.5);font:800 12px Inter,Arial;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+.jg-win__actions .primary{background:linear-gradient(135deg,#b98a2a,#e7c96b);color:#20160a}
+.jg-win__actions .ghost{background:rgba(255,255,255,.06);color:#d7d8e6}

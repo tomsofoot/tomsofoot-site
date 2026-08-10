@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Jogadle — TomsoFoot</title>
+  <meta name="theme-color" content="#08081b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/leaderboard.css">
+  <link rel="stylesheet" href="css/identity.css">
+  <link rel="stylesheet" href="css/points.css">
+  <script src="config.public.js"></script>
+  <script src="config.js"></script>
+  <style id="jg-integration">
+    @media (min-width:1100px){
+      .jg-league{ position:sticky; top:0; height:100vh; overflow:hidden; align-self:start; display:flex; flex-direction:column; }
+      .jogadle-app-layout > .jogadle-game{ height:100vh; overflow-y:auto; overflow-x:hidden; scroll-behavior:smooth; }
+      .jg-league__head, .jg-identity, .jg-league-tabs, .jg-table-head, .jg-zone-legend, .jg-unranked{ flex:0 0 auto; }
+      .jg-ranking{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+      .jg-ranking li{ flex:1 1 0; min-height:0; height:auto; }
+      .jogadle-app-layout .hint-fab{ right:auto; left:clamp(16px,2vw,30px); }
+    }
+    .jogadle-game .jogadle{ min-height:100vh; }
+    .jg-open-btn, .jg-close-btn{ display:none; }
+    @media (max-width:1099px){
+      .jg-open-btn{ display:inline-flex; align-items:center; gap:8px; position:fixed; z-index:1500; left:50%; bottom:18px; transform:translateX(-50%);
+        padding:13px 20px; border-radius:999px; border:1px solid rgba(121,87,255,.7); color:#fff; cursor:pointer;
+        font-family:"Archivo Black",Inter,sans-serif; font-size:13px; letter-spacing:.04em; text-transform:uppercase;
+        background:linear-gradient(135deg,#4030a4,#5446cb); box-shadow:0 14px 34px rgba(40,26,120,.5), inset 0 1px rgba(255,255,255,.25); }
+      .jg-league.is-open .jg-close-btn{ display:grid; place-items:center; position:absolute; top:16px; right:16px; z-index:5; width:40px; height:40px;
+        border-radius:50%; border:1px solid rgba(255,255,255,.25); background:rgba(10,10,30,.7); color:#fff; font-size:24px; line-height:1; cursor:pointer; }
+    }
+    html[data-champ="off"] .jg-league, html[data-champ="off"] .jg-open-btn{ display:none !important; }
+    html[data-champ="off"] .jogadle-app-layout{ display:block; }
+    html[data-champ="off"] .jogadle-app-layout>.jogadle-game{ height:auto; overflow:visible; }
+    .jg-degraded{ margin:0 0 14px; padding:12px 16px; border-radius:10px; border:1px solid rgba(240,73,111,.4); background:rgba(40,10,26,.5); color:#ffb3c1; font:600 13px Inter,Arial; }
+  </style>
+</head>
+<body>
+  <div class="jogadle-app-layout">
+   <div class="jogadle-game">
+    <main>
+      <section class="jogadle" id="jeu">
+        <div class="jogadle-stage" aria-hidden="true"></div>
+        <div class="td-hero">
+          <div class="td-eyebrow"><i></i> Le joueur du jour <i></i></div>
+          <h1><span>Un joueur.</span><em data-fitline>Autant d’essais qu’il faut.</em></h1>
+          <p>Le Jogadle : retrouvez le footballeur mystère grâce aux indices révélés après chaque proposition.</p>
+          <div class="daily-meta">
+            <span>Édition <strong id="td-puzzle">—</strong></span>
+            <span class="separator"></span>
+            <span>Prochain joueur dans <strong id="td-next">— : — : —</strong></span>
+          </div>
+          <div class="top-actions">
+            <button class="icon-button" type="button" data-td-help aria-label="Comment jouer">?</button>
+          </div>
+        </div>
+
+        <div class="game-shell">
+          <div class="jg-points-live" id="jg-points-live" aria-live="polite">Points en jeu <strong>—</strong></div>
+          <div class="progress-row">
+            <span>Propositions</span>
+            <div class="progress-rail" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="attempt-count" id="td-count" aria-live="polite">00</div>
+            <div class="progress-rail" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <strong>Essais illimités</strong>
+          </div>
+
+          <div class="search-wrap" id="td-search">
+            <label for="td-input">Quel est le joueur mystère ?</label>
+            <div class="search-field" id="td-field">
+              <span class="search-icon" aria-hidden="true"></span>
+              <input id="td-input" type="text" autocomplete="off" spellcheck="false" placeholder="Rechercher un joueur…">
+              <i class="field-corner" aria-hidden="true"></i>
+            </div>
+            <div class="suggestions" id="td-suggestions" hidden></div>
+          </div>
+
+          <div id="td-board-area"></div>
+          <div id="td-end"></div>
+
+          <div class="legend">
+            <span><i class="correct"></i> Bonne réponse</span>
+            <span><i class="wrong"></i> Mauvaise réponse</span>
+            <span><b>↓</b> Plus grand</span>
+            <span><b>↑</b> Plus petit</span>
+          </div>
+          <button type="button" id="td-reveal" class="jg-reveal-btn">Révéler la réponse</button>
+        </div>
+
+        <div class="hint-fab is-locked" id="td-hint">
+          <button class="hint-fab__btn" type="button" aria-expanded="false" aria-label="Indice : première lettre (débloqué après 5 mauvaises réponses)">
+            <span class="hint-fab__shine" aria-hidden="true"></span>
+            <span class="hint-fab__ic hint-fab__ic--lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="2"/><rect x="4.5" y="10" width="15" height="10" rx="2.5" fill="currentColor"/></svg></span>
+            <span class="hint-fab__ic hint-fab__ic--q" aria-hidden="true">?</span>
+            <span class="hint-fab__label">Indice</span>
+            <span class="hint-fab__count" aria-hidden="true">0/5</span>
+            <span class="hint-fab__reveal">Nom&nbsp;: <b></b></span>
+          </button>
+          <button class="hint-info" type="button" aria-label="Comment obtenir l'indice ?">?</button>
+          <span class="hint-tip" role="tooltip">L’indice (1ʳᵉ lettre du nom) se débloque après 5 mauvaises réponses.</span>
+        </div>
+      </section>
+    </main>
+   </div>
+
+   <aside class="jg-league" id="jg-league" aria-label="Championnat Jogadle">
+     <header class="jg-league__head">
+       <div>
+         <span class="jg-league__eyebrow">Championnat Jogadle</span>
+         <div class="jg-league__title-row"><h2 id="jg-league-title">Ligue Pro</h2><span class="jg-live"><i></i> En direct</span></div>
+         <button class="jg-close-btn" type="button" aria-label="Fermer le classement" onclick="window.JogadleLeagueUI&&JogadleLeagueUI.close()">×</button>
+       </div>
+       <div class="jg-season">
+         <span>Saison · <strong id="jg-season-name">—</strong></span>
+         <span>Fin de saison dans · <strong id="jg-season-left">—</strong></span>
+       </div>
+     </header>
+     <div class="jg-identity" id="jg-identity"></div>
+     <nav class="jg-league-tabs" aria-label="Ligues">
+       <button data-league="ultimate">Ultime</button>
+       <button class="is-active" data-league="pro">Pro</button>
+       <button data-league="rookie">Rookie</button>
+       <button data-league="noob">Noob</button>
+     </nav>
+     <div class="jg-table-head" aria-hidden="true"><span>Pos.</span><span>Joueur</span><span>Pts</span><span>↕</span></div>
+     <ol class="jg-ranking" id="jg-ranking" aria-live="polite"></ol>
+     <div class="jg-zone-legend"><span class="up">● 1–5 Montée</span><span>6–15 Maintien</span><span class="down">● 16–20 Descente</span></div>
+     <section class="jg-unranked" id="jg-unranked">
+       <div><strong>Hors Ligue</strong><span>Continuez à jouer pour intégrer la Ligue Noob.</span></div>
+       <div class="jg-unranked__me"><span>Votre rang</span><b id="jg-unranked-rank">—</b><span id="jg-unranked-points">— pts</span></div>
+     </section>
+   </aside>
+   <button class="jg-open-btn" type="button" onclick="window.JogadleLeagueUI&&JogadleLeagueUI.open()">Classement ↗</button>
+  </div>
+
+  <!-- Ordre : config(.public) → mock (inerte hors TEST_MODE) → auth réelle → api → realtime →
+       cartes/partage → identité → jeu → classement → main -->
+  <script src="js/mock.js"></script>
+  <script src="js/auth-supabase.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/realtime.js"></script>
+  <script src="js/ultimate-cards.js"></script>
+  <script src="js/share-card.js"></script>
+  <script src="js/identity.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
