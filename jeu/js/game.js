@@ -16,7 +16,8 @@
     used: root.querySelector("#td-used"),
   };
   var HEAD = ["Joueur", "Confédération", "Club", "Ligue", "Nation", "Poste", "Âge", "N°"];
-  var BAREME = { 1: 100, 2: 50, 3: 45, 4: 35, 5: 25, 6: 15, 7: 5, 8: 5 };
+  // Barème officiel : source unique = window.JogadleRules (miroir du serveur). 7=5, 8=3, 9=1, 10+=0.
+  var RULES = global.JogadleRules || { potential: function (n, h) { var m = { 1: 100, 2: 50, 3: 45, 4: 35, 5: 25, 6: 15, 7: 5, 8: 3, 9: 1 }; return Math.max(0, (m[n] || 0) - (h ? 5 : 0)); }, base: function (n) { var m = { 1: 100, 2: 50, 3: 45, 4: 35, 5: 25, 6: 15, 7: 5, 8: 3, 9: 1 }; return m[n] || 0; } };
   // Révélation séquentielle des 8 cases : 350 ms de décalage par case (comme la version premium).
   // La dernière case (--delay 2450 ms) + 460 ms d'animation finit vers 2910 ms : REVEAL_MS couvre tout.
   var CELL_STAGGER = 350;
@@ -27,7 +28,7 @@
     if (el.input) { el.input.disabled = on; el.input.placeholder = on ? "Révélation en cours…" : "Rechercher un joueur…"; }
   }
 
-  var state = { guesses: [], status: "active", hintRevealed: false, hintLetter: null, playersById: {}, busy: false };
+  var state = { guesses: [], status: "active", hintRevealed: false, hintLetter: null, playersById: {}, busy: false, winRecap: null };
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function ageOf(bd) { if (!bd) return null; var b = new Date(bd + "T00:00:00Z"), t = new Date(); var a = t.getUTCFullYear() - b.getUTCFullYear(); var m = t.getUTCMonth() - b.getUTCMonth(); if (m < 0 || (m === 0 && t.getUTCDate() < b.getUTCDate())) a--; return a; }
@@ -76,6 +77,7 @@
       var player = state.playersById[id] || { id: id, short_name: id };
       state.guesses.push({ player: player, states: r.states });
       state.status = r.status || (r.isWin ? "won" : "active");
+      state.winRecap = r.isWin ? (r.win || null) : null;   // récap serveur (calcul déjà fait côté serveur)
       renderBoard(true);                              // la ligne fraîche se retourne case par case
       renderUsedList();                               // liste « joueurs déjà utilisés » mise à jour
       updateCount(); refreshHint(); refreshPoints();
@@ -154,7 +156,7 @@
     if (state.status !== "active") { live.style.display = "none"; return; }
     live.style.display = "";
     var next = state.guesses.length + 1;
-    var pot = Math.max(0, (BAREME[next] || 0) - (state.hintRevealed ? 5 : 0));
+    var pot = RULES.potential(next, state.hintRevealed);
     live.querySelector("strong").textContent = pot + " pts";
     live.classList.toggle("is-perfect", pot === 100);
   }
@@ -191,10 +193,49 @@
   });
 
   // ---------- Bravo + défilement ----------
+  function leagueLabel(key) {
+    var L = (RULES && RULES.LEAGUE_LABELS) || { ultimate: "Ultime", pro: "Pro", rookie: "Rookie", noob: "Noob" };
+    return L[key] || null;
+  }
+  // Récapitulatif détaillé de fin de partie. Toutes les valeurs proviennent du serveur (state.winRecap) ;
+  // le client ne fait qu'AFFICHER (aucun point n'est calculé ici).
+  function recapHTML() {
+    var w = state.winRecap;
+    if (!w) return "";                                   // invité / mode dégradé : pas de récap chiffré
+    var rows = [];
+    rows.push(["Essais", String(w.attempts)]);
+    if (w.moneyTime) {
+      // Jour de Money Time : le gain quotidien est remplacé par la variation de championnat (calculée à part).
+      return '<div class="bravo-recap"><div class="bravo-recap__mt">Money Time — votre variation de championnat remplace le gain quotidien. ' +
+        'Elle sera appliquée à la clôture du groupe.</div></div>';
+    }
+    rows.push(["Points de base", "+" + w.base]);
+    if (w.hintPenalty) rows.push(["Indice révélé", "−" + w.hintPenalty]);
+    var recapLines = rows.map(function (r) {
+      var neg = /^−/.test(r[1]);
+      return '<div class="bravo-recap__row"><span>' + esc(r[0]) + '</span><b class="' + (neg ? "is-neg" : "") + '">' + esc(r[1]) + '</b></div>';
+    }).join("");
+    var won = '<div class="bravo-recap__row bravo-recap__row--won"><span>Points gagnés</span><b>+' + w.pointsWon + '</b></div>';
+    var totalBlock = '';
+    if (typeof w.totalAfter === "number") {
+      totalBlock = '<div class="bravo-recap__total"><span>Total de saison</span>' +
+        '<em>' + (typeof w.totalBefore === "number" ? w.totalBefore + ' → ' : '') + '<b>' + w.totalAfter + ' pts</b></em></div>';
+    }
+    var pos = '';
+    var lbl = leagueLabel(w.league);
+    if (lbl && w.rank != null) {
+      var ev = w.evolution || 0;
+      var evTxt = ev > 0 ? '<i class="up">▲ +' + ev + '</i>' : ev < 0 ? '<i class="down">▼ ' + Math.abs(ev) + '</i>' : '<i class="flat">— stable</i>';
+      pos = '<div class="bravo-recap__pos"><span>Ligue ' + esc(lbl) + '</span><em>' + esc(w.rank) + '<sup>e</sup> ' + evTxt + '</em></div>';
+    }
+    return '<div class="bravo-recap">' + recapLines + won + totalBlock + pos + '</div>';
+  }
   function showBravo() {
     if (el.search) el.search.style.display = "none";
     var n = state.guesses.length;
-    el.end.innerHTML = '<div class="end-card"><span>Bravo !</span><h3>Trouvé en ' + n + " proposition" + (n > 1 ? "s" : "") + '</h3><p>Revenez demain à minuit pour un nouveau joueur.</p><div class="end-actions"><button type="button" data-td-share>Partager</button><button type="button" class="secondary" data-td-png>Télécharger le PNG</button></div></div>';
+    el.end.innerHTML = '<div class="end-card"><span>Bravo !</span><h3>Trouvé en ' + n + " proposition" + (n > 1 ? "s" : "") + '</h3>' +
+      recapHTML() +
+      '<p>Revenez demain à minuit pour un nouveau joueur.</p><div class="end-actions"><button type="button" data-td-share>Partager</button><button type="button" class="secondary" data-td-png>Télécharger le PNG</button></div></div>';
     refreshPoints(); scrollToEnd();
   }
   function scrollToEnd() {
