@@ -240,6 +240,13 @@ button { color: inherit; }
 .suggestions .sugg-used small { color:#8a8fb0; }
 .suggestions .sugg-used__tag { flex:0 0 auto; font-style:normal; font-size:10px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; color:#ffb3c1; padding:4px 10px; border-radius:999px; border:1px solid rgba(240,73,111,.5); background:rgba(60,14,30,.55); box-shadow:inset 0 1px rgba(255,255,255,.06); }
 
+/* Liste « joueurs déjà utilisés » — s'affiche automatiquement sous la recherche à chaque mauvaise proposition. */
+.used-list { margin:14px 0 4px; display:flex; flex-direction:column; gap:7px; }
+.used-item { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:10px; border:1px solid rgba(240,73,111,.28); background:linear-gradient(90deg, rgba(52,14,28,.5), rgba(20,17,44,.4)); }
+.used-item__tag { flex:0 0 auto; font-style:normal; font-size:9.5px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; color:#ffb3c1; padding:4px 9px; border-radius:999px; border:1px solid rgba(240,73,111,.5); background:rgba(60,14,30,.6); }
+.used-item__name { font-weight:800; color:#fff; }
+.used-item__first { color:#a9adcb; margin-left:auto; font-size:12px; }
+
 /* ---------- BOARD ---------- */
 #td-board-area { margin-top: 30px; }
 .empty-board { min-height: 160px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#9da0ba; border-top:1px solid rgba(130,125,190,.11); border-bottom:1px solid rgba(130,125,190,.11); }

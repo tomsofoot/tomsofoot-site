@@ -13,6 +13,7 @@
     board: root.querySelector("#td-board-area"),
     end: root.querySelector("#td-end"), count: root.querySelector("#td-count"),
     hint: root.querySelector("#td-hint"), edition: root.querySelector("#td-puzzle"),
+    used: root.querySelector("#td-used"),
   };
   var HEAD = ["Joueur", "Confédération", "Club", "Ligue", "Nation", "Poste", "Âge", "N°"];
   var BAREME = { 1: 100, 2: 50, 3: 45, 4: 35, 5: 25, 6: 15, 7: 5, 8: 5 };
@@ -76,6 +77,7 @@
       state.guesses.push({ player: player, states: r.states });
       state.status = r.status || (r.isWin ? "won" : "active");
       renderBoard(true);                              // la ligne fraîche se retourne case par case
+      renderUsedList();                               // liste « joueurs déjà utilisés » mise à jour
       updateCount(); refreshHint(); refreshPoints();
       // Bruitage : « bonne réponse » quand la dernière case (verte) se retourne, sinon « mauvaise réponse ».
       var soundDelay = REDUCED ? 0 : (7 * CELL_STAGGER + 250);
@@ -126,6 +128,24 @@
     var fresh = rowHTML(state.guesses[state.guesses.length - 1], animateLast ? "revealing" : "revealed");
     el.board.innerHTML = '<div class="board-wrap"><div class="board">' + head + fresh + older + "</div></div>";
     // La bascule .revealing -> .revealed est pilotée par pick() (finish), une fois toutes les cases retournées.
+  }
+
+  // ---------- Liste « joueurs déjà utilisés » (sous la recherche, mise à jour automatique) ----------
+  // Dès qu'une proposition n'est pas la bonne, le joueur apparaît ici avec la mention stylisée
+  // « joueur déjà utilisé » suivie de son nom et de son prénom.
+  function renderUsedList() {
+    if (!el.used) return;
+    var used = state.guesses.filter(function (g) {
+      return !(g.states && g.states.length && g.states.every(function (s) { return s.state === "correct"; }));
+    });
+    if (!used.length) { el.used.hidden = true; el.used.innerHTML = ""; return; }
+    el.used.hidden = false;
+    el.used.innerHTML = used.slice().reverse().map(function (g) {
+      var p = g.player;
+      return '<div class="used-item"><em class="used-item__tag">joueur déjà utilisé</em>' +
+        '<span class="used-item__name">' + esc(p.short_name || p.name) + '</span>' +
+        '<small class="used-item__first">' + esc(firstNameOf(p)) + '</small></div>';
+    }).join("");
   }
 
   // ---------- Points potentiels ----------
@@ -215,6 +235,7 @@
     state.status = s.status || "active";
     state.hintRevealed = !!s.hint_revealed;
     renderBoard(false);                 // aucune animation à la reprise
+    renderUsedList();                   // restaure la liste « joueurs déjà utilisés »
     updateCount(); refreshHint(); refreshPoints();
 
     // Indice déjà révélé : on restaure la lettre (appel idempotent côté serveur).
