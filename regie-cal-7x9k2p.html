@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Régie — Calendrier des récompenses</title>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--bg:#07071a;--panel:#0d0e26;--panel2:#12132f;--line:rgba(129,116,209,.22);
+    --txt:#f3f3fb;--muted:#9fa3c0;--violet:#5446cb;--violet2:#40309e;--or:#e7c96b;}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1000px 500px at 75% -10%,rgba(84,70,203,.22),transparent),var(--bg);
+    color:var(--txt);font-family:Inter,-apple-system,Segoe UI,Arial,sans-serif}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line)}
+  .top h1{margin:0;font-family:"Archivo Black",Inter,sans-serif;font-size:19px}
+  .who{font-size:12px;color:var(--muted)}
+  .who b{color:#cfd2e6}
+  .btn{padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:#d7d8e6;font:700 12px Inter;cursor:pointer}
+  .btn:hover{border-color:var(--or)}
+  .layout{display:grid;grid-template-columns:270px 1fr;gap:16px;padding:16px 22px 40px}
+  @media(max-width:880px){.layout{grid-template-columns:1fr}}
+  /* Colonne récompenses */
+  .side{align-self:start;position:sticky;top:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:13px}
+  .side h2{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#c5b8ff}
+  .side .hint{color:var(--muted);font-size:11px;margin-bottom:10px;line-height:1.4}
+  .rw{display:flex;align-items:center;gap:9px;padding:9px;border-radius:11px;border:1px solid var(--line);
+    background:var(--panel2);margin-bottom:8px;cursor:grab}
+  .rw:hover{border-color:rgba(240,200,120,.5)}
+  .rw .ic{width:34px;height:34px;flex:0 0 auto;border-radius:8px;display:grid;place-items:center;font-size:17px}
+  .rw .nm{font-weight:700;font-size:13px}
+  .addrw{width:100%;margin-top:4px;padding:9px;border-radius:10px;border:1px dashed rgba(129,116,209,.5);background:transparent;color:#b9bad2;font:700 12px Inter;cursor:pointer}
+  .addrw:hover{color:#fff;border-color:var(--or)}
+  .nf{margin-top:9px;display:none}.nf.open{display:block}
+  .nf input{width:100%;margin-bottom:7px;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:#0a0a22;color:#fff;font:600 13px Inter}
+  .nf .r{display:flex;gap:7px}.nf button{flex:1;padding:7px;border-radius:8px;border:0;font:800 12px Inter;cursor:pointer}
+  .ok{background:linear-gradient(135deg,var(--violet2),var(--violet));color:#fff}.ghost{background:rgba(255,255,255,.06);color:#d7d8e6}
+  /* Calendrier */
+  .calwrap{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:12px}
+  #calendar{--fc-border-color:rgba(129,116,209,.18);--fc-page-bg-color:transparent;--fc-neutral-bg-color:rgba(255,255,255,.03);
+    --fc-today-bg-color:rgba(84,70,203,.14);--fc-list-event-hover-bg-color:rgba(84,70,203,.12)}
+  .fc .fc-toolbar-title{font-family:"Archivo Black",Inter;font-size:18px}
+  .fc .fc-button{background:var(--panel2);border:1px solid var(--line);color:#d7d8e6;text-transform:capitalize;font:700 12px Inter}
+  .fc .fc-button-primary:not(:disabled).fc-button-active,.fc .fc-button-primary:hover{background:linear-gradient(135deg,var(--violet2),var(--violet));border-color:var(--violet)}
+  .fc-daygrid-day-number,.fc-col-header-cell-cushion{color:#c8cade;text-decoration:none}
+  .fc-event{border:0;padding:1px 4px;font:700 11px Inter;cursor:pointer}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 10px;font-size:11px;color:#b9bcda}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  /* Modale */
+  .ov{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(4,5,18,.7);backdrop-filter:blur(4px);padding:16px}
+  .ov.open{display:flex}
+  .modal{width:min(460px,100%);border:1px solid rgba(121,87,255,.5);border-radius:16px;background:linear-gradient(180deg,#12112f,#0a0a22);padding:18px 20px}
+  .modal h3{margin:0 0 12px;font-family:"Archivo Black",Inter;font-size:18px}
+  .fld{margin-bottom:11px}
+  .fld label{display:block;font:700 11px Inter;text-transform:uppercase;letter-spacing:.04em;color:#9aa0c0;margin-bottom:5px}
+  .fld input,.fld select,.fld textarea{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:#0a0a22;color:#fff;font:600 13px Inter}
+  .fld textarea{min-height:64px;resize:vertical}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mact{display:flex;gap:9px;margin-top:14px}
+  .mact button{padding:10px 14px;border-radius:10px;border:0;font:800 12px Inter;cursor:pointer}
+  .save{flex:1;background:linear-gradient(135deg,var(--violet2),var(--violet));color:#fff}
+  .del{background:rgba(240,73,111,.16);color:#ff9db0;border:1px solid rgba(240,73,111,.45)!important}
+  .cancel{background:rgba(255,255,255,.06);color:#d7d8e6}
+  /* Auth / états */
+  .center{min-height:70vh;display:grid;place-items:center;padding:24px;text-align:center}
+  .authbox{max-width:380px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:24px}
+  .authbox h2{margin:0 0 8px;font-family:"Archivo Black",Inter;font-size:20px}
+  .authbox p{color:var(--muted);font-size:13px;line-height:1.5}
+  .authbox input{width:100%;margin:12px 0;padding:11px;border-radius:10px;border:1px solid var(--line);background:#0a0a22;color:#fff;font:600 14px Inter;text-align:center}
+  .authbox button{width:100%;padding:11px;border-radius:10px;border:0;background:linear-gradient(135deg,var(--violet2),var(--violet));color:#fff;font:800 13px Inter;cursor:pointer}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:80;padding:11px 16px;border-radius:10px;font:700 12.5px Inter;display:none}
+  .toast.ok{background:#12351f;color:#5fe0a0;border:1px solid rgba(24,168,93,.5)}
+  .toast.err{background:#3a0f18;color:#ff9db0;border:1px solid rgba(240,73,111,.5)}
+  .toast.show{display:block;animation:pop .2s ease}
+  @keyframes pop{from{transform:translateX(-50%) translateY(6px);opacity:0}to{transform:translateX(-50%);opacity:1}}
+</style>
+</head>
+<body>
+
+<div id="app" style="display:none">
+  <div class="top">
+    <h1>🗓️ Calendrier des récompenses <span style="font:800 10px Inter;color:#e7c96b;background:rgba(231,201,107,.14);padding:3px 8px;border-radius:6px;text-transform:uppercase">Régie admin</span></h1>
+    <div><span class="who" id="who"></span> <button class="btn" id="logout">Déconnexion</button></div>
+  </div>
+  <div class="layout">
+    <aside class="side">
+      <h2>Récompenses disponibles</h2>
+      <div class="hint">Glisse une récompense sur une date. (ou clique une journée du calendrier pour programmer.)</div>
+      <div id="rwList"></div>
+      <button class="addrw" id="addRw">+ Nouvelle récompense</button>
+      <div class="nf" id="nf">
+        <input id="nfName" placeholder="Nom (ex : Maillot signé)" maxlength="40">
+        <input id="nfEmoji" placeholder="Emoji (ex : 👕)" maxlength="4" value="🎁">
+        <div class="r"><button class="ok" id="nfCreate">Créer</button><button class="ghost" id="nfCancel">Annuler</button></div>
+      </div>
+    </aside>
+    <main class="calwrap">
+      <div class="legend">
+        <span><i style="background:#8a8aa0"></i>Brouillon</span>
+        <span><i style="background:#3aa0ff"></i>Programmée</span>
+        <span><i style="background:#18a85d"></i>Active</span>
+        <span><i style="background:#6b6b7a"></i>Terminée</span>
+      </div>
+      <div id="calendar"></div>
+    </main>
+  </div>
+</div>
+
+<div id="authView" class="center" style="display:none">
+  <div class="authbox">
+    <h2>🔒 Régie administrateur</h2>
+    <p>Connecte-toi avec l'e‑mail de ton compte administrateur. Tu recevras un lien magique.</p>
+    <input id="email" type="email" placeholder="ton@email.com" autocomplete="email">
+    <button id="sendLink">Recevoir le lien de connexion</button>
+    <p id="authMsg" style="margin-top:12px"></p>
+  </div>
+</div>
+
+<div id="denyView" class="center" style="display:none">
+  <div class="authbox">
+    <h2>⛔ Accès refusé</h2>
+    <p>Ce compte n'est pas administrateur. Le calendrier des récompenses est réservé à la régie.</p>
+    <button id="denyLogout" style="margin-top:14px">Changer de compte</button>
+  </div>
+</div>
+
+<div class="ov" id="ov">
+  <div class="modal">
+    <h3 id="mTitle">Programmer une récompense</h3>
+    <div class="fld"><label>Récompense</label><select id="mReward"></select></div>
+    <div class="two">
+      <div class="fld"><label>Du (début)</label><input id="mStart" type="date"></div>
+      <div class="fld"><label>Au (fin, inclus)</label><input id="mEnd" type="date"></div>
+    </div>
+    <div class="two">
+      <div class="fld"><label>Statut</label><select id="mStatus">
+        <option value="draft">Brouillon</option><option value="scheduled">Programmée</option>
+        <option value="active">Active</option><option value="done">Terminée</option>
+      </select></div>
+      <div class="fld"><label>Quantité</label><input id="mQty" type="number" min="1" value="1"></div>
+    </div>
+    <div class="fld"><label>Conditions pour gagner</label><textarea id="mCond" placeholder="Ex : Terminer 1er de la Ligue Ultime ce mois-ci."></textarea></div>
+    <div class="mact">
+      <button class="save" id="mSave">Enregistrer</button>
+      <button class="del" id="mDelete" style="display:none">Retirer du calendrier</button>
+      <button class="cancel" id="mCancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var SUPABASE_URL="https://yubndvqmglttlntkugzm.supabase.co";
+  var SUPABASE_ANON_KEY="sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ";
+  var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+  var STATUS_COLOR={draft:"#8a8aa0",scheduled:"#3aa0ff",active:"#18a85d",done:"#6b6b7a"};
+  var STATUS_LABEL={draft:"Brouillon",scheduled:"Programmée",active:"Active",done:"Terminée"};
+
+  var rewardsById={};
+  var calendar=null, editingId=null, currentUser=null;
+
+  var $=function(id){return document.getElementById(id);};
+  function toast(msg,ok){var t=$("toast");t.textContent=msg;t.className="toast "+(ok?"ok":"err")+" show";setTimeout(function(){t.className="toast "+(ok?"ok":"err");},2600);}
+
+  // ---- dates (FullCalendar all-day : fin EXCLUSIVE ; en base : fin INCLUSE) ----
+  function addDays(iso,n){var d=new Date(iso+"T00:00:00Z");d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+  function fcEndToInclusive(ev){ // renvoie YYYY-MM-DD (dernier jour inclus)
+    if(!ev.end) return ev.startStr.slice(0,10);
+    return addDays(ev.endStr.slice(0,10),-1);
+  }
+
+  // ---- AUTH ----
+  async function boot(){
+    var s=(await sb.auth.getSession()).data.session;
+    if(!s){ show("authView"); return; }
+    currentUser=s.user;
+    var admin=(await sb.rpc("is_current_user_admin")).data;
+    if(!admin){ show("denyView"); return; }
+    $("who").innerHTML="Connecté : <b>"+(currentUser.email||currentUser.id.slice(0,8))+"</b>";
+    show("app"); await initApp();
+  }
+  function show(which){["app","authView","denyView"].forEach(function(id){$(id).style.display=(id===which?(id==="app"?"block":"grid"):"none");});}
+
+  $("sendLink").addEventListener("click",async function(){
+    var email=$("email").value.trim();if(!email)return;
+    $("authMsg").textContent="Envoi…";
+    var r=await sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.href}});
+    $("authMsg").textContent=r.error?("Erreur : "+r.error.message):"✅ Lien envoyé ! Ouvre ton e‑mail, clique le lien, tu reviendras ici connecté.";
+  });
+  $("logout").addEventListener("click",async function(){await sb.auth.signOut();location.reload();});
+  $("denyLogout").addEventListener("click",async function(){await sb.auth.signOut();location.reload();});
+
+  // ---- BIBLIOTHÈQUE ----
+  async function loadRewards(){
+    var r=await sb.from("rewards").select("*").eq("active",true).order("created_at");
+    if(r.error){toast("Chargement récompenses : "+r.error.message);return;}
+    rewardsById={};var list=$("rwList");list.innerHTML="";
+    var sel=$("mReward");sel.innerHTML="";
+    r.data.forEach(function(rw){
+      rewardsById[rw.id]=rw;
+      var el=document.createElement("div");
+      el.className="rw";el.setAttribute("data-id",rw.id);
+      el.innerHTML='<div class="ic" style="background:'+rw.color+'33;border:1px solid '+rw.color+'">'+(rw.emoji||"🎁")+'</div><div class="nm">'+escapeHtml(rw.name)+'</div>';
+      list.appendChild(el);
+      var op=document.createElement("option");op.value=rw.id;op.textContent=(rw.emoji||"")+" "+rw.name;sel.appendChild(op);
+    });
+    // Rendre la colonne "glissable" vers le calendrier
+    new FullCalendar.Draggable(list,{
+      itemSelector:".rw",
+      eventData:function(el){
+        var rw=rewardsById[el.getAttribute("data-id")];
+        return {title:(rw.emoji||"")+" "+rw.name,extendedProps:{rewardId:rw.id,status:"draft",quantity:1,conditions:{}},
+          backgroundColor:STATUS_COLOR.draft,borderColor:STATUS_COLOR.draft};
+      }
+    });
+  }
+  function escapeHtml(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+  $("addRw").addEventListener("click",function(){$("nf").classList.toggle("open");});
+  $("nfCancel").addEventListener("click",function(){$("nf").classList.remove("open");});
+  $("nfCreate").addEventListener("click",async function(){
+    var name=$("nfName").value.trim();if(!name)return;
+    var emoji=$("nfEmoji").value.trim()||"🎁";
+    var r=await sb.from("rewards").insert({name:name,emoji:emoji}).select().single();
+    if(r.error){toast("Création : "+r.error.message);return;}
+    $("nfName").value="";$("nf").classList.remove("open");await loadRewards();toast("Récompense créée",true);
+  });
+
+  // ---- CALENDRIER ----
+  function rowToEvent(row){
+    var rw=rewardsById[row.reward_id]||{name:"(récompense)",emoji:"🎁"};
+    return {id:row.id,title:(rw.emoji||"")+" "+rw.name+(row.quantity>1?" ×"+row.quantity:""),
+      start:row.start_date,end:addDays(row.end_date,1),allDay:true,
+      backgroundColor:STATUS_COLOR[row.status]||"#8a8aa0",borderColor:STATUS_COLOR[row.status]||"#8a8aa0",
+      extendedProps:{rewardId:row.reward_id,status:row.status,quantity:row.quantity,conditions:row.conditions}};
+  }
+
+  async function loadSchedules(fetchInfo,success,failure){
+    var r=await sb.from("reward_schedules").select("*");
+    if(r.error){failure(r.error);return;}
+    success(r.data.map(rowToEvent));
+  }
+
+  async function initApp(){
+    await loadRewards();
+    calendar=new FullCalendar.Calendar($("calendar"),{
+      initialView:"dayGridMonth",locale:"fr",firstDay:1,height:"auto",
+      headerToolbar:{left:"prev,next today",center:"title",right:"dayGridMonth,dayGridWeek"},
+      buttonText:{today:"Aujourd'hui",month:"Mois",week:"Semaine"},
+      editable:true,droppable:true,selectable:true,eventResizableFromStart:true,eventStartEditable:true,eventDurationEditable:true,
+      events:loadSchedules,
+
+      // Glisser une récompense externe sur une date -> créer une programmation
+      eventReceive:async function(info){
+        var p=info.event.extendedProps;
+        var start=info.event.startStr.slice(0,10);
+        var row={reward_id:p.rewardId,start_date:start,end_date:start,conditions:{},quantity:1,status:"draft",created_by:currentUser.id};
+        var r=await sb.from("reward_schedules").insert(row).select().single();
+        if(r.error){toast("Échec enregistrement — déplacement annulé");info.revert();return;}
+        info.event.remove();calendar.addEvent(rowToEvent(r.data));toast("Programmée (brouillon)",true);
+      },
+
+      // Déplacer un événement
+      eventDrop:async function(info){
+        var e=info.event,start=e.startStr.slice(0,10),end=fcEndToInclusive(e);
+        var r=await sb.from("reward_schedules").update({start_date:start,end_date:end}).eq("id",e.id);
+        if(r.error){toast("Échec — déplacement annulé");info.revert();return;}
+        toast("Déplacé",true);
+      },
+      // Étendre sur plusieurs jours
+      eventResize:async function(info){
+        var e=info.event,start=e.startStr.slice(0,10),end=fcEndToInclusive(e);
+        var r=await sb.from("reward_schedules").update({start_date:start,end_date:end}).eq("id",e.id);
+        if(r.error){toast("Échec — redimensionnement annulé");info.revert();return;}
+        toast("Durée mise à jour",true);
+      },
+      // Cliquer une journée -> créer
+      dateClick:function(info){ openModal(null,info.dateStr,info.dateStr); },
+      // Sélectionner une plage -> créer sur la plage
+      select:function(info){ openModal(null,info.startStr.slice(0,10),addDays(info.endStr.slice(0,10),-1)); calendar.unselect(); },
+      // Cliquer un événement -> modifier
+      eventClick:function(info){
+        var e=info.event,p=e.extendedProps;
+        openModal(e.id,e.startStr.slice(0,10),fcEndToInclusive(e),p);
+      }
+    });
+    calendar.render();
+  }
+
+  // ---- MODALE (créer / modifier / retirer) ----
+  function openModal(id,start,end,props){
+    editingId=id;
+    $("mTitle").textContent=id?"Modifier la programmation":"Programmer une récompense";
+    $("mStart").value=start;$("mEnd").value=end||start;
+    $("mStatus").value=(props&&props.status)||"draft";
+    $("mQty").value=(props&&props.quantity)||1;
+    $("mCond").value=(props&&props.conditions&&props.conditions.text)||"";
+    if(props&&props.rewardId)$("mReward").value=props.rewardId;
+    $("mDelete").style.display=id?"inline-block":"none";
+    $("ov").classList.add("open");
+  }
+  function closeModal(){$("ov").classList.remove("open");editingId=null;}
+  $("mCancel").addEventListener("click",closeModal);
+  $("ov").addEventListener("click",function(e){if(e.target===$("ov"))closeModal();});
+
+  $("mSave").addEventListener("click",async function(){
+    var payload={
+      reward_id:$("mReward").value,
+      start_date:$("mStart").value,
+      end_date:$("mEnd").value||$("mStart").value,
+      status:$("mStatus").value,
+      quantity:Math.max(1,parseInt($("mQty").value,10)||1),
+      conditions:{text:$("mCond").value.trim()}
+    };
+    if(payload.end_date<payload.start_date){toast("La date de fin doit être ≥ la date de début");return;}
+    var r;
+    if(editingId){ r=await sb.from("reward_schedules").update(payload).eq("id",editingId).select().single(); }
+    else{ payload.created_by=currentUser.id; r=await sb.from("reward_schedules").insert(payload).select().single(); }
+    if(r.error){toast("Enregistrement : "+r.error.message);return;}
+    var ev=calendar.getEventById(r.data.id);
+    if(ev)ev.remove();
+    calendar.addEvent(rowToEvent(r.data));
+    closeModal();toast(editingId?"Modifié":"Programmé",true);
+  });
+
+  // Retirer du calendrier = supprimer la programmation (la récompense d'origine reste)
+  $("mDelete").addEventListener("click",async function(){
+    if(!editingId)return;
+    var r=await sb.from("reward_schedules").delete().eq("id",editingId);
+    if(r.error){toast("Suppression : "+r.error.message);return;}
+    var ev=calendar.getEventById(editingId);if(ev)ev.remove();
+    closeModal();toast("Retirée du calendrier (récompense conservée)",true);
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
