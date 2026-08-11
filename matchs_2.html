@@ -158,6 +158,17 @@
   var active={}; LEAGUES.forEach(function(l){ active[l.id]=true; });
   var all=[];
 
+  var STATUS=[{k:'upcoming',n:'À venir'},{k:'live',n:'En direct'},{k:'done',n:'Terminés'},{k:'all',n:'Tous'}];
+  var statusFilter='upcoming';
+  function isLive(s){ return ['LIVE','HT','1H','2H','ET','BT','P','SUSP','INT'].indexOf(s)>=0; }
+  function isDone(s){ return ['FT','AET','PEN'].indexOf(s)>=0; }
+  function matchStatus(ev){
+    if(statusFilter==='all') return true;
+    if(statusFilter==='live') return isLive(ev.status);
+    if(statusFilter==='done') return isDone(ev.status);
+    return !isLive(ev.status) && !isDone(ev.status); // à venir
+  }
+
   var elStatus=document.getElementById('status'), elList=document.getElementById('list');
 
   function pDay(iso){ return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(iso)); }
@@ -167,8 +178,18 @@
 
   function chips(){
     var f=document.getElementById('filters'); f.innerHTML='';
+    // Filtres de statut (sélection unique)
+    STATUS.forEach(function(s){
+      var on=statusFilter===s.k;
+      var c=document.createElement('div'); c.className='chip'; c.textContent=s.n;
+      if(on){ c.style.background='linear-gradient(120deg,#8b5cf6,#22d3ee)'; c.style.color='#06121a'; c.style.border='none'; }
+      c.onclick=function(){ statusFilter=s.k; chips(); render(); };
+      f.appendChild(c);
+    });
+    var sep=document.createElement('div'); sep.style.cssText='width:1px;background:var(--line);margin:6px 3px;flex:0 0 auto'; f.appendChild(sep);
+    // Filtres de ligue (multi)
     LEAGUES.forEach(function(l){
-      var c=document.createElement('div'); c.className='chip'; c.style.color=l.color;
+      var c=document.createElement('div'); c.className='chip'+(active[l.id]?'':' off'); c.style.color=l.color;
       c.innerHTML='<span class="dot"></span><span style="color:var(--text)">'+l.name+'</span>';
       c.onclick=function(){ active[l.id]=!active[l.id]; c.classList.toggle('off',!active[l.id]); render(); };
       f.appendChild(c);
@@ -199,10 +220,15 @@
 
   var shown=[];
   function render(){
-    var evs=all.filter(function(e){ return active[e.leagueId]; })
+    var evs=all.filter(function(e){ return active[e.leagueId] && matchStatus(e); })
                .sort(function(a,b){ return new Date(a.start)-new Date(b.start); });
     shown=evs;
-    if(!evs.length){ elList.innerHTML='<div class="status">Aucun match pour la sélection.</div>'; return; }
+    if(!evs.length){
+      var em = statusFilter==='live' ? 'Aucun match en direct pour le moment.'
+             : statusFilter==='done' ? 'Aucun match terminé récemment.'
+             : 'Aucun match à venir pour cette sélection.';
+      elList.innerHTML='<div class="status">'+em+'</div>'; return;
+    }
     var tk=todayKey(), html='', curDay=null, idx=0;
     evs.forEach(function(ev){
       var dk=pDay(ev.start);
