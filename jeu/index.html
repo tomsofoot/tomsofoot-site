@@ -38,6 +38,24 @@
     html[data-champ="off"] .jogadle-app-layout{ display:block; }
     html[data-champ="off"] .jogadle-app-layout>.jogadle-game{ height:auto; overflow:visible; }
     .jg-degraded{ margin:0 0 14px; padding:12px 16px; border-radius:10px; border:1px solid rgba(240,73,111,.4); background:rgba(40,10,26,.5); color:#ffb3c1; font:600 13px Inter,Arial; }
+
+    /* ===== Bouton "Rejoindre le championnat" — style EA Sports FC animé ===== */
+    .jg-id-join{ position:relative; overflow:hidden; isolation:isolate; display:flex; flex-direction:column; gap:3px; width:100%;
+      text-align:left; padding:15px 16px; border-radius:13px; border:none; cursor:pointer;
+      background:linear-gradient(115deg,#0a1a35 0%,#0f2f57 45%,#0a1a35 100%);
+      box-shadow:0 8px 26px rgba(34,211,238,.28); animation:jgJoinPulse 2.8s ease-in-out infinite; }
+    .jg-id-join b{ position:relative; z-index:3; font-size:14px; font-weight:900; letter-spacing:.4px; text-transform:uppercase; color:#eafaff; text-shadow:0 0 12px rgba(34,211,238,.5); }
+    .jg-id-join small{ position:relative; z-index:3; font-size:11px; color:#a9dcea; line-height:1.35; }
+    .jg-id-join::before{ content:''; position:absolute; top:-20%; left:-70%; width:45%; height:140%; z-index:2;
+      background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent); transform:skewX(-22deg); animation:jgShine 3.4s ease-in-out infinite; }
+    .jg-id-join::after{ content:''; position:absolute; inset:0; border-radius:13px; padding:1.6px; z-index:1; pointer-events:none;
+      background:linear-gradient(120deg,#22d3ee,#4f8cff,#8b5cf6,#22d3ee); background-size:220% 100%;
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude; animation:jgBorder 3s linear infinite; }
+    .jg-id-join:hover{ transform:translateY(-1px); box-shadow:0 12px 36px rgba(34,211,238,.5); }
+    @keyframes jgJoinPulse{ 0%,100%{ box-shadow:0 8px 24px rgba(34,211,238,.22); } 50%{ box-shadow:0 10px 40px rgba(34,211,238,.55); } }
+    @keyframes jgShine{ 0%,12%{ left:-70%; } 60%,100%{ left:135%; } }
+    @keyframes jgBorder{ to{ background-position:220% 0; } }
   </style>
 </head>
 <body>
