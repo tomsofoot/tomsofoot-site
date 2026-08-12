@@ -63,19 +63,21 @@
     /* Retour visuel immédiat pendant la vérification serveur d'une proposition.
        La ligne « en attente » pulse doucement le temps que le serveur réponde,
        puis game.js la remplace par la vraie ligne animée (flip des cases). */
-    .guess-row.is-pending{ opacity:.96; }
+    /* La face avant affiche désormais les VRAIES infos du joueur (plus de « T ») : on ajuste la taille du texte. */
+    .flip-front{ font-size:15px; line-height:1.15; }
+    .flip-front .fig{ font-size:24px; }
+    /* Ligne « en attente » : infos déjà visibles, seule la couleur manque. Pulsation douce = « calcul en cours ». */
     .guess-row.is-pending .flip-front{
-      animation:jgPendingPulse .9s ease-in-out infinite;
-      background:linear-gradient(120deg, rgba(34,211,238,.16), rgba(79,140,255,.16)) !important;
-      border-color:rgba(130,200,255,.35) !important;
+      animation:jgPendingPulse 1s ease-in-out infinite;
+      border-color:rgba(130,200,255,.5) !important;
     }
-    .guess-row.is-pending .flip-front span{ opacity:.55; }
+    .guess-row.is-pending .flip-front span{ opacity:.85; }
     @keyframes jgPendingPulse{
-      0%,100%{ opacity:.45; transform:translateZ(0) scale(.985); }
-      50%    { opacity:1;   transform:translateZ(0) scale(1); }
+      0%,100%{ box-shadow:inset 0 1px rgba(255,255,255,.07), 0 0 0 rgba(90,170,255,0); }
+      50%    { box-shadow:inset 0 1px rgba(255,255,255,.07), 0 0 16px rgba(90,170,255,.30); }
     }
     @media (prefers-reduced-motion:reduce){
-      .guess-row.is-pending .flip-front{ animation:none; opacity:.7; }
+      .guess-row.is-pending .flip-front{ animation:none; }
     }
 
     /* Nom + club sur l'écran de fin (révélation) : lève l'ambiguïté des noms
