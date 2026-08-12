@@ -13,8 +13,10 @@
     board: root.querySelector("#td-board-area"),
     end: root.querySelector("#td-end"), count: root.querySelector("#td-count"),
     hint: root.querySelector("#td-hint"), edition: root.querySelector("#td-puzzle"),
-    used: root.querySelector("#td-used"),
+    used: root.querySelector("#td-used"), reveal: root.querySelector("#td-reveal"),
   };
+  // Anti-triche : « Révéler la réponse » n'est utilisable qu'à partir de 7 tentatives.
+  var REVEAL_MIN = 7;
   var HEAD = ["Joueur", "Confédération", "Club", "Ligue", "Nation", "Poste", "Âge", "N°"];
   // Barème officiel : source unique = window.JogadleRules (miroir du serveur). 7=5, 8=3, 9=1, 10+=0.
   var RULES = global.JogadleRules || { potential: function (n, h) { var m = { 1: 100, 2: 50, 3: 45, 4: 35, 5: 25, 6: 15, 7: 5, 8: 3, 9: 1 }; return Math.max(0, (m[n] || 0) - (h ? 5 : 0)); }, base: function (n) { var m = { 1: 100, 2: 50, 3: 45, 4: 35, 5: 25, 6: 15, 7: 5, 8: 3, 9: 1 }; return m[n] || 0; } };
@@ -80,7 +82,7 @@
       state.winRecap = r.isWin ? (r.win || null) : null;   // récap serveur (calcul déjà fait côté serveur)
       renderBoard(true);                              // la ligne fraîche se retourne case par case
       renderUsedList();                               // liste « joueurs déjà utilisés » mise à jour
-      updateCount(); refreshHint(); refreshPoints();
+      updateCount(); refreshHint(); refreshPoints(); refreshReveal();
       // Bruitage : « bonne réponse » quand la dernière case (verte) se retourne, sinon « mauvaise réponse ».
       var soundDelay = REDUCED ? 0 : (7 * CELL_STAGGER + 250);
       setTimeout(function () { if (global.JogadleSound) { r.isWin ? global.JogadleSound.correct() : global.JogadleSound.wrong(); } }, soundDelay);
@@ -180,9 +182,26 @@
   }
 
   // ---------- Révéler la réponse ----------
-  var revealBtn = root.querySelector("#td-reveal");
+  // Verrou anti-triche : le bouton reste inactif tant que < REVEAL_MIN tentatives.
+  function refreshReveal() {
+    if (!el.reveal) return;
+    var n = state.guesses.length;
+    if (state.status !== "active") { el.reveal.disabled = true; return; }
+    if (n >= REVEAL_MIN) {
+      el.reveal.disabled = false;
+      el.reveal.textContent = "Révéler la réponse";
+      el.reveal.removeAttribute("title");
+    } else {
+      var left = REVEAL_MIN - n;
+      el.reveal.disabled = true;
+      el.reveal.textContent = "Révéler la réponse (encore " + left + " essai" + (left > 1 ? "s" : "") + ")";
+      el.reveal.setAttribute("title", "Disponible après " + REVEAL_MIN + " tentatives");
+    }
+  }
+  var revealBtn = el.reveal;
   if (revealBtn) revealBtn.addEventListener("click", function () {
     if (state.status !== "active") return;
+    if (state.guesses.length < REVEAL_MIN) { refreshReveal(); return; }   // garde-fou
     var attempts = state.guesses.length; var pen = attempts < 7 ? -10 : -5;
     if (!confirm("Révéler la réponse ? Ce n'est pas une victoire." + (API.isGuest && API.isGuest() ? " (invité : aucun point)" : " Pénalité de saison : " + pen + " pts."))) return;
     API.revealAnswer().then(function (r) {
@@ -191,6 +210,7 @@
       refreshPoints(); scrollToEnd();
     });
   });
+  refreshReveal();   // état initial : verrouillé tant que < 7 tentatives
 
   // ---------- Bravo + défilement ----------
   function leagueLabel(key) {
@@ -277,7 +297,7 @@
     state.hintRevealed = !!s.hint_revealed;
     renderBoard(false);                 // aucune animation à la reprise
     renderUsedList();                   // restaure la liste « joueurs déjà utilisés »
-    updateCount(); refreshHint(); refreshPoints();
+    updateCount(); refreshHint(); refreshPoints(); refreshReveal();
 
     // Indice déjà révélé : on restaure la lettre (appel idempotent côté serveur).
     if (state.hintRevealed && el.hint && !el.hint.classList.contains("is-open")) {
@@ -301,7 +321,7 @@
         await rebuildFromResume(s);
       } else {
         state.status = (s && s.status) || "active"; state.hintRevealed = !!(s && s.hint_revealed);
-        updateCount(); refreshHint(); refreshPoints();
+        updateCount(); refreshHint(); refreshPoints(); refreshReveal();
       }
     } catch (e) { degrade(); }
   }
