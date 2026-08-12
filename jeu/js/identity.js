@@ -52,6 +52,7 @@
       '<button class="jg-auth__btn jg-auth__google"><span>Continuer avec Google</span></button>' +
       '<div class="jg-auth__or">ou</div>' +
       '<div class="jg-auth__magic"><input type="email" placeholder="votre@email.fr" class="jg-auth__email"><button class="jg-auth__btn jg-auth__link">Recevoir un lien magique</button></div>' +
+      '<div class="jg-auth__captcha" style="display:flex;justify-content:center;min-height:4px;margin:6px 0 2px"></div>' +
       '<div class="jg-auth__note" style="display:none"></div>' +
       '<div class="jg-auth__guest"><button class="jg-auth__ghost jg-auth__play-guest">Jouer en invité (sans points)</button></div>' +
       '</div>';
@@ -59,12 +60,44 @@
     o.querySelector(".jg-auth__close").addEventListener("click", function () { o.remove(); });
     o.addEventListener("click", function (e) { if (e.target === o) o.remove(); });
     o.querySelector(".jg-auth__google").addEventListener("click", function () { signIn("google"); });
+
+    // Widget anti-robot Turnstile (uniquement en production, si une clé de site est configurée).
+    var cap = o.querySelector(".jg-auth__captcha");
+    renderCaptcha(cap);
+
     o.querySelector(".jg-auth__link").addEventListener("click", function () {
       var email = o.querySelector(".jg-auth__email").value.trim();
       if (!email) { o.querySelector(".jg-auth__email").focus(); return; }
-      signIn("magic", email);
+      // Récupère le jeton anti-robot. Requis en production si Turnstile est configuré.
+      var hasWidget = !!(cap && cap.__wid != null);
+      var token = "";
+      try { if (global.turnstile && hasWidget) token = global.turnstile.getResponse(cap.__wid) || ""; } catch (e) {}
+      // On ne bloque QUE si le widget est bien rendu mais le jeton pas encore prêt (transitoire).
+      // Si le script Cloudflare n'a pas chargé (hasWidget=false), on laisse passer pour ne jamais
+      // casser la connexion de notre propre fait.
+      if (!TEST && hasWidget && !token) {
+        authNote("Vérification anti-robot en cours… patientez une seconde puis réessayez.", true);
+        return;
+      }
+      signIn("magic", email, token);
+      // Le jeton est à usage unique : on réinitialise le widget pour la prochaine tentative.
+      try { if (global.turnstile && cap && cap.__wid != null) global.turnstile.reset(cap.__wid); } catch (e) {}
     });
     o.querySelector(".jg-auth__play-guest").addEventListener("click", function () { o.remove(); global.__JOGADLE_ME = null; emit(); });
+  }
+
+  // Rendu explicite du widget Turnstile dans le conteneur donné.
+  // Inerte en TEST_MODE ou sans clé. Attend que le script Cloudflare soit chargé.
+  function renderCaptcha(container) {
+    if (TEST || !CFG.TURNSTILE_SITE_KEY || !container) return;
+    var tries = 0;
+    (function attempt() {
+      if (global.turnstile && global.turnstile.render) {
+        try { container.__wid = global.turnstile.render(container, { sitekey: CFG.TURNSTILE_SITE_KEY }); } catch (e) {}
+      } else if (tries++ < 40) {
+        setTimeout(attempt, 150);
+      }
+    })();
   }
 
   function authNote(msg, isErr) {
@@ -73,7 +106,7 @@
     n.textContent = msg; n.style.display = ""; n.classList.toggle("is-error", !!isErr);
   }
 
-  function signIn(provider, email) {
+  function signIn(provider, email, captchaToken) {
     if (TEST) {
       // Parcours SIMULÉ (aucun vrai Auth) : on "connecte" un compte de démo, puis on lit le profil.
       global.__JOGADLE_JWT = "test-jwt";
@@ -84,7 +117,7 @@
     // PRODUCTION : VRAI Supabase Auth.
     var Auth = global.JogadleAuth;
     if (!Auth || !Auth.available()) { authNote("Connexion momentanément indisponible.", true); return; }
-    Auth.signIn(provider, email).then(function (res) {
+    Auth.signIn(provider, email, captchaToken).then(function (res) {
       if (provider === "magic") {
         if (res && res.error) authNote("Envoi impossible : " + (res.error.message || "réessayez."), true);
         else authNote("Lien magique envoyé à " + email + ". Vérifiez votre boîte mail.", false);

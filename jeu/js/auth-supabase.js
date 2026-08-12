@@ -83,7 +83,7 @@
     try { return global.location.origin + global.location.pathname; } catch (e) { return undefined; }
   }
 
-  async function signIn(provider, email) {
+  async function signIn(provider, email, captchaToken) {
     if (!sb) throw new Error("auth_unavailable");
     if (provider === "google") {
       // VRAI appel Supabase Auth : redirige vers Google puis revient sur la page.
@@ -91,7 +91,11 @@
     }
     if (provider === "magic") {
       // VRAI lien magique : Supabase envoie l'e-mail (aucun mot de passe).
-      return sb.auth.signInWithOtp({ email: String(email || "").trim(), options: { emailRedirectTo: redirectTo() } });
+      // Le jeton anti-robot (Turnstile) est transmis si présent — requis quand le
+      // captcha est activé côté Supabase, ignoré sinon (donc sans risque de casse).
+      var opts = { emailRedirectTo: redirectTo() };
+      if (captchaToken) opts.captchaToken = captchaToken;
+      return sb.auth.signInWithOtp({ email: String(email || "").trim(), options: opts });
     }
     throw new Error("bad_provider");
   }
