@@ -46,10 +46,17 @@
       .daily-meta{ flex-direction:column; gap:6px; }
       .daily-meta .separator{ display:none; }
       .daily-meta > span:last-child strong{ white-space:nowrap; }
-      /* 2) Le bouton « Indice » remonte au-dessus du bouton « Classement »
-            pour qu'ils ne se chevauchent plus. */
-      .hint-fab{ bottom:88px; }
+      /* 2) Bouton « Classement » en bas à GAUCHE, légèrement plus petit. */
+      .jg-open-btn{ left:14px; right:auto; bottom:14px; transform:none; padding:10px 15px; font-size:12px; }
+      /* 3) Bouton « Indice » en bas à DROITE, légèrement plus petit. */
+      .hint-fab{ right:14px; bottom:14px; }
+      .hint-fab__btn{ padding:10px 14px; min-height:42px; font-size:12px; }
+      .hint-fab__count{ font-size:11px; min-width:34px; padding:2px 7px; }
     }
+
+    /* Bouton « Révéler la réponse » verrouillé (< 7 tentatives) : rendu grisé. */
+    #td-reveal[disabled]{ opacity:.42; cursor:not-allowed; filter:grayscale(.35); }
+    #td-reveal[disabled]:hover{ background:rgba(40,10,26,.6); border-color:rgba(240,73,111,.5); }
 
     /* ===== Bouton "Rejoindre le championnat" — style EA Sports FC animé ===== */
     .jg-id-join{ position:relative; overflow:hidden; isolation:isolate; display:flex; flex-direction:column; gap:3px; width:100%;
