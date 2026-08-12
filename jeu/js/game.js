@@ -77,7 +77,8 @@
     if (state.busy || state.status !== "active") return; state.busy = true;
     lockInput(true);                                  // entrée verrouillée pendant la révélation
     el.input.value = ""; hideSugg();
-    renderPending();                                  // retour visuel immédiat (masque la latence serveur)
+    var pendPlayer = state.playersById[id] || { id: id, short_name: id };
+    renderPending(pendPlayer);                        // ligne pré-remplie avec les vraies infos (plus d'effet « chargement »)
     try {
       var r = await API.submitGuess(id);
       if (r && r.error) { state.busy = false; lockInput(false); renderBoard(false); return; }
@@ -106,25 +107,34 @@
   function updateCount() { if (el.count) el.count.textContent = String(state.guesses.length).padStart(2, "0"); root.classList.toggle("has-guesses", state.guesses.length > 0); }
 
   // ---------- Rendu du plateau (miroir du style premium) ----------
-  function cell(html, cls, delay) {
-    return '<div class="flip-cell" style="--delay:' + (delay * CELL_STAGGER) + 'ms"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><span>T</span></div><div class="flip-face flip-back ' + cls + '"><span>' + html + '</span></div></div></div>';
+  function cell(frontHtml, backHtml, cls, delay) {
+    return '<div class="flip-cell" style="--delay:' + (delay * CELL_STAGGER) + 'ms"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><span>' + frontHtml + '</span></div><div class="flip-face flip-back ' + cls + '"><span>' + backHtml + '</span></div></div></div>';
   }
   function rowHTML(g, revealCls) {
-    var p = g.player, s = g.states;
+    var p = g.player, s = g.states || [];
+    var pending = revealCls === "is-pending";      // ligne d'attente : vrai texte affiché, mais couleurs pas encore connues
     var ARW = function (d) { return d === "up" ? '<svg class="arw up" viewBox="0 0 100 100"><path d="M42 12 h16 v47 h18 L50 88 24 59 h18 Z"/></svg>' : d === "down" ? '<svg class="arw" viewBox="0 0 100 100"><path d="M42 12 h16 v47 h18 L50 88 24 59 h18 Z"/></svg>' : ""; };
     var by = {}; s.forEach(function (x) { by[x.key] = x; });
     var age = ageOf(p.birth_date);
-    var numCell = p.number != null ? ('<span class="fig">' + p.number + "</span>" + ARW(by.number && by.number.direction))
+    // Avant (neutre) SANS flèche ; arrière (coloré) AVEC flèche de direction (âge/numéro).
+    var ageFront = '<span class="fig">' + (age == null ? "—" : age) + "</span>";
+    var ageBack = ageFront + ARW(by.age && by.age.direction);
+    var numFront = p.number != null ? ('<span class="fig">' + p.number + "</span>")
+      : '<span class="fig dash" title="Ce joueur n\'a pas encore de numéro officiel.">—</span>';
+    var numBack = p.number != null ? ('<span class="fig">' + p.number + "</span>" + ARW(by.number && by.number.direction))
       : '<span class="fig dash" title="Ce joueur n\'a pas encore de numéro officiel.">—</span><i class="no-num">(pas de n° officiel)</i>';
+    // Cellule d'attribut : MÊME texte à l'avant (neutre) et à l'arrière (coloré). En attente : aucune couleur.
+    var C = function (txt, key, i) { return cell(txt, txt, "result " + (pending ? "" : st(by[key])), i); };
+    var nameHtml = "<b>" + esc(p.short_name || p.name) + "</b>";
     var cells = [
-      '<div class="flip-cell" style="--delay:0ms"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><span>T</span></div><div class="flip-face flip-back player-cell"><b>' + esc(p.short_name || p.name) + "</b></div></div></div>",
-      cell(esc(p.confederation || "—"), "result " + st(by.confederation), 1),
-      cell(esc(p.club || "—"), "result " + st(by.club), 2),
-      cell(esc(p.league || "—"), "result " + st(by.league), 3),
-      cell(esc(p.country || "—"), "result " + st(by.country), 4),
-      cell(esc(p.position || "—"), "result " + st(by.position), 5),
-      cell('<span class="fig">' + (age == null ? "—" : age) + "</span>" + ARW(by.age && by.age.direction), "result num " + st(by.age), 6),
-      cell(numCell, "result num " + st(by.number), 7),
+      cell(nameHtml, nameHtml, "player-cell", 0),
+      C(esc(p.confederation || "—"), "confederation", 1),
+      C(esc(p.club || "—"), "club", 2),
+      C(esc(p.league || "—"), "league", 3),
+      C(esc(p.country || "—"), "country", 4),
+      C(esc(p.position || "—"), "position", 5),
+      cell(ageFront, ageBack, "result num " + (pending ? "" : st(by.age)), 6),
+      cell(numFront, numBack, "result num " + (pending ? "" : st(by.number)), 7),
     ].join("");
     return '<div class="guess-row ' + revealCls + '" data-id="' + esc(p.id) + '">' + cells + "</div>";
   }
@@ -142,19 +152,15 @@
   // Retour IMMÉDIAT : dès la validation, on affiche une ligne « en attente » (cases côté face,
   // avec une pulsation) le temps que le serveur calcule les couleurs. Ça masque la latence réseau
   // (le résultat n'est jamais côté client, pour l'anti-triche) : ça paraît instantané.
-  function pendingRow() {
-    var c = "";
-    for (var i = 0; i < 8; i++) {
-      c += '<div class="flip-cell"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><span>T</span></div><div class="flip-face flip-back"></div></div></div>';
-    }
-    return '<div class="guess-row is-pending" aria-label="Vérification en cours">' + c + "</div>";
-  }
-  function renderPending() {
+  // Ligne « en attente » : on affiche IMMÉDIATEMENT les vraies infos publiques du joueur proposé
+  // (nom, club, ligue, nation, poste, âge, n°). Seules les COULEURS manquent (calculées par le serveur).
+  // Plus aucune case vide façon « chargement » : la ligne est pleine dès le clic, puis les couleurs se révèlent.
+  function renderPending(player) {
     if (!el.board) return;
     var head = '<div class="board-head">' + HEAD.map(function (h) { return "<span>" + h + "</span>"; }).join("") + "</div>";
-    // Les propositions déjà faites sont toutes révélées ; la nouvelle n'est pas encore dans state.guesses.
     var older = state.guesses.map(function (g) { return rowHTML(g, "revealed"); }).reverse().join("");
-    el.board.innerHTML = '<div class="board-wrap"><div class="board">' + head + pendingRow() + older + "</div></div>";
+    var pend = rowHTML({ player: player, states: [] }, "is-pending");
+    el.board.innerHTML = '<div class="board-wrap"><div class="board">' + head + pend + older + "</div></div>";
   }
 
   // ---------- Liste « joueurs déjà utilisés » (sous la recherche, mise à jour automatique) ----------
