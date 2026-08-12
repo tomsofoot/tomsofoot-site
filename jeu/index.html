@@ -60,6 +60,31 @@
     #td-reveal[disabled]{ opacity:.42; cursor:not-allowed; filter:grayscale(.35); }
     #td-reveal[disabled]:hover{ background:rgba(40,10,26,.6); border-color:rgba(240,73,111,.5); }
 
+    /* Retour visuel immédiat pendant la vérification serveur d'une proposition.
+       La ligne « en attente » pulse doucement le temps que le serveur réponde,
+       puis game.js la remplace par la vraie ligne animée (flip des cases). */
+    .guess-row.is-pending{ opacity:.96; }
+    .guess-row.is-pending .flip-front{
+      animation:jgPendingPulse .9s ease-in-out infinite;
+      background:linear-gradient(120deg, rgba(34,211,238,.16), rgba(79,140,255,.16)) !important;
+      border-color:rgba(130,200,255,.35) !important;
+    }
+    .guess-row.is-pending .flip-front span{ opacity:.55; }
+    @keyframes jgPendingPulse{
+      0%,100%{ opacity:.45; transform:translateZ(0) scale(.985); }
+      50%    { opacity:1;   transform:translateZ(0) scale(1); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .guess-row.is-pending .flip-front{ animation:none; opacity:.7; }
+    }
+
+    /* Nom + club sur l'écran de fin (révélation) : lève l'ambiguïté des noms
+       courants — ex. « C'était Martinez (Aston Villa) ». */
+    .end-card h3 .end-club{
+      display:inline-block; margin-left:6px; font-weight:700;
+      font-size:.72em; color:#8fd4ff; opacity:.92; white-space:nowrap;
+    }
+
     /* ===== Bouton "Rejoindre le championnat" — style EA Sports FC animé ===== */
     .jg-id-join{ position:relative; overflow:hidden; isolation:isolate; display:flex; flex-direction:column; gap:3px; width:100%;
       text-align:left; padding:15px 16px; border-radius:13px; border:none; cursor:pointer;
