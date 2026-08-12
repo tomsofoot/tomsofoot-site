@@ -233,8 +233,15 @@
   function logout() {
     global.__JOGADLE_ME = null;
     global.__JOGADLE_JWT = null;
-    if (!TEST && global.JogadleAuth) { try { global.JogadleAuth.signOut(); } catch (e) {} }
-    renderIdentityBlock(); emit();
+    // En prévisualisation locale : pas de vraie session, on se contente de rafraîchir l'affichage.
+    if (TEST || !global.JogadleAuth) { renderIdentityBlock(); emit(); return; }
+    // Déconnexion réelle : on attend la fin du signOut (session Supabase effacée), PUIS on recharge
+    // la page pour repartir proprement sur la PARTIE INVITÉ du jour (sinon le plateau reste bloqué
+    // sur l'écran de fin du championnat). Filet de sécurité si signOut traîne.
+    var done = false;
+    var go = function () { if (done) return; done = true; try { global.location.reload(); } catch (e) { renderIdentityBlock(); emit(); } };
+    try { Promise.resolve(global.JogadleAuth.signOut()).catch(function () {}).then(go); } catch (e) { go(); }
+    setTimeout(go, 800);
   }
   function closeAuth() { var a = document.querySelector(".jg-auth"); if (a) a.remove(); }
 
