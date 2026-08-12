@@ -56,6 +56,91 @@
     @keyframes jgJoinPulse{ 0%,100%{ box-shadow:0 8px 24px rgba(34,211,238,.22); } 50%{ box-shadow:0 10px 40px rgba(34,211,238,.55); } }
     @keyframes jgShine{ 0%,12%{ left:-70%; } 60%,100%{ left:135%; } }
     @keyframes jgBorder{ to{ background-position:220% 0; } }
+
+    /* =====================================================================
+       Classement « effet glace » (glassmorphism) × EA SPORTS FC — premium.
+       Fond transparent, le décor du jeu transparaît. Esthétique uniquement,
+       aucune structure ni logique modifiée (FLIP .is-moving préservé).
+       ===================================================================== */
+    .jg-league{
+      position:relative; isolation:isolate;
+      background:linear-gradient(160deg,rgba(18,34,72,.28),rgba(8,14,36,.30));
+      -webkit-backdrop-filter:blur(26px) saturate(160%); backdrop-filter:blur(26px) saturate(160%);
+      border-left:1px solid rgba(130,215,255,.30); border-radius:20px;
+      box-shadow:0 34px 90px rgba(0,4,20,.5),inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 0 1px rgba(150,205,255,.08);
+      overflow:hidden;
+    }
+    .jg-league::before{
+      content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; border-radius:20px; padding:1px;
+      background:linear-gradient(130deg,rgba(34,211,238,.7),rgba(79,140,255,.25) 40%,transparent 60%,rgba(124,92,246,.55));
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude;
+    }
+    .jg-league::after{
+      content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:.6;
+      background:
+        repeating-linear-gradient(118deg,rgba(255,255,255,.04) 0 1px,transparent 1px 8px),
+        radial-gradient(700px 340px at 100% -6%,rgba(34,211,238,.16),transparent 60%),
+        radial-gradient(620px 360px at -8% 108%,rgba(124,92,246,.16),transparent 62%);
+      -webkit-mask:linear-gradient(180deg,#000,rgba(0,0,0,.35) 65%,transparent); mask:linear-gradient(180deg,#000,rgba(0,0,0,.35) 65%,transparent);
+    }
+    .jg-league__eyebrow{ color:#7fe6ff; text-shadow:0 0 12px rgba(34,211,238,.55); }
+    .jg-league h2{
+      background:linear-gradient(100deg,#f2feff 0%,#a9dcea 38%,#6fb6ff 68%,#f2feff 100%);
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+      filter:drop-shadow(0 3px 20px rgba(34,211,238,.4));
+    }
+    .jg-league-tabs{
+      border:1px solid rgba(140,210,255,.22); border-radius:14px;
+      background:linear-gradient(180deg,rgba(20,34,66,.30),rgba(8,14,32,.26));
+      -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+    }
+    .jg-league-tabs button{ border-right:1px solid rgba(140,210,255,.14); color:#c3dcee; }
+    .jg-league-tabs button:hover{ background:rgba(34,211,238,.10); }
+    .jg-league-tabs button.is-active{
+      color:#f2feff;
+      background:linear-gradient(135deg,rgba(34,211,238,.95),rgba(79,140,255,.95));
+      box-shadow:inset 0 -2px rgba(180,245,255,.95),0 6px 22px rgba(34,211,238,.5);
+      text-shadow:0 0 10px rgba(3,20,40,.6);
+    }
+    .jg-table-head{ color:#96bdda; }
+    .jg-ranking{
+      border:1px solid rgba(140,210,255,.20); border-radius:16px;
+      background:linear-gradient(180deg,rgba(16,30,60,.22),rgba(7,13,30,.26));
+      -webkit-backdrop-filter:blur(16px) saturate(150%); backdrop-filter:blur(16px) saturate(150%);
+      box-shadow:0 20px 50px rgba(0,4,20,.4),inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .jg-ranking li{ border-bottom:1px solid rgba(140,210,255,.09); transition:background .18s ease; }
+    .jg-ranking li:hover{ background:rgba(34,211,238,.07); }
+    .jg-ranking .pos{ color:#e6f5ff; }
+    .jg-ranking .pts{ color:#f2feff; text-shadow:0 0 12px rgba(34,211,238,.4); }
+    .jg-ranking li:nth-child(1) .pos,
+    .jg-ranking li:nth-child(2) .pos,
+    .jg-ranking li:nth-child(3) .pos{
+      display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:7px; font-size:11.5px; color:#04121f;
+    }
+    .jg-ranking li:nth-child(1) .pos{ background:linear-gradient(135deg,#ffe79a,#ffb64d); box-shadow:0 0 14px rgba(255,196,90,.55); }
+    .jg-ranking li:nth-child(2) .pos{ background:linear-gradient(135deg,#eaf6ff,#a9c4d8); box-shadow:0 0 12px rgba(200,225,245,.5); }
+    .jg-ranking li:nth-child(3) .pos{ background:linear-gradient(135deg,#ffcfa0,#e08a4f); box-shadow:0 0 12px rgba(240,160,100,.5); }
+    .jg-ranking li.zone-up{ background:linear-gradient(90deg,rgba(52,231,180,.16),transparent 62%); }
+    .jg-ranking li.zone-up::before{ width:2px; background:linear-gradient(#5affc9,#18a85d); box-shadow:0 0 12px rgba(52,231,180,.7); }
+    .jg-ranking li.zone-down{ background:linear-gradient(90deg,rgba(255,92,124,.15),transparent 62%); }
+    .jg-ranking li.zone-down::before{ width:2px; background:linear-gradient(#ff7a93,#f02f45); box-shadow:0 0 12px rgba(255,92,124,.6); }
+    .jg-ranking li.cut-promotion{ border-bottom:1px solid rgba(52,231,180,.7); }
+    .jg-ranking li.is-me{
+      background:linear-gradient(90deg,rgba(34,211,238,.34),rgba(124,92,246,.18) 70%,transparent);
+      box-shadow:inset 3px 0 #38e8ff,inset 0 0 26px rgba(34,211,238,.16);
+    }
+    .jg-ranking li.is-me .name::after{ content:"  · VOUS"; color:#8ff0ff; font-size:9px; font-weight:900; }
+    .jg-unranked{
+      border:1px solid rgba(140,210,255,.26); border-radius:18px;
+      background:linear-gradient(120deg,rgba(28,46,88,.28),rgba(10,16,38,.30));
+      -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+      box-shadow:0 18px 46px rgba(0,4,20,.38),inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .jg-unranked strong{ color:#8fd4ff; }
+    .jg-unranked__me b{ color:#7fe6ff; text-shadow:0 0 16px rgba(34,211,238,.45); }
+    .jg-zone-legend .up{ color:#5affc9; } .jg-zone-legend .down{ color:#ff7a93; }
   </style>
 </head>
 <body>
