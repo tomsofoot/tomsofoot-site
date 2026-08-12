@@ -37,9 +37,13 @@
 
   // ---------- Recherche / autocomplétion (via search-players côté serveur) ----------
   var searchTimer = null;
+  // Dès que le joueur commence à taper / cible le champ, on réveille la fonction serveur
+  // (pré-chauffage anti démarrage-à-froid) : elle sera déjà prête au moment de la proposition.
+  if (el.input) el.input.addEventListener("focus", function () { if (API.warm) API.warm(); });
   el.input.addEventListener("input", function () {
     clearTimeout(searchTimer); var q = el.input.value.trim();
     if (q.length < 2 || state.status !== "active") { hideSugg(); return; }
+    if (API.warm) API.warm();
     searchTimer = setTimeout(function () { runSearch(q); }, 160);
   });
   el.input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); var b = el.sugg.querySelector("button[data-id]"); if (b) pick(b.getAttribute("data-id")); } else if (e.key === "Escape") hideSugg(); });
@@ -338,6 +342,7 @@
   // ---------- Démarrage ----------
   async function boot() {
     try {
+      if (API.warm) API.warm();   // pré-chauffe la fonction dès l'ouverture du jeu
       var d = await API.getDailyPuzzle(); if (el.edition && d && d.edition) el.edition.textContent = "#" + d.edition;
       var s = await API.ensureSession();
       if (s && s.guesses && s.guesses.length) {

@@ -45,9 +45,25 @@
     return t;
   }
 
+  // Pré-chauffage : réveille l'isolate de la fonction (préflight OPTIONS, sans effet de bord)
+  // pour supprimer le « démarrage à froid » Supabase. Appelé à l'ouverture du jeu et pendant la
+  // partie, afin que la 1re proposition (et les suivantes) réponde quasi instantanément.
+  var lastWarm = 0;
+  function warmFns() {
+    if (!ready) return;
+    var now = Date.now();
+    if (now - lastWarm < 20000) return;   // au plus une fois toutes les 20 s
+    lastWarm = now;
+    var names = connected() ? ["submit-guess"] : ["guest-play"];
+    names.forEach(function (n) {
+      try { fetch(fnUrl(n), { method: "OPTIONS" }).catch(function () {}); } catch (e) {}
+    });
+  }
+
   var real = {
     mode: "supabase",
     degraded: !ready,
+    warm: warmFns,
     async getDailyPuzzle() {
       var d = await call("get-daily-puzzle", {});
       return { edition: d.puzzle && d.puzzle.edition, seasonName: d.season && d.season.label, raw: d };
