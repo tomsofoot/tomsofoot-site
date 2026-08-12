@@ -73,9 +73,10 @@
     if (state.busy || state.status !== "active") return; state.busy = true;
     lockInput(true);                                  // entrée verrouillée pendant la révélation
     el.input.value = ""; hideSugg();
+    renderPending();                                  // retour visuel immédiat (masque la latence serveur)
     try {
       var r = await API.submitGuess(id);
-      if (r && r.error) { state.busy = false; lockInput(false); return; }
+      if (r && r.error) { state.busy = false; lockInput(false); renderBoard(false); return; }
       var player = state.playersById[id] || { id: id, short_name: id };
       state.guesses.push({ player: player, states: r.states });
       state.status = r.status || (r.isWin ? "won" : "active");
@@ -95,7 +96,7 @@
         if (r.isWin) showBravo();
       };
       if (REDUCED) finish(); else setTimeout(finish, REVEAL_MS + 200);
-    } catch (e) { state.busy = false; lockInput(false); /* mode dégradé */ }
+    } catch (e) { state.busy = false; lockInput(false); renderBoard(false); /* mode dégradé : on retire la ligne d'attente */ }
   }
 
   function updateCount() { if (el.count) el.count.textContent = String(state.guesses.length).padStart(2, "0"); root.classList.toggle("has-guesses", state.guesses.length > 0); }
@@ -132,6 +133,24 @@
     var fresh = rowHTML(state.guesses[state.guesses.length - 1], animateLast ? "revealing" : "revealed");
     el.board.innerHTML = '<div class="board-wrap"><div class="board">' + head + fresh + older + "</div></div>";
     // La bascule .revealing -> .revealed est pilotée par pick() (finish), une fois toutes les cases retournées.
+  }
+
+  // Retour IMMÉDIAT : dès la validation, on affiche une ligne « en attente » (cases côté face,
+  // avec une pulsation) le temps que le serveur calcule les couleurs. Ça masque la latence réseau
+  // (le résultat n'est jamais côté client, pour l'anti-triche) : ça paraît instantané.
+  function pendingRow() {
+    var c = "";
+    for (var i = 0; i < 8; i++) {
+      c += '<div class="flip-cell"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><span>T</span></div><div class="flip-face flip-back"></div></div></div>';
+    }
+    return '<div class="guess-row is-pending" aria-label="Vérification en cours">' + c + "</div>";
+  }
+  function renderPending() {
+    if (!el.board) return;
+    var head = '<div class="board-head">' + HEAD.map(function (h) { return "<span>" + h + "</span>"; }).join("") + "</div>";
+    // Les propositions déjà faites sont toutes révélées ; la nouvelle n'est pas encore dans state.guesses.
+    var older = state.guesses.map(function (g) { return rowHTML(g, "revealed"); }).reverse().join("");
+    el.board.innerHTML = '<div class="board-wrap"><div class="board">' + head + pendingRow() + older + "</div></div>";
   }
 
   // ---------- Liste « joueurs déjà utilisés » (sous la recherche, mise à jour automatique) ----------
@@ -206,7 +225,10 @@
     if (!confirm("Révéler la réponse ? Ce n'est pas une victoire." + (API.isGuest && API.isGuest() ? " (invité : aucun point)" : " Pénalité de saison : " + pen + " pts."))) return;
     API.revealAnswer().then(function (r) {
       state.status = "revealed";
-      el.end.innerHTML = '<div class="end-card"><span>Réponse révélée</span><h3>C\'était ' + esc(r.answer && r.answer.name) + '</h3><p>Aucune victoire, aucun point de victoire.</p></div>';
+      var a = r.answer || {};
+      var full = a.name || a.short_name || "—";
+      var club = a.club ? ' <small class="end-club">(' + esc(a.club) + ')</small>' : '';
+      el.end.innerHTML = '<div class="end-card"><span>Réponse révélée</span><h3>C\'était ' + esc(full) + club + '</h3><p>Aucune victoire, aucun point de victoire.</p></div>';
       refreshPoints(); scrollToEnd();
     });
   });
@@ -307,7 +329,8 @@
     if (state.status === "won") showBravo();
     else if (state.status === "revealed") {
       var name = s.answer && s.answer.name ? s.answer.name : "—";
-      el.end.innerHTML = '<div class="end-card"><span>Réponse révélée</span><h3>C\'était ' + esc(name) + '</h3><p>Aucune victoire, aucun point de victoire.</p></div>';
+      var clubR = s.answer && s.answer.club ? ' <small class="end-club">(' + esc(s.answer.club) + ')</small>' : '';
+      el.end.innerHTML = '<div class="end-card"><span>Réponse révélée</span><h3>C\'était ' + esc(name) + clubR + '</h3><p>Aucune victoire, aucun point de victoire.</p></div>';
       refreshPoints();
     }
   }
