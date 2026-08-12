@@ -15,4 +15,7 @@ window.JOGADLE_PUBLIC = {
   SUPABASE_URL: "https://yubndvqmglttlntkugzm.supabase.co",
   // Clé « publishable » PUBLIQUE (destinée au navigateur — jamais la clé service_role).
   SUPABASE_ANON_KEY: "sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ",
+  // Clé de site Cloudflare Turnstile (PUBLIQUE — anti-robot sur le lien magique).
+  // La clé SECRÈTE correspondante n'est JAMAIS ici : elle vit uniquement dans Supabase.
+  TURNSTILE_SITE_KEY: "0x4AAAAAAENjYPshXARDoToV",
 };
