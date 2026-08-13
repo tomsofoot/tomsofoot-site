@@ -1,0 +1,22 @@
+{
+  "publications": [
+    {
+      "slug": "n12-argentine-angleterre",
+      "title": "Le match qui n'a jamais pris fin",
+      "subtitle": "Argentine–Angleterre, Atlanta",
+      "excerpt": "De Wembley aux Malouines jusqu'à la main de Maradona : soixante ans de mémoire tiennent dans une demi-finale.",
+      "issue_number": 12,
+      "publication_date": "2026-07-15",
+      "published_at": "2026-07-15T08:00:00Z",
+      "status": "published",
+      "cover_url": "images/couverture-n12.jpg",
+      "thumbnail_url": "images/couverture-n12.jpg",
+      "pdf_url": "numeros/n12.pdf",
+      "pdf_version": "v1",
+      "page_count": 28,
+      "featured": true,
+      "download_enabled": true,
+      "alt_text": "Couverture du numéro 12 — Argentine-Angleterre, le match qui n'a jamais pris fin"
+    }
+  ]
+}

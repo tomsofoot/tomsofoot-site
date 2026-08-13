@@ -181,3 +181,76 @@ content:
     extension: pdf
     view:
       fields: [name]
+
+  - name: publications
+    label: Journaux (lecteur)
+    type: file
+    path: publications.json
+    icon: book
+    description: >-
+      Chaque entrée est un numéro du journal, feuilletable dans le lecteur.
+      Pour ajouter un numéro : 1) téléversez le PDF dans « Numéros (PDF) », 2)
+      ajoutez une entrée ci-dessous avec son slug, son titre et le chemin du PDF.
+      Aucune modification de code n'est nécessaire.
+    fields:
+      - name: publications
+        label: Numéros
+        type: object
+        list: true
+        fields:
+          - name: slug
+            label: Slug (identifiant d'URL, unique)
+            type: string
+            pattern:
+              regex: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+              message: Uniquement minuscules, chiffres et tirets.
+          - name: title
+            label: Titre
+            type: string
+          - name: subtitle
+            label: Sous-titre
+            type: string
+          - name: excerpt
+            label: Résumé
+            type: text
+          - name: issue_number
+            label: Numéro d'édition
+            type: number
+          - name: publication_date
+            label: Date de publication
+            type: date
+            options: { format: yyyy-MM-dd }
+          - name: published_at
+            label: Publier à partir de (ISO, pour la programmation)
+            type: string
+            description: Ex. 2026-08-20T08:00:00Z. Laisser vide pour publier immédiatement.
+          - name: status
+            label: Statut
+            type: select
+            options:
+              values: [draft, scheduled, published, archived]
+              default: draft
+          - name: cover_url
+            label: Couverture
+            type: image
+          - name: thumbnail_url
+            label: Miniature
+            type: image
+          - name: pdf_url
+            label: Chemin du PDF (ex. numeros/n12.pdf)
+            type: string
+          - name: pdf_version
+            label: Version du PDF (changez à chaque remplacement, ex. v2)
+            type: string
+          - name: page_count
+            label: Nombre de pages du magazine
+            type: number
+          - name: featured
+            label: Mettre à la une
+            type: boolean
+          - name: download_enabled
+            label: Autoriser le téléchargement
+            type: boolean
+          - name: alt_text
+            label: Texte alternatif de la couverture
+            type: string
