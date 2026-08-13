@@ -103,14 +103,10 @@
       <div class="videos-wrap"><button class="varrow" id="vprev" type="button" aria-label="Documentaires précédents" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button><div class="videos" id="cms-videos"></div><button class="varrow" id="vnext" type="button" aria-label="Documentaires suivants"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div>
     </section>
 
-    <section class="manifesto">
-      <div class="manifesto-inner"><div><div class="manifesto-number" data-cms="manifeste.numero">Notre manifeste — 01</div></div><div><blockquote class="quote"><span data-cms="manifeste.citation1">Le score raconte le résultat.</span> <em data-cms="manifeste.citation2">Nous racontons ce qu'il signifie.</em></blockquote><p data-cms="manifeste.texte">TomsoFoot refuse le bruit permanent et l'analyse jetable. Ici, le football est traité comme une culture : avec du recul, une identité visuelle forte et le goût des histoires qui restent après le coup de sifflet.</p><a class="btn" href="#magazine" style="margin-top:20px">Découvrir notre vision</a></div></div>
-    </section>
-
     <!-- ===================== SECTION MENU TOMSOFOOT (drop-in) ===================== -->
     <style id="tsf-menu-css">
-      .tsf-menu{--mw:1672;--mh:941}
-      .tsf-menu .tsf-wrap{max-width:1440px;margin:0 auto}
+      .tsf-menu{--mw:1672;--mh:941;max-width:none;padding-left:clamp(14px,2.4vw,52px);padding-right:clamp(14px,2.4vw,52px)}
+      .tsf-menu .tsf-wrap{max-width:min(1860px,95vw);margin:0 auto}
       .tsf-menu .tsf-screen{position:relative;width:100%;aspect-ratio:1672/941;border-radius:14px;overflow:hidden;
         container-type:size;background:#dbe9f8;box-shadow:0 24px 60px rgba(20,45,110,.18)}
       .tsf-menu .tsf-master{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;z-index:0;user-select:none}
@@ -298,6 +294,11 @@
     })();
     </script>
     <!-- =================== FIN SECTION MENU TOMSOFOOT =================== -->
+
+    <section class="manifesto">
+      <div class="manifesto-inner"><div><div class="manifesto-number" data-cms="manifeste.numero">Notre manifeste — 01</div></div><div><blockquote class="quote"><span data-cms="manifeste.citation1">Le score raconte le résultat.</span> <em data-cms="manifeste.citation2">Nous racontons ce qu'il signifie.</em></blockquote><p data-cms="manifeste.texte">TomsoFoot refuse le bruit permanent et l'analyse jetable. Ici, le football est traité comme une culture : avec du recul, une identité visuelle forte et le goût des histoires qui restent après le coup de sifflet.</p><a class="btn" href="#magazine" style="margin-top:20px">Découvrir notre vision</a></div></div>
+    </section>
+
 
     <section class="newsletter" id="newsletter"><div class="newsletter-inner"><div><span class="kicker" style="color:white">Le vestiaire TomsoFoot</span><h2>Une longueur d'avance.</h2></div><form class="form" onsubmit="event.preventDefault();this.querySelector('button').textContent='INSCRIT ✓'"><input type="email" aria-label="Votre adresse e-mail" placeholder="Votre adresse e-mail" required><button type="submit">S'inscrire</button></form></div></section>
   </main>
