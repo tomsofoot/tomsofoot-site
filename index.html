@@ -148,18 +148,14 @@
       /* Habillage mobile (topbar, onglets, menu déroulant, barre basse) : masqués sur desktop */
       .tsf-menu .tmf-topbar,.tsf-menu .tmf-tabs,.tsf-menu .tmf-menu-panel,.tmf-bottomnav{display:none}
       @media(max-width:768px){
-        /* Mini-app mobile : on masque le bandeau + l'en-tête du site, on remonte le menu en tête */
-        #cms-bandeau,.site-header{display:none}
-        body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
-        main{display:flex;flex-direction:column}
-        #formats.tsf-menu{order:-1;padding:0 0 30px;
+        /* Menu mobile placé dans le flux normal, sous « Les documentaires », sans habillage d'app */
+        #formats.tsf-menu{padding:26px 0 30px;
           background:linear-gradient(180deg, rgba(230,240,251,.9), rgba(219,233,247,.98)), radial-gradient(circle at 50% 15%, #fff 0, transparent 46%), #e6f0fb}
         .tsf-menu .tsf-screen{display:none}
-        .tsf-menu .section-head{display:none}
         .tsf-menu .tsf-wrap{max-width:none;width:100%;padding:0 14px}
         .tsf-menu .tsf-mobile{display:grid;gap:18px;margin-top:6px}
         /* Barre du haut */
-        .tsf-menu .tmf-topbar{display:grid;grid-template-columns:1fr 48px 1fr;align-items:center;gap:8px;
+        .tsf-menu .tmf-topbar{display:none;grid-template-columns:1fr 48px 1fr;align-items:center;gap:8px;
           position:sticky;top:0;z-index:30;height:64px;padding:0 14px;margin:0 -14px 8px;
           background:rgba(232,242,252,.96);border-bottom:1px solid rgba(7,23,47,.08);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
         .tsf-menu .tmf-brand{justify-self:start;display:inline-flex;align-items:center;gap:9px;color:#07172f;
@@ -180,7 +176,7 @@
         .tsf-menu .tmf-menu-panel.open{display:grid;gap:1px}
         .tsf-menu .tmf-menu-panel a{padding:13px 6px;font-weight:800;text-transform:uppercase;font-size:13px;color:#07172f;border-bottom:1px solid rgba(7,23,47,.07)}
         /* Onglets */
-        .tsf-menu .tmf-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;
+        .tsf-menu .tmf-tabs{display:none;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;
           position:sticky;top:64px;z-index:28;padding:10px 0 12px;margin:0 0 8px;overflow-x:auto;scrollbar-width:none;
           background:linear-gradient(180deg,#e6f0fb 60%,rgba(230,240,251,.6))}
         .tsf-menu .tmf-tabs::-webkit-scrollbar{display:none}
@@ -188,8 +184,8 @@
           text-transform:uppercase;font-size:13px;font-weight:800;color:#07172f}
         .tsf-menu .tmf-tabs a.active{background:#061334;color:#fff;border-radius:6px;box-shadow:0 8px 18px rgba(6,19,52,.15)}
         .tsf-menu .tmf-tabs a.active::after{content:"";position:absolute;left:16%;right:16%;bottom:-9px;height:3px;background:#ff304a}
-        /* Barre de navigation basse fixe */
-        .tmf-bottomnav{display:grid;position:fixed;left:0;right:0;bottom:0;z-index:40;grid-template-columns:repeat(4,1fr);
+        /* Barre de navigation basse fixe (désactivée : menu sans habillage) */
+        .tmf-bottomnav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;grid-template-columns:repeat(4,1fr);
           height:calc(74px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
           background:rgba(241,247,253,.98);border-top:1px solid rgba(7,23,47,.12);box-shadow:0 -8px 22px rgba(7,23,47,.08);
           -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
