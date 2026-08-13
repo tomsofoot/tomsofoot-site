@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Régie publications — TomsoFoot (admin)</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root{--ink:#060f22;--navy:#0a1b3d;--red:#ef3340;--muted:#93a3bd;--white:#f4f7fc;--line:rgba(255,255,255,.14);--ok:#3ec27a}
+  *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:radial-gradient(120% 80% at 50% -10%,rgba(107,75,214,.16),transparent 55%),linear-gradient(180deg,var(--navy),var(--ink));color:var(--white);min-height:100vh}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 18px 70px}
+  h1{font-size:22px;margin:0 0 4px}.warn{color:#ffdca8;font-size:12px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+  a{color:#8fb4ff;text-decoration:none}
+  .card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+  .card h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+  label{display:block;font-size:12px;color:#cdd8ea;margin:0 0 5px;font-weight:600}
+  input,select,textarea{width:100%;background:#0c1730;border:1px solid var(--line);color:var(--white);border-radius:9px;padding:11px;font:inherit;margin-bottom:13px}
+  textarea{min-height:64px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .chk{display:flex;align-items:center;gap:8px;margin-bottom:12px}.chk input{width:auto;margin:0}
+  button{appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--white);border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer}
+  button.primary{background:var(--red);border-color:var(--red)}button:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .msg{font-size:13px;line-height:1.5;padding:10px 12px;border-radius:9px;margin:10px 0;display:none}
+  .msg.ok{display:block;background:rgba(30,120,60,.25);border:1px solid rgba(80,200,120,.4)}
+  .msg.err{display:block;background:rgba(150,40,40,.25);border:1px solid rgba(240,120,120,.4);color:#ffd0d0}
+  .msg.info{display:block;background:rgba(40,80,160,.22);border:1px solid rgba(120,160,240,.4)}
+  .hidden{display:none}
+  /* Zone de dépôt */
+  .drop{border:2px dashed rgba(255,255,255,.28);border-radius:14px;padding:34px 18px;text-align:center;transition:.18s;cursor:pointer;background:rgba(255,255,255,.02)}
+  .drop.drag{border-color:var(--red);background:rgba(239,51,64,.08)}
+  .drop b{display:block;font-size:15px;margin-bottom:6px}
+  .drop span{color:var(--muted);font-size:12px}
+  .drop input{display:none}
+  .prev{display:flex;gap:16px;align-items:flex-start;margin-top:14px}
+  .prev .thumb{width:150px;min-width:150px;border-radius:8px;border:1px solid var(--line);background:#fff;display:block}
+  .prev canvas{width:150px;height:auto;border-radius:8px;border:1px solid var(--line);background:#fff}
+  .pill{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.1);margin-bottom:8px}
+  .pill.j{background:rgba(239,51,64,.9)}.pill.a{background:rgba(60,120,220,.9)}
+  table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+  .star{color:#ffd76a}
+  .spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--red);border-radius:50%;animation:s .8s linear infinite;margin:18px auto}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .cf-turnstile{margin:2px 0 14px}
+  @media(max-width:640px){.row,.row3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Régie publications <span class="warn">· admin</span></h1>
+  <p class="sub">Glisse-dépose une <b>image</b> (article) ou un <b>PDF</b> (journal Canva). Ce que tu mets en ligne passe automatiquement <b>à la une</b> ; le précédent glisse dans l'encart « Articles et journaux précédents ». Module isolé du jeu.</p>
+
+  <!-- Chargement -->
+  <div id="v-loading" class="card"><div class="spin"></div></div>
+
+  <!-- Connexion requise -->
+  <div id="v-login" class="card hidden">
+    <h2>Connexion admin requise</h2>
+    <p class="sub" style="margin-bottom:14px">Connecte-toi avec ton compte administrateur. Tu recevras un lien à usage unique par e-mail.</p>
+    <label for="email">Ton adresse e-mail (compte admin)</label>
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="prenom@exemple.fr">
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAENjYPshXARDoToV" data-theme="dark" data-callback="tsfTS" data-expired-callback="tsfTSexp" data-error-callback="tsfTSexp"></div>
+    <button id="btn-send" class="primary" type="button">Recevoir mon lien de connexion</button>
+    <div class="msg" id="login-msg"></div>
+    <p class="sub" style="margin-top:14px">Astuce : si tu es déjà passé par <a href="regie.html">la régie</a>, tu es peut-être déjà connecté.</p>
+  </div>
+
+  <!-- Accès refusé -->
+  <div id="v-denied" class="card hidden">
+    <h2>Accès refusé</h2>
+    <div class="msg err" style="display:block">Ce compte n'est pas administrateur. Connecte-toi avec le compte autorisé.</div>
+    <div class="btns"><button id="btn-logout2" type="button">Se déconnecter</button></div>
+  </div>
+
+  <!-- Application -->
+  <div id="v-app" class="hidden">
+    <div class="card">
+      <h2>Nouvelle publication</h2>
+      <div class="drop" id="drop">
+        <input type="file" id="file" accept="application/pdf,image/png,image/jpeg,image/webp">
+        <b>Glisse ton fichier ici, ou clique pour choisir</b>
+        <span>Image (PNG, JPEG, WebP) = article · PDF = journal feuilletable · 50 Mo max</span>
+      </div>
+      <div class="msg" id="file-msg"></div>
+      <div class="prev hidden" id="prev">
+        <div>
+          <span class="pill" id="prev-pill">—</span>
+          <canvas id="prev-canvas" class="hidden"></canvas>
+          <img id="prev-img" class="thumb hidden" alt="Aperçu">
+        </div>
+        <div class="warn" id="prev-info"></div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div><label>Titre *</label><input id="f-title" placeholder="Titre de l'article / du journal"></div>
+        <div><label>Sous-titre</label><input id="f-subtitle"></div>
+      </div>
+      <div class="row3">
+        <div><label>Catégorie</label>
+          <select id="f-category">
+            <option>Grand format</option><option>Chronique</option><option>Analyse</option>
+            <option>Reportage</option><option>Entretien</option><option>Journal</option><option>Édito</option>
+          </select>
+        </div>
+        <div><label>Date de publication</label><input id="f-date" type="date"></div>
+        <div><label>Slug (auto)</label><input id="f-slug"></div>
+      </div>
+      <label>Résumé (facultatif)</label><textarea id="f-excerpt"></textarea>
+      <div class="row">
+        <div><label>Lien de l'article (facultatif, articles image)</label><input id="f-link" placeholder="https://…"></div>
+        <div><label>Texte alternatif (accessibilité)</label><input id="f-alt"></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="f-featured" checked><label style="margin:0">Mettre à la une (recommandé)</label></div>
+
+      <div class="btns">
+        <button id="btn-publish" class="primary" type="button">Mettre en ligne</button>
+        <button id="btn-reset" type="button">Vider le formulaire</button>
+      </div>
+      <div class="msg" id="save-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Publications en ligne</h2>
+      <div class="btns" style="margin:0 0 12px"><button id="btn-refresh" type="button">Rafraîchir</button>
+        <span class="who sub" id="who" style="align-self:center;margin:0"></span>
+        <button id="btn-logout" type="button" style="margin-left:auto">Se déconnecter</button></div>
+      <table id="pub-table"><thead><tr><th>Date</th><th>Type</th><th>Titre</th><th>À la une</th><th>Actions</th></tr></thead><tbody></tbody></table>
+      <div class="msg" id="list-msg"></div>
+    </div>
+
+    <div class="foot sub"><a href="regie.html">← Retour à la régie</a> · <a href="index.html" target="_blank" rel="noopener">Voir le site ↗</a></div>
+  </div>
+</div>
+
+<!-- Cloudflare Turnstile (protection CAPTCHA de ton Supabase) -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<!-- supabase-js : même chargement que tes autres régies -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+import * as pdfjsLib from './assets/vendor/pdfjs/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.worker.min.mjs', import.meta.url).href;
+
+const SUPABASE_URL = 'https://yubndvqmglttlntkugzm.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+const BUCKET = 'publications';
+
+const $ = (id) => document.getElementById(id);
+const show = (el, type, txt) => { el.className = 'msg ' + type; el.textContent = txt; };
+const view = (v) => ['v-loading','v-login','v-denied','v-app'].forEach(x => $(x).classList.toggle('hidden', x !== v));
+const slugify = (s) => (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+const todayISO = () => new Date().toISOString().slice(0,10);
+
+// Jeton Turnstile (connexion de secours si pas de session).
+window.tsfTS = (t) => { window.__cap = t; };
+window.tsfTSexp = () => { window.__cap = ''; };
+
+let sb = null, media = null; // media = {kind, file, ext, coverBlob, thumbBlob, pageCount}
+
+// --- Sélection du slug auto -------------------------------------------------
+$('f-title').addEventListener('input', () => { if (!$('f-slug').dataset.touched) $('f-slug').value = slugify($('f-title').value); });
+$('f-slug').addEventListener('input', () => { $('f-slug').dataset.touched = '1'; });
+$('f-date').value = todayISO();
+
+// --- Zone de dépôt ----------------------------------------------------------
+const drop = $('drop');
+drop.addEventListener('click', () => $('file').click());
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); if (ev==='dragleave' && e.target!==drop) return; drop.classList.remove('drag'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handleFile(f); });
+$('file').addEventListener('change', e => { const f = e.target.files[0]; if (f) handleFile(f); });
+
+async function handleFile(file) {
+  media = null; $('prev').classList.add('hidden');
+  $('prev-canvas').classList.add('hidden'); $('prev-img').classList.add('hidden');
+  const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+  const isImg = /^image\/(png|jpe?g|webp)$/i.test(file.type) || /\.(png|jpe?g|webp)$/i.test(file.name);
+  if (!isPdf && !isImg) return show($('file-msg'),'err','Format refusé. Accepte : PDF, PNG, JPEG, WebP.');
+  if (file.size > 50*1024*1024) return show($('file-msg'),'err','Fichier trop lourd (max 50 Mo).');
+  show($('file-msg'),'info','Analyse du fichier…');
+  try {
+    if (isPdf) await handlePdf(file); else await handleImage(file);
+    if (!$('f-title').value && file.name) { $('f-title').value = file.name.replace(/\.[^.]+$/,''); $('f-title').dispatchEvent(new Event('input')); }
+    $('prev').classList.remove('hidden');
+  } catch (err) { show($('file-msg'),'err','Lecture impossible : ' + (err?.message||err)); }
+}
+
+async function handlePdf(file) {
+  const buf = await file.arrayBuffer();
+  if (new TextDecoder().decode(new Uint8Array(buf.slice(0,5))) !== '%PDF-') throw new Error('signature PDF invalide');
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const page = await pdf.getPage(1);
+  const base = page.getViewport({ scale: 1 });
+  const scale = Math.min(1200 / base.width, 3);
+  const vp = page.getViewport({ scale });
+  const c = $('prev-canvas');
+  c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+  await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+  const coverBlob = await new Promise(r => c.toBlob(r, 'image/webp', 0.9));
+  const thumbBlob = await downscale(c, 400);
+  let hasText = false; try { const t = await page.getTextContent(); hasText = t.items.some(i => (i.str||'').trim()); } catch(_){}
+  media = { kind: 'journal', file, ext: 'pdf', coverBlob, thumbBlob, pageCount: pdf.numPages };
+  $('prev-canvas').classList.remove('hidden');
+  $('prev-pill').className = 'pill j'; $('prev-pill').textContent = 'Journal · PDF';
+  $('prev-info').textContent = pdf.numPages + ' page(s) · couverture générée · texte ' + (hasText ? 'sélectionnable ✓' : 'rasterisé (non sélectionnable)') + '.';
+  show($('file-msg'),'ok','PDF valide. Il sera feuilletable dans le lecteur.');
+}
+
+async function handleImage(file) {
+  const url = URL.createObjectURL(file);
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+  const cv = document.createElement('canvas');
+  const scale = Math.min(1600 / img.naturalWidth, 1);
+  cv.width = Math.round(img.naturalWidth * scale); cv.height = Math.round(img.naturalHeight * scale);
+  cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+  const thumbBlob = await downscale(cv, 400);
+  const ext = (file.type.split('/')[1] || 'jpg').replace('jpeg','jpg');
+  media = { kind: 'article', file, ext, coverBlob: file, thumbBlob, pageCount: null };
+  $('prev-img').src = url; $('prev-img').classList.remove('hidden');
+  $('prev-pill').className = 'pill a'; $('prev-pill').textContent = 'Article · image';
+  $('prev-info').textContent = img.naturalWidth + '×' + img.naturalHeight + ' px · miniature générée.';
+  show($('file-msg'),'ok','Image valide. Elle s\'affichera comme carte article.');
+}
+
+function downscale(srcCanvas, targetW) {
+  const ratio = srcCanvas.height / srcCanvas.width;
+  const t = document.createElement('canvas'); t.width = targetW; t.height = Math.round(targetW * ratio);
+  t.getContext('2d').drawImage(srcCanvas, 0, 0, t.width, t.height);
+  return new Promise(r => t.toBlob(r, 'image/webp', 0.85));
+}
+
+// --- Auth -------------------------------------------------------------------
+if (!window.supabase || !window.supabase.createClient) {
+  view('v-login'); show($('login-msg'),'err','Service de connexion indisponible (réseau). Réessaie.');
+} else {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  sb.auth.onAuthStateChange(() => evaluate());
+  evaluate();
+}
+
+async function evaluate() {
+  if (!sb) return;
+  let session = null;
+  try { session = (await sb.auth.getSession()).data.session; } catch(_){}
+  if (!session) { view('v-login'); return; }
+  let admin = false;
+  try { admin = (await sb.rpc('is_current_user_admin')).data === true; } catch(_){}
+  const email = session.user?.email || '';
+  if (admin) { $('who').textContent = email; view('v-app'); loadList(); }
+  else { view('v-denied'); }
+}
+
+$('btn-send').addEventListener('click', async () => {
+  const email = ($('email').value||'').trim();
+  if (!/.+@.+\..+/.test(email)) return show($('login-msg'),'err','Entre une adresse e-mail valide.');
+  if (!window.__cap) return show($('login-msg'),'err','Coche d\'abord la case anti-robot (Turnstile).');
+  $('btn-send').disabled = true;
+  try {
+    const r = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href, captchaToken: window.__cap } });
+    if (r.error) show($('login-msg'),'err','Échec : ' + r.error.message);
+    else show($('login-msg'),'ok','Lien envoyé ! Ouvre l\'e-mail sur cet appareil.');
+  } catch (e) { show($('login-msg'),'err', String(e)); }
+  try { if (window.turnstile) window.turnstile.reset(); } catch(_){}
+  window.__cap = ''; $('btn-send').disabled = false;
+});
+const logout = () => sb?.auth.signOut().then(() => view('v-login'));
+$('btn-logout').addEventListener('click', logout);
+$('btn-logout2').addEventListener('click', logout);
+
+// --- Publication ------------------------------------------------------------
+$('btn-reset').addEventListener('click', () => {
+  ['f-title','f-subtitle','f-excerpt','f-link','f-alt','f-slug'].forEach(id => $(id).value = '');
+  $('f-slug').dataset.touched = ''; $('f-date').value = todayISO(); $('f-featured').checked = true;
+  media = null; $('prev').classList.add('hidden'); $('file').value = ''; show($('save-msg'),'','');$('save-msg').className='msg';
+});
+
+$('btn-publish').addEventListener('click', async () => {
+  if (!sb) return;
+  if (!media) return show($('save-msg'),'err','Ajoute d\'abord une image ou un PDF.');
+  const title = $('f-title').value.trim();
+  if (!title) return show($('save-msg'),'err','Le titre est obligatoire.');
+  let slug = ($('f-slug').value || slugify(title)).trim();
+  if (!slug) return show($('save-msg'),'err','Slug invalide.');
+  const date = $('f-date').value || todayISO();
+  const featured = $('f-featured').checked;
+
+  $('btn-publish').disabled = true;
+  try {
+    show($('save-msg'),'info','Téléversement…');
+    const [y, m] = date.split('-');
+    const dir = `${y}/${m}/${slug}`;
+    const up = async (path, blob, type) => {
+      const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: type, upsert: true });
+      if (error) throw error;
+      return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    };
+    const rec = {
+      slug, title, subtitle: $('f-subtitle').value || null, excerpt: $('f-excerpt').value || null,
+      category: $('f-category').value || null, kind: media.kind,
+      publication_date: date, sort_date: date, published_at: new Date().toISOString(),
+      status: 'published', featured, download_enabled: true,
+      alt_text: $('f-alt').value || title, pdf_version: 'v1',
+      link_url: $('f-link').value || null, page_count: media.pageCount || null,
+    };
+    // Miniature (toujours) + média principal
+    rec.thumbnail_url = await up(`${dir}/miniature.webp`, media.thumbBlob, 'image/webp');
+    if (media.kind === 'journal') {
+      rec.pdf_url = await up(`${dir}/journal-v1.pdf`, media.file, 'application/pdf');
+      rec.cover_url = await up(`${dir}/couverture.webp`, media.coverBlob, 'image/webp');
+    } else {
+      rec.cover_url = await up(`${dir}/image.${media.ext}`, media.file, media.file.type || 'image/jpeg');
+      rec.pdf_url = null;
+    }
+    // Une seule à la une : on retire le drapeau des autres AVANT d'insérer.
+    if (featured) {
+      const clr = await sb.from('publications').update({ featured: false }).eq('featured', true);
+      if (clr.error) throw clr.error;
+    }
+    const { error } = await sb.from('publications').upsert(rec, { onConflict: 'slug' });
+    if (error) throw error;
+    show($('save-msg'),'ok','En ligne : « ' + title + ' »' + (featured ? ' — à la une.' : '.') + ' Le site est à jour.');
+    $('btn-reset').click();
+    loadList();
+  } catch (err) {
+    show($('save-msg'),'err','Échec : ' + (err?.message || err));
+  }
+  $('btn-publish').disabled = false;
+});
+
+// --- Liste ------------------------------------------------------------------
+async function loadList() {
+  if (!sb) return;
+  const { data, error } = await sb.from('publications')
+    .select('slug,title,kind,featured,status,sort_date,publication_date,published_at')
+    .order('sort_date', { ascending: false, nullsFirst: false });
+  const tb = $('pub-table').querySelector('tbody'); tb.innerHTML = '';
+  if (error) return show($('list-msg'),'err','Lecture impossible : ' + error.message);
+  show($('list-msg'),'','');$('list-msg').className='msg';
+  for (const p of (data||[])) {
+    const d = p.sort_date || p.publication_date || (p.published_at||'').slice(0,10) || '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${d}</td><td>${p.kind==='journal'?'Journal':'Article'}</td><td>${escHtml(p.title)}</td>`+
+      `<td>${p.featured?'<span class="star">★ à la une</span>':''}</td>`+
+      `<td><button data-feat="${escAttr(p.slug)}"${p.featured?' disabled':''}>À la une</button> `+
+      `<button data-del="${escAttr(p.slug)}">Retirer</button></td>`;
+    tb.appendChild(tr);
+  }
+  tb.querySelectorAll('button[data-feat]').forEach(b => b.addEventListener('click', async () => {
+    await sb.from('publications').update({ featured:false }).eq('featured', true);
+    await sb.from('publications').update({ featured:true }).eq('slug', b.dataset.feat);
+    loadList();
+  }));
+  tb.querySelectorAll('button[data-del]').forEach(b => b.addEventListener('click', async () => {
+    // « Retirer » = archiver (reste consultable dans l'encart, sort de l'à la une).
+    await sb.from('publications').update({ status:'archived', featured:false }).eq('slug', b.dataset.del);
+    loadList();
+  }));
+}
+$('btn-refresh').addEventListener('click', loadList);
+function escHtml(t){ return String(t==null?'':t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function escAttr(t){ return String(t==null?'':t).replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Régie — Calendrier des récompenses</title>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{--bg:#07071a;--panel:#0d0e26;--panel2:#12132f;--line:rgba(129,116,209,.22);
@@ -112,6 +113,7 @@
     <h2>🔒 Régie administrateur</h2>
     <p>Connecte-toi avec l'e‑mail de ton compte administrateur. Tu recevras un lien magique.</p>
     <input id="email" type="email" placeholder="ton@email.com" autocomplete="email">
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAENjYPshXARDoToV" data-theme="dark" data-callback="tsfTS" data-expired-callback="tsfTSexp" data-error-callback="tsfTSexp" style="margin:2px 0 12px"></div>
     <button id="sendLink">Recevoir le lien de connexion</button>
     <p id="authMsg" style="margin-top:12px"></p>
   </div>
@@ -154,6 +156,10 @@
 <script>
 (function(){
   "use strict";
+  // Jeton captcha Turnstile (protection activée sur Supabase Auth).
+  var captchaToken = '';
+  window.tsfTS = function (t) { captchaToken = t; };
+  window.tsfTSexp = function () { captchaToken = ''; };
   var SUPABASE_URL="https://yubndvqmglttlntkugzm.supabase.co";
   var SUPABASE_ANON_KEY="sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ";
   var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
@@ -188,9 +194,12 @@
 
   $("sendLink").addEventListener("click",async function(){
     var email=$("email").value.trim();if(!email)return;
+    if(!captchaToken){ $("authMsg").textContent="Coche d'abord la case anti-robot (Turnstile)."; return; }
     $("authMsg").textContent="Envoi…";
-    var r=await sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.href}});
+    var r=await sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.href,captchaToken:captchaToken}});
     $("authMsg").textContent=r.error?("Erreur : "+r.error.message):"✅ Lien envoyé ! Ouvre ton e‑mail, clique le lien, tu reviendras ici connecté.";
+    try{ if(window.turnstile){ window.turnstile.reset(); } }catch(e){}
+    captchaToken='';
   });
   $("logout").addEventListener("click",async function(){await sb.auth.signOut();location.reload();});
   $("denyLogout").addEventListener("click",async function(){await sb.auth.signOut();location.reload();});
