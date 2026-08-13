@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Ma régie — TomsoFoot</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root{--ink:#060f22;--navy:#0a1b3d;--red:#ef3340;--muted:#93a3bd;--white:#f4f7fc;--line:rgba(255,255,255,.14)}
+  *{box-sizing:border-box}html,body{height:100%;margin:0}
+  body{font-family:Inter,system-ui,Arial,sans-serif;background:radial-gradient(120% 80% at 50% -10%,rgba(107,75,214,.16),transparent 55%),linear-gradient(180deg,var(--navy),var(--ink));color:var(--white);display:grid;place-items:center;min-height:100dvh;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .card{width:min(440px,92vw);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+  .logo{font-weight:800;font-style:italic;letter-spacing:-.03em;font-size:22px;margin:0 0 2px}.logo i{color:var(--red);font-style:normal}
+  .sub{color:var(--muted);font-size:12px;margin:0 0 22px;letter-spacing:.02em}
+  h1{font-size:17px;margin:0 0 14px}
+  label{display:block;font-size:12px;color:#cdd8ea;margin:0 0 6px;font-weight:600}
+  input{width:100%;background:#0c1730;border:1px solid var(--line);color:var(--white);border-radius:10px;padding:12px;font:inherit;margin-bottom:14px}
+  button{width:100%;appearance:none;border:0;background:var(--red);color:#fff;border-radius:10px;padding:13px;font-weight:800;font-size:14px;cursor:pointer}
+  button:hover{filter:brightness(1.06)}button.ghost{background:transparent;border:1px solid var(--line);color:var(--white);font-weight:600}
+  .msg{font-size:13px;line-height:1.5;padding:11px 13px;border-radius:9px;margin:6px 0 0;display:none}
+  .msg.ok{display:block;background:rgba(30,120,60,.22);border:1px solid rgba(80,200,120,.4)}
+  .msg.err{display:block;background:rgba(150,40,40,.22);border:1px solid rgba(240,120,120,.4);color:#ffd0d0}
+  .hidden{display:none}
+  .tools a{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;padding:14px 15px;margin-bottom:11px;font-weight:700;font-size:14px;transition:.16s}
+  .tools a:hover{border-color:var(--red);transform:translateY(-1px)}
+  .tools a small{display:block;color:var(--muted);font-weight:500;font-size:12px;margin-top:2px}
+  .tools a .arw{color:var(--muted)}
+  .row{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px}
+  .who{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .foot{margin-top:16px;text-align:center}.foot a{color:var(--muted);font-size:12px}
+  .spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--red);border-radius:50%;animation:s .8s linear infinite;margin:8px auto}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+  <main class="card">
+    <p class="logo">TOMSO<i>FOOT</i></p>
+    <p class="sub">Espace privé · régie</p>
+
+    <!-- État : chargement -->
+    <div id="v-loading"><div class="spin"></div></div>
+
+    <!-- État : connexion -->
+    <div id="v-login" class="hidden">
+      <h1>Connexion requise</h1>
+      <label for="email">Ton adresse e-mail (compte admin)</label>
+      <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="prenom@exemple.fr">
+      <button id="btn-send" type="button">Recevoir mon lien de connexion</button>
+      <div class="msg" id="login-msg"></div>
+      <p class="sub" style="margin-top:16px">Tu recevras un lien à usage unique par e-mail. Aucun mot de passe à retenir.</p>
+    </div>
+
+    <!-- État : accès refusé -->
+    <div id="v-denied" class="hidden">
+      <h1>Accès refusé</h1>
+      <div class="msg err" style="display:block">Ce compte n'est pas administrateur. Connecte-toi avec le compte autorisé.</div>
+      <div class="row"><span class="who" id="who2"></span><button class="ghost" id="btn-logout2" type="button" style="width:auto;padding:8px 14px">Se déconnecter</button></div>
+    </div>
+
+    <!-- État : régie (connecté + admin) -->
+    <div id="v-hub" class="hidden">
+      <h1>Ma régie</h1>
+      <div class="tools">
+        <a href="https://app.pagescms.org/" target="_blank" rel="noopener">
+          <span>Publier un journal<small>Pages CMS · ajouter / programmer un numéro</small></span><span class="arw">↗</span></a>
+        <a href="magazine/regie-magazine.html" target="_blank" rel="noopener">
+          <span>Régie magazine<small>Téléversement PDF, miniatures, à la une</small></span><span class="arw">↗</span></a>
+        <a href="regie-cal-7x9k2p.html" target="_blank" rel="noopener">
+          <span>Régie calendrier<small>Calendrier des récompenses</small></span><span class="arw">↗</span></a>
+      </div>
+      <div class="row"><span class="who" id="who"></span><button class="ghost" id="btn-logout" type="button" style="width:auto;padding:8px 14px">Se déconnecter</button></div>
+    </div>
+
+    <div class="foot"><a href="index.html">← Retour au site</a></div>
+  </main>
+
+<!-- supabase-js : même chargement que ta régie calendrier existante -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  // Mêmes identifiants publics que ta régie calendrier (clé "publishable", sans danger côté client).
+  var SUPABASE_URL = "https://yubndvqmglttlntkugzm.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ";
+  var $ = function (id) { return document.getElementById(id); };
+  function show(view) { ['v-loading','v-login','v-denied','v-hub'].forEach(function(v){ $(v).classList.toggle('hidden', v!==view); }); }
+  function msg(el, type, t){ el.className='msg '+type; el.textContent=t; }
+
+  if (!window.supabase || !window.supabase.createClient) {
+    show('v-login');
+    msg($('login-msg'),'err','Service de connexion indisponible. Réessaie dans un instant.');
+    return;
+  }
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function evaluate() {
+    var session = (await sb.auth.getSession()).data.session;
+    if (!session) { show('v-login'); return; }
+    // Vérifie le statut admin côté serveur (même RPC que la régie calendrier).
+    var admin = false;
+    try { admin = (await sb.rpc('is_current_user_admin')).data === true; } catch (e) { admin = false; }
+    var email = session.user && session.user.email ? session.user.email : '';
+    if (admin) { $('who').textContent = email; show('v-hub'); }
+    else { $('who2').textContent = email; show('v-denied'); }
+  }
+
+  $('btn-send').addEventListener('click', async function () {
+    var email = ($('email').value || '').trim();
+    if (!/.+@.+\..+/.test(email)) { msg($('login-msg'),'err','Entre une adresse e-mail valide.'); return; }
+    $('btn-send').disabled = true;
+    try {
+      var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.href } });
+      if (r.error) msg($('login-msg'),'err','Échec : ' + r.error.message);
+      else msg($('login-msg'),'ok','Lien envoyé ! Ouvre l\'e-mail sur cet appareil pour te connecter.');
+    } catch (e) { msg($('login-msg'),'err', String(e)); }
+    $('btn-send').disabled = false;
+  });
+
+  function logout(){ sb.auth.signOut().then(function(){ show('v-login'); }); }
+  $('btn-logout').addEventListener('click', logout);
+  $('btn-logout2').addEventListener('click', logout);
+
+  sb.auth.onAuthStateChange(function(){ evaluate(); });
+  evaluate();
+})();
+</script>
+</body>
+</html>
