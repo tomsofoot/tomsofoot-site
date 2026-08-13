@@ -583,6 +583,15 @@
       data = await r.json();
     } catch (e) { return; }
 
+    // Contenu de l'accueil enregistré depuis la régie « Éditer l'accueil » (Supabase,
+    // sans jeton). S'il existe, il prend le pas sur contenu.json. Repli silencieux.
+    try {
+      const SB = 'https://yubndvqmglttlntkugzm.supabase.co';
+      const K = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+      const sr = await fetch(SB + '/rest/v1/site_content?key=eq.accueil&select=data', { headers: { apikey: K, authorization: 'Bearer ' + K } });
+      if (sr.ok) { const rows = await sr.json(); if (rows && rows[0] && rows[0].data && typeof rows[0].data === 'object') data = Object.assign({}, data, rows[0].data); }
+    } catch (_) { /* pas d'override : on garde contenu.json */ }
+
     document.querySelectorAll('[data-cms]').forEach(el => {
       const v = dig(data, el.dataset.cms);
       if (typeof v === 'string' && v.trim()) el.textContent = v;

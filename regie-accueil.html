@@ -229,18 +229,16 @@
 
   // Enregistrer
   $('btn-save').addEventListener('click', async function () {
-    if (!accessToken) { show('msg', 'err', 'Mode aperçu : l\'enregistrement se fait depuis tomsofoot.fr (connecté). Ici, tu testes seulement le rendu en direct.'); return; }
+    if (!sb || !accessToken) { show('msg', 'err', 'Connecte-toi d\'abord (compte admin) pour enregistrer. Ici, tu testes seulement le rendu en direct.'); return; }
     $('save-status').textContent = 'Enregistrement…';
     $('btn-save').disabled = true;
     try {
-      var res = await fetch('/.netlify/functions/save-accueil', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ contenu: collect(), accessToken: accessToken }),
-      });
-      var out = await res.json();
-      if (res.ok && out.ok) { show('msg', 'ok', 'Enregistré ! Le site se met à jour dans ~1 min (redéploiement).'); $('save-status').textContent = ''; }
-      else { show('msg', 'err', 'Échec : ' + (out.error || res.status) + (out.detail ? ' — ' + out.detail : '')); $('save-status').textContent = ''; }
-    } catch (e) { show('msg', 'err', 'Erreur réseau : ' + e); $('save-status').textContent = ''; }
+      // Enregistrement direct dans Supabase (aucun jeton GitHub requis).
+      var up = await sb.from('site_content').upsert({ key: 'accueil', data: collect() }, { onConflict: 'key' });
+      if (up.error) throw up.error;
+      show('msg', 'ok', 'Enregistré ✓ — le site est à jour immédiatement (recharge l\'accueil pour voir).');
+      $('save-status').textContent = '';
+    } catch (e) { show('msg', 'err', 'Échec : ' + ((e && e.message) || e)); $('save-status').textContent = ''; }
     $('btn-save').disabled = false;
   });
   function show(id, type, txt) { var el = $(id); el.className = 'msg ' + type; el.textContent = txt; }
