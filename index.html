@@ -146,21 +146,52 @@
       .tsf-menu .tsf-clue .tsf-lab span{display:block;white-space:nowrap;font-size:1.33cqh}
       .tsf-menu .tsf-mobile{display:none}
       @media(max-width:760px){
+        .tsf-menu{padding-left:16px;padding-right:16px}
         .tsf-menu .tsf-screen{display:none}
-        .tsf-menu .tsf-mobile{display:grid;gap:12px}
-        .tsf-menu .tsf-mrow{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;
-          text-decoration:none;color:#0b1226;background:linear-gradient(180deg,#ffffff,#f4f7fc);
-          border:1px solid rgba(20,40,90,.10);box-shadow:0 8px 20px rgba(30,50,110,.10)}
-        .tsf-menu .tsf-mrow .tsf-mt{font-family:"Archivo Black",Inter,sans-serif;font-size:19px;letter-spacing:-.01em}
-        .tsf-menu .tsf-mrow .tsf-ms{font-size:13px;color:#5b6a86;margin-top:2px}
-        .tsf-menu .tsf-mrow.you{background:linear-gradient(180deg,#ff5b5b,#ff0000);color:#fff}
-        .tsf-menu .tsf-mrow.tw{background:linear-gradient(180deg,#9146ff,#772ce8);color:#fff}
-        .tsf-menu .tsf-mrow.jo{background:linear-gradient(180deg,#12275e,#0b1c46);color:#fff}
-        .tsf-menu .tsf-mrow.you .tsf-ms,.tsf-menu .tsf-mrow.tw .tsf-ms,.tsf-menu .tsf-mrow.jo .tsf-ms{color:rgba(255,255,255,.85)}
-        .tsf-menu .tsf-mrow .tsf-mclock{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;font-size:18px}
-        .tsf-menu .tsf-mrow .tsf-mlive{margin-left:auto;font-size:11px;font-weight:800;background:#f1051d;color:#fff;
-          padding:5px 9px;border-radius:999px;display:none}
-        .tsf-menu .tsf-mrow .tsf-mlive.tsf-on{display:inline-block}
+        .tsf-menu .tsf-mobile{display:grid;gap:14px}
+        .tsf-menu .tm-card{position:relative;overflow:hidden;display:block;text-decoration:none;border-radius:18px;
+          padding:20px;box-shadow:0 14px 30px rgba(10,20,50,.28);isolation:isolate;transition:transform .2s}
+        .tsf-menu .tm-card:active{transform:scale(.99)}
+        .tsf-menu .tm-card .tm-sheen{position:absolute;inset:0;z-index:0;pointer-events:none;
+          background:linear-gradient(120deg,rgba(255,255,255,.18),rgba(255,255,255,0) 42%)}
+        .tsf-menu .tm-card>*{position:relative;z-index:1}
+        .tsf-menu .tm-kicker{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+        .tsf-menu .tm-card h3{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;font-size:26px;
+          letter-spacing:-.02em;text-transform:uppercase;line-height:1;margin:0 0 8px}
+        .tsf-menu .tm-card p{margin:0 0 14px;font-size:13px;line-height:1.42}
+        .tsf-menu .tm-btn{display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 18px;border-radius:11px;
+          font-size:13.5px;font-weight:800;letter-spacing:.01em}
+        .tsf-menu .tm-btn svg{flex:0 0 auto}
+        .tsf-menu .tm-kick{background:radial-gradient(130% 90% at 88% 8%, #2f66e6, transparent 58%),linear-gradient(160deg,#1c50d8,#122f8f);color:#fff}
+        .tsf-menu .tm-kick .tm-kicker{color:#7ef0e0}
+        .tsf-menu .tm-kick .tm-btn{background:#ff0000;color:#fff}
+        .tsf-menu .tm-voyage{background:linear-gradient(180deg,#ffffff,#eef1f6);color:#0b1226}
+        .tsf-menu .tm-voyage .tm-kicker{color:#16357e}
+        .tsf-menu .tm-voyage h3{font-style:italic;color:#16357e}
+        .tsf-menu .tm-voyage p{color:#5b6a86}
+        .tsf-menu .tm-voyage .tm-btn{background:#12275e;color:#fff}
+        .tsf-menu .tm-live{background:radial-gradient(130% 90% at 85% 8%, #a35bff, transparent 58%),linear-gradient(160deg,#7a2ce8,#4b1b9c);color:#fff}
+        .tsf-menu .tm-live .tm-kicker{color:#e6d6ff}
+        .tsf-menu .tm-live .tm-btn{background:#fff;color:#5b1fb0}
+        .tsf-menu .tm-glyph{width:30px;height:32px;fill:#fff;vertical-align:-7px;margin-right:8px}
+        .tsf-menu .tm-badge{position:absolute;top:16px;right:16px;z-index:2;display:none;align-items:center;gap:6px;
+          font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#f1051d;
+          padding:6px 11px;border-radius:999px;box-shadow:0 6px 16px rgba(241,5,29,.5)}
+        .tsf-menu .tm-badge.tsf-on{display:inline-flex}
+        .tsf-menu .tm-badge i{width:8px;height:8px;border-radius:50%;background:#fff;animation:tsfblink 1.4s infinite}
+        .tsf-menu .tm-jog{background:linear-gradient(160deg,#12275e,#0a1836);color:#fff}
+        .tsf-menu .tm-jog .tm-kicker{color:#7fa0e6}
+        .tsf-menu .tm-cap{font-size:12px;font-style:italic;color:#93a8ce;margin:0 0 12px}
+        .tsf-menu .tm-clues{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+        .tsf-menu .tm-chip{display:flex;align-items:center;gap:8px;padding:10px;border-radius:10px;
+          background:linear-gradient(180deg,#155a46,#0e3f31);border:1px solid rgba(255,255,255,.08)}
+        .tsf-menu .tm-chip.r{background:linear-gradient(180deg,#8a1631,#650b1f)}
+        .tsf-menu .tm-chip svg{width:18px;height:18px;flex:0 0 auto;fill:#fff}
+        .tsf-menu .tm-chip span{font-size:12px;font-weight:700;line-height:1.12;text-transform:uppercase;letter-spacing:.01em}
+        .tsf-menu .tm-cdrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+        .tsf-menu .tm-cdrow .lab{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9fb3d6}
+        .tsf-menu .tm-cdrow b{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+        .tsf-menu .tm-jog .tm-btn{background:#7b3ff2;color:#fff}
       }
     </style>
 
@@ -205,16 +236,42 @@
         </div>
 
         <div class="tsf-mobile">
-          <a class="tsf-mrow you" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">
-            <div><div class="tsf-mt">Coup d'envoi</div><div class="tsf-ms">Ma chaîne YouTube</div></div></a>
-          <a class="tsf-mrow" href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener">
-            <div><div class="tsf-mt">Le voyage</div><div class="tsf-ms">Lire le magazine</div></div></a>
-          <a class="tsf-mrow tw" href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener">
-            <div><div class="tsf-mt">Le live</div><div class="tsf-ms">Rejoins les lives TomsoFoot</div></div>
-            <span class="tsf-mlive" id="tsf-mlive">● En direct</span></a>
-          <a class="tsf-mrow jo" href="/jeu">
-            <div><div class="tsf-mt">Jogadle</div><div class="tsf-ms">Trouve le joueur du jour</div></div>
-            <span class="tsf-mclock" id="tsf-mclk">--:--:--</span></a>
+          <a class="tm-card tm-kick" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">
+            <span class="tm-sheen"></span>
+            <span class="tm-kicker">Coup d'envoi</span>
+            <h3>La chaîne</h3>
+            <p>Débriefs, documentaires et analyses, dans une mise en scène immédiatement reconnaissable.</p>
+            <span class="tm-btn"><svg width="22" height="16" viewBox="0 0 24 18"><rect width="24" height="18" rx="5" fill="#fff"/><path d="M9.5 4.8l6.2 4.2-6.2 4.2z" fill="#ff0000"/></svg> Ma chaîne YouTube</span>
+          </a>
+          <a class="tm-card tm-voyage" href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener">
+            <span class="tm-sheen"></span>
+            <span class="tm-kicker">Le voyage</span>
+            <h3>Le magazine</h3>
+            <p>Des récits longs, des archives et des dossiers à collectionner.</p>
+            <span class="tm-btn"><svg width="20" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7v14H4zM20 5h-7v14h7z"/></svg> Lire le magazine</span>
+          </a>
+          <a class="tm-card tm-live" href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener">
+            <span class="tm-sheen"></span>
+            <span class="tm-badge" id="tsf-mlive"><i></i> En direct</span>
+            <span class="tm-kicker">Le direct</span>
+            <h3><svg class="tm-glyph" viewBox="0 0 24 26"><path d="M2 0L0 5v18h6v3l3-3h5l9-9V0H2zm20 12l-4 4h-5l-3 3v-3H5V2h17v10zM17 5v6h-2V5h2zm-5 0v6h-2V5h2z"/></svg>Le live TomsoFoot</h3>
+            <p>Des soirées Twitch où l'émotion du match rencontre l'exigence de l'analyse.</p>
+            <span class="tm-btn">Regarder le live ▸</span>
+          </a>
+          <a class="tm-card tm-jog" href="/jeu">
+            <span class="tm-sheen"></span>
+            <span class="tm-kicker">Le joueur du jour</span>
+            <h3>Trouve le joueur mystère</h3>
+            <div class="tm-cap">(indices du joueur de la veille)</div>
+            <div class="tm-clues">
+              <div class="tm-chip"><svg viewBox="0 0 24 24"><path d="M8 3l4 2 4-2 5 3-2 4-2-1v11H7V9L5 10 3 6z"/></svg><span id="tsf-mclue-pos">—</span></div>
+              <div class="tm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span id="tsf-mclue-nat">—</span></div>
+              <div class="tm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg><span id="tsf-mclue-dec">—</span></div>
+              <div class="tm-chip r"><svg viewBox="0 0 24 24"><path d="M3 14l1-5 6 1 8 4c2 .6 3 1.4 3 3v1H4c-1 0-1-1.5-1-1.5z"/></svg><span id="tsf-mclue-lea">—</span></div>
+            </div>
+            <div class="tm-cdrow"><span class="lab">Prochain joueur dans</span><b id="tsf-mclk">--:--:--</b></div>
+            <span class="tm-btn">Jouer maintenant ▸</span>
+          </a>
         </div>
       </div>
     </section>
@@ -269,9 +326,14 @@
             two(document.getElementById('tsf-clue-pos'), pos[0]||'—', pos[1]||'');
             var nat=NAT[d.country]||d.country||'—';
             two(document.getElementById('tsf-clue-nat'), 'Nationalité', nat);
-            var dec=''; if(d.birthYear){ var base=Math.floor(d.birthYear/10)*10; dec = base>=2000 ? ('années '+base) : ('années '+(base%100)); }
+            var dec=''; if(d.birthYear){ var db=Math.floor(d.birthYear/10)*10; dec = db>=2000 ? ('années '+db) : ('années '+(db%100)); }
             two(document.getElementById('tsf-clue-dec'), 'Né dans les', dec||'—');
             two(document.getElementById('tsf-clue-lea'), 'A joué en', d.league||'—');
+            var setm=function(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; };
+            setm('tsf-mclue-pos', d.position||'—');
+            setm('tsf-mclue-nat', nat);
+            setm('tsf-mclue-dec', dec ? dec.charAt(0).toUpperCase()+dec.slice(1) : '—');
+            setm('tsf-mclue-lea', d.league||'—');
             fit();
           })
           .catch(function(){});
