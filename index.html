@@ -101,6 +101,21 @@
       .tsf-arch-empty{color:#66707d;font-size:13px;padding:14px 2px 2px}
       @media(max-width:900px){.tsf-pub{grid-template-columns:1fr}.tsf-arch-list{max-height:none}}
     </style>
+    <section class="issue" id="magazine">
+      <div class="issue-inner">
+        <div>
+          <span class="kicker" data-cms="magazine.surtitre">Le magazine · N°12</span>
+          <h2 data-cms="magazine.titre">Un numéro qui se feuillette</h2>
+          <p data-cms="magazine.texte">Chaque numéro est mis en page comme une revue, puis publié ici en lecture page à page. Sur ordinateur, la double page. Sur téléphone, une page à la fois. Aucune application à installer.</p>
+          <div class="cta-row"><a class="btn primary" style="border-color:white;background:white;color:var(--ink)" data-cms="magazine.bouton" data-cms-href="magazine.lien" href="magazine/lecteur.html">Ouvrir le numéro 12</a></div>
+        </div>
+        <a class="issue-cover" data-cms-href="magazine.lien" href="magazine/lecteur.html" aria-label="Ouvrir le numéro 12">
+          <span data-cms="magazine.pastille">N°12</span>
+          <img data-cms-src="magazine.couverture" src="images/couverture-n12.jpg" alt="Couverture du numéro">
+        </a>
+      </div>
+    </section>
+
     <section class="section" id="actu">
       <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#magazine">Toutes les publications →</a></div>
       <!-- Fil publié depuis la régie (Supabase). Le plus récent passe à la une ;
@@ -118,21 +133,6 @@
       </div>
       <!-- Repli éditorial (contenu.json) : affiché tant qu'aucune publication Supabase n'existe. -->
       <div class="story-grid" id="cms-articles"></div>
-    </section>
-
-    <section class="issue" id="magazine">
-      <div class="issue-inner">
-        <div>
-          <span class="kicker" data-cms="magazine.surtitre">Le magazine · N°12</span>
-          <h2 data-cms="magazine.titre">Un numéro qui se feuillette</h2>
-          <p data-cms="magazine.texte">Chaque numéro est mis en page comme une revue, puis publié ici en lecture page à page. Sur ordinateur, la double page. Sur téléphone, une page à la fois. Aucune application à installer.</p>
-          <div class="cta-row"><a class="btn primary" style="border-color:white;background:white;color:var(--ink)" data-cms="magazine.bouton" data-cms-href="magazine.lien" href="magazine/lecteur.html">Ouvrir le numéro 12</a></div>
-        </div>
-        <a class="issue-cover" data-cms-href="magazine.lien" href="magazine/lecteur.html" aria-label="Ouvrir le numéro 12">
-          <span data-cms="magazine.pastille">N°12</span>
-          <img data-cms-src="magazine.couverture" src="images/couverture-n12.jpg" alt="Couverture du numéro">
-        </a>
-      </div>
     </section>
 
     <section class="section" id="videos">
