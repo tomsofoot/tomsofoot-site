@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Régie magazine — TomsoFoot (admin)</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<style>
+  :root{--ink:#060f22;--navy:#0a1b3d;--paper:#fbfaf6;--red:#ef3340;--muted:#93a3bd;--white:#f4f7fc;--line:rgba(255,255,255,.14)}
+  *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,var(--navy),var(--ink));color:var(--white);min-height:100vh}
+  .wrap{max-width:920px;margin:0 auto;padding:26px 18px 60px}
+  h1{font-size:22px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin:0 0 22px}
+  .card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+  .card h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+  label{display:block;font-size:12px;color:#cdd8ea;margin:0 0 5px;font-weight:600}
+  input,select,textarea{width:100%;background:#0c1730;border:1px solid var(--line);color:var(--white);border-radius:8px;padding:10px;font:inherit;margin-bottom:12px}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .chk{display:flex;align-items:center;gap:8px;margin-bottom:12px}.chk input{width:auto;margin:0}
+  button{appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--white);border-radius:9px;padding:11px 16px;font-weight:700;cursor:pointer}
+  button.primary{background:var(--red);border-color:var(--red)}button:hover{filter:brightness(1.08)}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .msg{font-size:13px;padding:10px 12px;border-radius:8px;margin:10px 0;display:none}
+  .msg.ok{display:block;background:rgba(30,120,60,.25);border:1px solid rgba(80,200,120,.4)}
+  .msg.err{display:block;background:rgba(150,40,40,.25);border:1px solid rgba(240,120,120,.4);color:#ffd0d0}
+  .prev{display:flex;gap:14px;align-items:center}.prev canvas{width:150px;height:auto;border-radius:6px;border:1px solid var(--line);background:#fff}
+  .warn{color:#ffdca8;font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+  a{color:#8fb4ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Régie magazine <span class="warn">· admin</span></h1>
+  <p class="sub">Publier un numéro sans toucher au code. Module isolé (chemin Supabase). N'affecte ni le jeu, ni le classement, ni les comptes.</p>
+
+  <div class="card" id="cfg-card">
+    <h2>Connexion Supabase</h2>
+    <p class="warn">Aucune clé n'est enregistrée dans le dépôt. Renseignez l'URL du projet et la clé <b>anon</b> (jamais la clé service_role). L'écriture nécessite un compte administrateur (RLS).</p>
+    <div class="row"><div><label>Project URL</label><input id="sb-url" placeholder="https://xxxx.supabase.co"></div>
+    <div><label>Clé anon (publique)</label><input id="sb-key" placeholder="eyJ..."></div></div>
+    <div class="row"><div><label>Email admin</label><input id="sb-email" type="email"></div>
+    <div><label>Mot de passe</label><input id="sb-pass" type="password"></div></div>
+    <div class="btns"><button class="primary" id="btn-login">Se connecter</button><button id="btn-logout">Se déconnecter</button></div>
+    <div class="msg" id="auth-msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Nouveau numéro</h2>
+    <label>PDF du journal (export Canva, texte non aplati)</label>
+    <input type="file" id="f-pdf" accept="application/pdf">
+    <div class="msg" id="pdf-msg"></div>
+    <div class="prev" id="pdf-prev" style="display:none">
+      <canvas id="prev-cover"></canvas>
+      <div><div id="prev-info" class="warn"></div></div>
+    </div>
+
+    <div class="row">
+      <div><label>Titre</label><input id="f-title"></div>
+      <div><label>Sous-titre</label><input id="f-subtitle"></div>
+    </div>
+    <label>Résumé</label><textarea id="f-excerpt"></textarea>
+    <div class="row3">
+      <div><label>N° d'édition</label><input id="f-issue" type="number"></div>
+      <div><label>Slug (auto)</label><input id="f-slug"></div>
+      <div><label>Pages (auto)</label><input id="f-pages" type="number" readonly></div>
+    </div>
+    <div class="row3">
+      <div><label>Date de publication</label><input id="f-date" type="date"></div>
+      <div><label>Programmer à (optionnel)</label><input id="f-schedule" type="datetime-local"></div>
+      <div><label>Version PDF</label><input id="f-version" value="v1"></div>
+    </div>
+    <label>Texte alternatif de la couverture</label><input id="f-alt">
+    <div class="chk"><input type="checkbox" id="f-featured"><label style="margin:0">Mettre à la une</label></div>
+    <div class="chk"><input type="checkbox" id="f-download" checked><label style="margin:0">Autoriser le téléchargement</label></div>
+
+    <div class="btns">
+      <button id="btn-draft">Enregistrer comme brouillon</button>
+      <button class="primary" id="btn-publish">Publier</button>
+      <button id="btn-schedule">Programmer</button>
+      <button id="btn-preview">Prévisualiser</button>
+    </div>
+    <div class="msg" id="save-msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Numéros existants</h2>
+    <div class="btns" style="margin:0 0 10px"><button id="btn-refresh">Rafraîchir</button></div>
+    <table id="pub-table"><thead><tr><th>N°</th><th>Titre</th><th>Statut</th><th>À la une</th><th>Actions</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<script type="module">
+// PDF.js vendorisé : validation + comptage de pages + génération de la couverture.
+import * as pdfjsLib from '../assets/vendor/pdfjs/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('../assets/vendor/pdfjs/pdf.worker.min.mjs', import.meta.url).href;
+
+const $ = (id) => document.getElementById(id);
+const show = (el, type, txt) => { el.className = 'msg ' + type; el.textContent = txt; };
+const slugify = (s) => (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+const sanitizeName = (s) => (s||'fichier').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(0,80);
+
+let pdfMeta = null; // {file, pages, coverBlob, thumbBlob}
+let sb = null;      // client supabase (chargé à la connexion)
+
+$('f-title').addEventListener('input', () => { if (!$('f-slug').dataset.touched) $('f-slug').value = slugify(($('f-issue').value?'n'+$('f-issue').value+'-':'')+$('f-title').value); });
+$('f-slug').addEventListener('input', () => { $('f-slug').dataset.touched = '1'; });
+
+// --- Validation + traitement du PDF (testable sans Supabase) --------------
+$('f-pdf').addEventListener('change', async (e) => {
+  const file = e.target.files[0]; pdfMeta = null; $('pdf-prev').style.display = 'none';
+  if (!file) return;
+  // Validation stricte : type MIME + extension + taille.
+  const okType = file.type === 'application/pdf';
+  const okExt = /\.pdf$/i.test(file.name);
+  const okSize = file.size <= 50 * 1024 * 1024;
+  if (!okType || !okExt) return show($('pdf-msg'), 'err', 'Fichier refusé : ce n\'est pas un vrai PDF.');
+  if (!okSize) return show($('pdf-msg'), 'err', 'Fichier trop lourd (max 50 Mo).');
+  show($('pdf-msg'), 'ok', 'Analyse du PDF…');
+  try {
+    const buf = await file.arrayBuffer();
+    // Signature %PDF
+    if (new TextDecoder().decode(new Uint8Array(buf.slice(0,5))) !== '%PDF-') return show($('pdf-msg'),'err','Signature PDF invalide.');
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    const pages = pdf.numPages;
+    // 1 page PDF = 2 pages magazine (double page composée)
+    const magPages = pages * 2;
+    $('f-pages').value = magPages;
+    // Couverture : moitié gauche de la page 1
+    const page = await pdf.getPage(1);
+    const base = page.getViewport({ scale: 1 });
+    const scale = 900 / base.width;
+    const vp = page.getViewport({ scale });
+    const c = $('prev-cover'); const full = document.createElement('canvas');
+    full.width = Math.floor(vp.width); full.height = Math.floor(vp.height);
+    await page.render({ canvasContext: full.getContext('2d'), viewport: vp }).promise;
+    // moitié gauche = couverture
+    c.width = Math.floor(vp.width/2); c.height = Math.floor(vp.height);
+    c.getContext('2d').drawImage(full, 0, 0, c.width, c.height, 0, 0, c.width, c.height);
+    const coverBlob = await new Promise(r => c.toBlob(r, 'image/webp', 0.9));
+    // miniature
+    const tcv = document.createElement('canvas'); tcv.width = 320; tcv.height = Math.round(320 * c.height / c.width);
+    tcv.getContext('2d').drawImage(c, 0, 0, tcv.width, tcv.height);
+    const thumbBlob = await new Promise(r => tcv.toBlob(r, 'image/webp', 0.85));
+    pdfMeta = { file, pages, magPages, coverBlob, thumbBlob };
+    $('prev-info').textContent = `${pages} pages PDF → ${magPages} pages magazine · couverture et miniature générées automatiquement.`;
+    $('pdf-prev').style.display = 'flex';
+    show($('pdf-msg'), 'ok', 'PDF valide, texte détecté : ' + (await hasText(page) ? 'oui (sélectionnable)' : 'non (rasterisé — signalé au lecteur)') + '.');
+  } catch (err) {
+    show($('pdf-msg'), 'err', 'Impossible de lire ce PDF : ' + (err?.message||err));
+  }
+});
+async function hasText(page){ try{ const t=await page.getTextContent(); return t.items.some(i=>(i.str||'').trim()); }catch(_){ return false; } }
+
+// --- Connexion Supabase (client chargé dynamiquement) ---------------------
+$('btn-login').addEventListener('click', async () => {
+  const url = $('sb-url').value.trim(), key = $('sb-key').value.trim();
+  if (!url || !key) return show($('auth-msg'),'err','URL et clé anon requises.');
+  try {
+    // Vendorisez @supabase/supabase-js dans assets/vendor/supabase/ pour activer.
+    const mod = await import('../assets/vendor/supabase/supabase.esm.js').catch(() => null);
+    if (!mod) return show($('auth-msg'),'err','Client Supabase non vendorisé. Voir supabase/README-migrations.md (aucun CDN en production).');
+    sb = mod.createClient(url, key);
+    const { error } = await sb.auth.signInWithPassword({ email: $('sb-email').value, password: $('sb-pass').value });
+    if (error) return show($('auth-msg'),'err','Connexion échouée : ' + error.message);
+    show($('auth-msg'),'ok','Connecté. Vous pouvez publier.');
+    loadList();
+  } catch (err) { show($('auth-msg'),'err', String(err)); }
+});
+$('btn-logout').addEventListener('click', async () => { try{ await sb?.auth.signOut(); }catch(_){}; sb=null; show($('auth-msg'),'ok','Déconnecté.'); });
+
+// --- Enregistrement -------------------------------------------------------
+function collect(status) {
+  const slug = $('f-slug').value || slugify($('f-title').value);
+  return {
+    slug, title: $('f-title').value, subtitle: $('f-subtitle').value, excerpt: $('f-excerpt').value,
+    issue_number: $('f-issue').value ? Number($('f-issue').value) : null,
+    publication_date: $('f-date').value || null,
+    published_at: status === 'scheduled' && $('f-schedule').value ? new Date($('f-schedule').value).toISOString() : (status === 'published' ? new Date().toISOString() : null),
+    status, page_count: $('f-pages').value ? Number($('f-pages').value) : null,
+    pdf_version: $('f-version').value || 'v1', featured: $('f-featured').checked, download_enabled: $('f-download').checked,
+    alt_text: $('f-alt').value || $('f-title').value,
+  };
+}
+async function save(status) {
+  if (!sb) return show($('save-msg'),'err','Connectez-vous d\'abord (compte admin).');
+  if (!pdfMeta) return show($('save-msg'),'err','Ajoutez un PDF valide.');
+  const rec = collect(status);
+  if (!rec.slug) return show($('save-msg'),'err','Titre/slug requis.');
+  try {
+    show($('save-msg'),'ok','Téléversement…');
+    const now = new Date(); const y = now.getFullYear(); const m = String(now.getMonth()+1).padStart(2,'0');
+    const dir = `${y}/${m}/${rec.slug}`;
+    const pdfPath = `${dir}/journal-${rec.pdf_version}.pdf`;
+    const coverPath = `${dir}/couverture.webp`;
+    const thumbPath = `${dir}/miniature.webp`;
+    const up = async (path, blob, type) => { const { error } = await sb.storage.from('publications').upload(path, blob, { contentType:type, upsert:true }); if (error) throw error; return sb.storage.from('publications').getPublicUrl(path).data.publicUrl; };
+    rec.pdf_url = await up(pdfPath, pdfMeta.file, 'application/pdf');
+    rec.cover_url = await up(coverPath, pdfMeta.coverBlob, 'image/webp');
+    rec.thumbnail_url = await up(thumbPath, pdfMeta.thumbBlob, 'image/webp');
+    // Une seule à la une : on retire le drapeau des autres si nécessaire (géré par index unique).
+    const { error } = await sb.from('publications').upsert(rec, { onConflict: 'slug' });
+    if (error) throw error;
+    show($('save-msg'),'ok','Enregistré : ' + rec.slug + ' (' + status + '). URL publique du PDF : ' + rec.pdf_url);
+    loadList();
+  } catch (err) { show($('save-msg'),'err','Échec : ' + (err?.message||err)); }
+}
+$('btn-draft').addEventListener('click', () => save('draft'));
+$('btn-publish').addEventListener('click', () => save('published'));
+$('btn-schedule').addEventListener('click', () => save('scheduled'));
+$('btn-preview').addEventListener('click', () => { const s = $('f-slug').value; window.open('lecteur.html?edition=' + encodeURIComponent(s), '_blank'); });
+
+// --- Liste ----------------------------------------------------------------
+async function loadList() {
+  if (!sb) return;
+  const { data, error } = await sb.from('publications').select('*').order('publication_date', { ascending:false });
+  const tb = $('pub-table').querySelector('tbody'); tb.innerHTML = '';
+  if (error) return;
+  for (const p of (data||[])) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.issue_number??''}</td><td>${p.title}</td><td>${p.status}</td><td>${p.featured?'★':''}</td>`+
+      `<td><a href="lecteur.html?edition=${encodeURIComponent(p.slug)}" target="_blank">ouvrir</a> · <button data-arch="${p.slug}">archiver</button></td>`;
+    tb.appendChild(tr);
+  }
+  tb.querySelectorAll('button[data-arch]').forEach(b => b.addEventListener('click', async () => {
+    await sb.from('publications').update({ status:'archived' }).eq('slug', b.dataset.arch); loadList();
+  }));
+}
+$('btn-refresh').addEventListener('click', loadList);
+</script>
+</body>
+</html>

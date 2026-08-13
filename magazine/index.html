@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#061334">
+<title>Le magazine — TomsoFoot</title>
+<meta name="description" content="Tous les numéros du journal TomsoFoot, à feuilleter page à page.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#060f22;--navy:#0a1b3d;--paper:#fbfaf6;--red:#ef3340;--purple:#6b4bd6;--muted:#93a3bd;--white:#f4f7fc;--line:rgba(255,255,255,.12)}
+  *{box-sizing:border-box}html,body{margin:0}
+  body{font-family:Inter,system-ui,Arial,sans-serif;color:var(--white);background:radial-gradient(120% 80% at 50% -10%,rgba(107,75,214,.16),transparent 55%),linear-gradient(180deg,var(--navy),var(--ink));min-height:100dvh;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .k-top{display:flex;align-items:center;justify-content:space-between;padding:16px clamp(14px,4vw,40px);border-bottom:1px solid var(--line)}
+  .k-logo{font-family:"Archivo Black",Inter,sans-serif;font-size:clamp(15px,2vw,20px);letter-spacing:-.04em}.k-logo i{color:var(--red);font-style:normal}
+  .k-back{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);padding:9px 14px;border-radius:9px}
+  .k-back:hover{color:#fff;border-color:var(--red)}
+  .k-wrap{max-width:1180px;margin:0 auto;padding:clamp(20px,4vw,44px) clamp(14px,4vw,40px) 60px}
+  .k-kicker{color:var(--red);font-weight:800;font-size:12px;letter-spacing:.2em;text-transform:uppercase;margin:0 0 6px}
+  .k-h1{font-family:"Archivo Black",Inter,sans-serif;font-size:clamp(28px,5vw,46px);letter-spacing:-.03em;margin:0 0 8px}
+  .k-lede{color:var(--muted);max-width:60ch;margin:0 0 34px;line-height:1.6}
+  /* Featured */
+  .k-feat{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(18px,3vw,40px);align-items:center;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:16px;padding:clamp(16px,3vw,30px);margin-bottom:44px}
+  .k-feat .k-cover{aspect-ratio:1080/705;border-radius:10px;overflow:hidden;background:#0c1730;box-shadow:0 20px 44px rgba(0,0,0,.4)}
+  .k-feat .k-cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .k-feat .k-pill{display:inline-block;background:var(--red);color:#fff;font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:20px;margin-bottom:12px}
+  .k-feat h2{font-size:clamp(22px,3.4vw,34px);margin:0 0 8px;line-height:1.1}
+  .k-feat .k-sub{color:var(--muted);margin:0 0 12px}
+  .k-feat .k-ex{color:#cdd8ea;line-height:1.6;margin:0 0 20px}
+  .k-cta{display:inline-grid;grid-auto-flow:column;gap:9px;align-items:center;background:var(--red);color:#fff;font-weight:800;padding:12px 20px;border-radius:10px;letter-spacing:.02em}
+  .k-cta:hover{filter:brightness(1.06)}
+  /* Grid */
+  .k-grid-h{font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 16px}
+  .k-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:clamp(14px,2vw,22px)}
+  .k-card{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:.18s}
+  .k-card:hover{border-color:var(--red);transform:translateY(-2px)}
+  .k-card .k-cc{aspect-ratio:1080/705;background:#0c1730;overflow:hidden}
+  .k-card .k-cc img{width:100%;height:100%;object-fit:cover;display:block}
+  .k-card .k-b{padding:12px 14px 16px}
+  .k-card .k-n{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin:0 0 5px}
+  .k-card .k-t{font-weight:700;font-size:15px;line-height:1.25;margin:0 0 4px}
+  .k-card .k-d{color:var(--muted);font-size:12px}
+  .k-empty{color:var(--muted);padding:30px 0}
+  @media(max-width:720px){.k-feat{grid-template-columns:1fr}.k-feat .k-cover{order:-1}}
+</style>
+</head>
+<body>
+  <header class="k-top">
+    <a class="k-logo" href="../index.html">TOMSO<i>FOOT</i></a>
+    <a class="k-back" href="../index.html">← Retour au site</a>
+  </header>
+  <main class="k-wrap">
+    <p class="k-kicker">Le magazine</p>
+    <h1 class="k-h1">Le kiosque TomsoFoot</h1>
+    <p class="k-lede">Chaque numéro est mis en page comme une revue, puis publié ici en lecture page à page. Sur ordinateur, la double page ; sur téléphone, une page à la fois. Aucune application à installer.</p>
+
+    <section id="k-featured" hidden></section>
+
+    <h2 class="k-grid-h" id="k-archives-h" hidden>Tous les numéros</h2>
+    <div class="k-grid" id="k-grid"></div>
+    <p class="k-empty" id="k-empty" hidden>Aucun numéro publié pour le moment.</p>
+  </main>
+
+<script type="module">
+import { listVisible, getFeatured } from '../assets/js/magazine-reader/source-adapter.js';
+
+function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+const fmtDate = (d)=>{ try{ return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}); }catch(_){ return d||''; } };
+
+try {
+  const [all, featured] = await Promise.all([listVisible(), getFeatured()]);
+  if (featured) {
+    const f = document.getElementById('k-featured');
+    f.hidden = false;
+    f.className = 'k-feat';
+    f.appendChild(el(`
+      <div class="k-cover"><img src="${featured.coverUrl}" alt="${featured.altText}"></div>
+    `));
+    const info = el(`<div>
+      <span class="k-pill">À la une${featured.issueNumber?` · N°${featured.issueNumber}`:''}</span>
+      <h2>${featured.title}</h2>
+      <p class="k-sub">${featured.subtitle||''} ${featured.publicationDate?'· '+fmtDate(featured.publicationDate):''}</p>
+      <p class="k-ex">${featured.excerpt||''}</p>
+      <a class="k-cta" href="lecteur.html?edition=${encodeURIComponent(featured.slug)}">Ouvrir le journal →</a>
+    </div>`);
+    f.prepend(info);
+  }
+
+  const others = all.filter(p => !featured || p.slug !== featured.slug);
+  const grid = document.getElementById('k-grid');
+  if (all.length) document.getElementById('k-archives-h').hidden = false;
+  if (!others.length && !featured) document.getElementById('k-empty').hidden = false;
+  for (const p of (others.length ? others : all)) {
+    grid.appendChild(el(`
+      <a class="k-card" href="lecteur.html?edition=${encodeURIComponent(p.slug)}" aria-label="Ouvrir ${p.title}">
+        <div class="k-cc"><img src="${p.thumbnailUrl}" alt="${p.altText}" loading="lazy"></div>
+        <div class="k-b">
+          <p class="k-n">${p.issueNumber?`N°${p.issueNumber} · `:''}${fmtDate(p.publicationDate)}</p>
+          <p class="k-t">${p.title}</p>
+          <p class="k-d">${p.subtitle||''}</p>
+        </div>
+      </a>`));
+  }
+} catch (e) {
+  document.getElementById('k-empty').hidden = false;
+  document.getElementById('k-empty').textContent = 'Le kiosque est momentanément indisponible.';
+}
+</script>
+</body>
+</html>

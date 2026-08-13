@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#061334">
+<title>Lecteur — TomsoFoot</title>
+<meta name="description" content="Feuilletez le journal TomsoFoot page à page, texte net et sélectionnable.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/magazine-reader.css">
+</head>
+<body>
+<div id="mr-root">
+  <header class="mr-topbar">
+    <div class="mr-brand">
+      <a class="mr-logo" href="../index.html" aria-label="Accueil TomsoFoot">TOMSO<i>FOOT</i></a>
+      <div class="mr-titles">
+        <div class="mr-t" id="mr-title">Journal</div>
+        <div class="mr-s" id="mr-subtitle"></div>
+      </div>
+    </div>
+    <div class="mr-actions">
+      <button class="mr-btn mr-btn--ghost" id="mr-thumbs-btn" type="button" aria-expanded="false" aria-controls="mr-thumbs-panel" aria-label="Sommaire et miniatures" title="Sommaire (T)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+      <a class="mr-btn mr-btn--ghost" id="mr-download" hidden aria-label="Télécharger le PDF" title="Télécharger le PDF">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+      </a>
+      <button class="mr-btn mr-btn--ghost" id="mr-fs" type="button" aria-label="Plein écran" title="Plein écran (F)">
+        <svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></svg>
+      </button>
+      <a class="mr-btn mr-back" id="mr-back" href="../index.html"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg><span>Retour au site</span></a>
+    </div>
+  </header>
+
+  <main class="mr-stage" id="mr-stage" aria-label="Journal TomsoFoot, utilisez les flèches pour tourner les pages">
+    <div class="mr-stage-inner" id="mr-stage-inner">
+      <div id="mr-stagebook"></div>
+    </div>
+
+    <!-- Chargement -->
+    <div class="mr-overlay mr-loading" id="mr-loading">
+      <div class="mr-loadwrap">
+        <p class="mr-loadttl" id="mr-loadtxt">Ouverture du journal…</p>
+        <div class="mr-loadbar"><span id="mr-loadbar"></span></div>
+      </div>
+    </div>
+
+    <!-- Erreur -->
+    <div class="mr-overlay mr-error" id="mr-error" hidden>
+      <div class="mr-errbox">
+        <h2 id="mr-errtitle">Une erreur est survenue</h2>
+        <p id="mr-errmsg"></p>
+        <div class="mr-actions">
+          <button class="mr-btn" id="mr-retry" type="button">Réessayer</button>
+          <a class="mr-btn" id="mr-openpdf" hidden target="_blank" rel="noopener">Ouvrir le PDF dans le navigateur</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reprise de lecture -->
+    <div class="mr-resume" id="mr-resume" hidden>
+      <p>Reprendre à la page <b id="mr-resume-page">1</b> ?</p>
+      <button class="mr-btn" id="mr-resume-yes" type="button">Reprendre</button>
+      <button class="mr-btn mr-btn--ghost" id="mr-resume-no" type="button">Depuis la couverture</button>
+    </div>
+
+    <!-- Note qualité / rasterisation -->
+    <div class="mr-notice" id="mr-notice" hidden></div>
+  </main>
+
+  <footer class="mr-bottom">
+    <div class="mr-prog"><span id="mr-prog"></span></div>
+    <div class="mr-row">
+      <button class="mr-nav" id="mr-prev" type="button" aria-label="Page précédente" title="Page précédente (←)">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="mr-count">Page <b id="mr-cur">–</b> / <span id="mr-tot">–</span></div>
+      <button class="mr-nav" id="mr-next" type="button" aria-label="Page suivante" title="Page suivante (→)">
+        <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+      <div class="mr-zoom" role="group" aria-label="Zoom">
+        <button class="mr-nav" id="mr-zoom-out" type="button" aria-label="Dézoomer"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <span class="mr-zoom-label" id="mr-zoom-label">100%</span>
+        <button class="mr-nav" id="mr-zoom-in" type="button" aria-label="Zoomer"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+        <button class="mr-nav" id="mr-zoom-reset" type="button" aria-label="Réinitialiser le zoom" title="Zoom 100% (0)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></button>
+      </div>
+    </div>
+  </footer>
+
+  <aside class="mr-thumbs-panel" id="mr-thumbs-panel" aria-label="Sommaire">
+    <div class="mr-thumbs-head">Sommaire</div>
+    <div class="mr-thumbs" id="mr-thumbs"></div>
+  </aside>
+</div>
+
+<noscript>
+  <div style="padding:24px;color:#fff;background:#061334;font-family:system-ui">
+    Ce lecteur nécessite JavaScript. Vous pouvez ouvrir le PDF directement depuis la page d'accueil.
+  </div>
+</noscript>
+
+<!-- Moteur PDF.js vendorisé (aucun CDN). Le feuilletage est un moteur maison
+     (assets/js/magazine-reader/flipbook-controller.js) : net à toute densité de
+     pixels, texte sélectionnable, sans rasterisation. -->
+<script type="module" src="../assets/js/magazine-reader/main.js"></script>
+</body>
+</html>
