@@ -39,6 +39,8 @@
   .mini.del{border-color:rgba(240,120,120,.5);color:#ffb4b4}
   .addrow{margin-top:6px}
   .hint{font-size:11px;color:var(--muted);margin-top:4px}
+  .hint.dim{color:#b9c6db;margin-top:6px;line-height:1.5}
+  .hint.dim b{color:#eaf1fb}
   .imgfield{display:flex;gap:8px;align-items:center}
   .imgfield input{flex:1}
   .img-in.drag{border-color:var(--red);background:#141d38;box-shadow:0 0 0 2px rgba(239,51,64,.35)}
@@ -94,6 +96,7 @@
           <button type="button" class="mini img-pick">Image…</button>
         </div>
         <p class="hint">Glisse-dépose une image directement ici : elle se téléverse et le chemin se remplit tout seul (connexion admin requise).</p>
+        <p class="hint dim">📐 Format idéal : <b>paysage 3:2 — 2400 × 1600 px</b> (min. 1920 × 1280). Sujet bien centré (les bords peuvent être rognés selon l'écran).</p>
 
         <h2>À la une (les cartes)</h2>
         <div id="arts"></div>
@@ -182,6 +185,7 @@
         '<div class="imgfield"><span class="img-thumb" data-thumb></span>' +
         '<input data-i="' + i + '" data-k="image" class="img-in" value="' + esc(a.image) + '" placeholder="Glisse une image ici…">' +
         '<button type="button" class="mini img-pick">Image…</button></div>' +
+        '<p class="hint dim">📐 Format idéal : <b>portrait 4:5 — 1200 × 1500 px</b> (min. 1000 × 1250). Sujet centré.</p>' +
         '<label>Lien</label><input data-i="' + i + '" data-k="lien" value="' + esc(a.lien) + '">';
       wrap.appendChild(card);
     });
