@@ -47,6 +47,7 @@
       <h1>Connexion requise</h1>
       <label for="email">Ton adresse e-mail (compte admin)</label>
       <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="prenom@exemple.fr">
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAENjYPshXARDoToV" data-theme="dark" data-callback="tsfTS" data-expired-callback="tsfTSexp" data-error-callback="tsfTSexp" style="margin:2px 0 14px"></div>
       <button id="btn-send" type="button">Recevoir mon lien de connexion</button>
       <div class="msg" id="login-msg"></div>
       <p class="sub" style="margin-top:16px">Tu recevras un lien à usage unique par e-mail. Aucun mot de passe à retenir.</p>
@@ -76,9 +77,15 @@
     <div class="foot"><a href="index.html">← Retour au site</a></div>
   </main>
 
+<!-- Cloudflare Turnstile (protection CAPTCHA activée sur ton Supabase) -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <!-- supabase-js : même chargement que ta régie calendrier existante -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// Jeton captcha Turnstile (rempli quand tu résous le widget).
+var captchaToken = '';
+window.tsfTS = function (t) { captchaToken = t; };
+window.tsfTSexp = function () { captchaToken = ''; };
 (function () {
   // Mêmes identifiants publics que ta régie calendrier (clé "publishable", sans danger côté client).
   var SUPABASE_URL = "https://yubndvqmglttlntkugzm.supabase.co";
@@ -108,12 +115,16 @@
   $('btn-send').addEventListener('click', async function () {
     var email = ($('email').value || '').trim();
     if (!/.+@.+\..+/.test(email)) { msg($('login-msg'),'err','Entre une adresse e-mail valide.'); return; }
+    if (!captchaToken) { msg($('login-msg'),'err','Coche d\'abord la case anti-robot (Turnstile).'); return; }
     $('btn-send').disabled = true;
     try {
-      var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.href } });
+      var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.href, captchaToken: captchaToken } });
       if (r.error) msg($('login-msg'),'err','Échec : ' + r.error.message);
       else msg($('login-msg'),'ok','Lien envoyé ! Ouvre l\'e-mail sur cet appareil pour te connecter.');
     } catch (e) { msg($('login-msg'),'err', String(e)); }
+    // Un jeton Turnstile est à usage unique : on réinitialise pour un éventuel renvoi.
+    try { if (window.turnstile) { window.turnstile.reset(); } } catch (e) {}
+    captchaToken = '';
     $('btn-send').disabled = false;
   });
 
