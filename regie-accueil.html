@@ -39,6 +39,12 @@
   .mini.del{border-color:rgba(240,120,120,.5);color:#ffb4b4}
   .addrow{margin-top:6px}
   .hint{font-size:11px;color:var(--muted);margin-top:4px}
+  .imgfield{display:flex;gap:8px;align-items:center}
+  .imgfield input{flex:1}
+  .img-in.drag{border-color:var(--red);background:#141d38;box-shadow:0 0 0 2px rgba(239,51,64,.35)}
+  .img-pick{white-space:nowrap}
+  .img-thumb{width:42px;height:42px;border-radius:7px;border:1px solid var(--line);background:#0c1730 center/cover no-repeat;flex:0 0 42px;display:none}
+  .img-thumb.on{display:block}
   .msg{font-size:13px;padding:9px 12px;border-radius:8px;margin-top:10px;display:none}
   .msg.ok{display:block;background:rgba(30,120,60,.25);border:1px solid rgba(80,200,120,.4)}
   .msg.err{display:block;background:rgba(150,40,40,.25);border:1px solid rgba(240,120,120,.4);color:#ffd0d0}
@@ -81,8 +87,13 @@
           <div><label>Lien du bouton</label><input id="u-lien" data-u="lien"></div>
         </div>
         <label>Ligne d'information</label><input id="u-meta" data-u="meta">
-        <label>Photo de fond (chemin, ex. images/xxx.jpg)</label><input id="u-image" data-u="image">
-        <p class="hint">Astuce : téléverse les images via la régie « Media » de Pages CMS, puis colle le chemin ici.</p>
+        <label>Photo de fond (glisse une image, ou colle un chemin)</label>
+        <div class="imgfield">
+          <span class="img-thumb" data-thumb></span>
+          <input id="u-image" data-u="image" class="img-in" placeholder="Glisse une image ici…">
+          <button type="button" class="mini img-pick">Image…</button>
+        </div>
+        <p class="hint">Glisse-dépose une image directement ici : elle se téléverse et le chemin se remplit tout seul (connexion admin requise).</p>
 
         <h2>À la une (les cartes)</h2>
         <div id="arts"></div>
@@ -151,6 +162,7 @@
     });
     arts = Array.isArray(base.articles) ? base.articles.map(function (a) { return Object.assign({}, a); }) : [];
     renderArts();
+    if (window.__refreshThumbs) window.__refreshThumbs();
   }
 
   function renderArts() {
@@ -166,11 +178,15 @@
         '<label>Rubrique</label><select data-i="' + i + '" data-k="categorie">' + opts + '</select>' +
         '<label>Titre</label><input data-i="' + i + '" data-k="titre" value="' + esc(a.titre) + '">' +
         '<label>Ligne d\'information</label><input data-i="' + i + '" data-k="meta" value="' + esc(a.meta) + '">' +
-        '<label>Photo (chemin)</label><input data-i="' + i + '" data-k="image" value="' + esc(a.image) + '">' +
+        '<label>Photo (glisse une image, ou colle un chemin)</label>' +
+        '<div class="imgfield"><span class="img-thumb" data-thumb></span>' +
+        '<input data-i="' + i + '" data-k="image" class="img-in" value="' + esc(a.image) + '" placeholder="Glisse une image ici…">' +
+        '<button type="button" class="mini img-pick">Image…</button></div>' +
         '<label>Lien</label><input data-i="' + i + '" data-k="lien" value="' + esc(a.lien) + '">';
       wrap.appendChild(card);
     });
     post();
+    if (window.__refreshThumbs) window.__refreshThumbs();
   }
   function esc(s){ return String(s == null ? '' : s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
@@ -228,6 +244,89 @@
     $('btn-save').disabled = false;
   });
   function show(id, type, txt) { var el = $(id); el.className = 'msg ' + type; el.textContent = txt; }
+
+  // ---- Glisser-déposer d'images (téléversement Supabase, auto-remplissage du chemin) ----
+  var pendingInput = null;
+  var fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'image/png,image/jpeg,image/webp'; fileInput.style.display = 'none';
+  document.body.appendChild(fileInput);
+  fileInput.addEventListener('change', function () {
+    var f = fileInput.files && fileInput.files[0];
+    if (f && pendingInput) setImage(pendingInput, f);
+    fileInput.value = '';
+  });
+
+  function imgInputFrom(el) {
+    if (!el || !el.closest) return null;
+    var f = el.closest('.imgfield');
+    if (f) return f.querySelector('.img-in');
+    return (el.classList && el.classList.contains('img-in')) ? el : null;
+  }
+
+  // Bouton « Image… » : ouvre le sélecteur de fichier pour le champ concerné.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.img-pick');
+    if (!b) return;
+    pendingInput = imgInputFrom(b);
+    if (pendingInput) fileInput.click();
+  });
+
+  // Glisser-déposer sur n'importe quel champ image de l'éditeur.
+  var ed = document.querySelector('.editor');
+  ['dragenter','dragover'].forEach(function (ev) {
+    ed.addEventListener(ev, function (e) {
+      var input = imgInputFrom(e.target);
+      if (!input) return;
+      e.preventDefault(); e.stopPropagation();
+      input.classList.add('drag');
+    });
+  });
+  ed.addEventListener('dragleave', function (e) {
+    var input = imgInputFrom(e.target); if (input) input.classList.remove('drag');
+  });
+  ed.addEventListener('drop', function (e) {
+    var input = imgInputFrom(e.target);
+    if (!input) return;
+    e.preventDefault(); e.stopPropagation();
+    input.classList.remove('drag');
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) setImage(input, f);
+  });
+
+  async function uploadImage(file) {
+    if (!sb) throw new Error('Service indisponible.');
+    var session = (await sb.auth.getSession()).data.session;
+    if (!session) throw new Error('Connecte-toi via la Régie pour téléverser une image.');
+    if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) throw new Error('Formats acceptés : PNG, JPEG, WebP.');
+    if (file.size > 10 * 1024 * 1024) throw new Error('Image trop lourde (max 10 Mo).');
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    var path = 'accueil/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+    var up = await sb.storage.from('publications').upload(path, file, { contentType: file.type, upsert: true });
+    if (up.error) throw up.error;
+    return sb.storage.from('publications').getPublicUrl(path).data.publicUrl;
+  }
+
+  async function setImage(input, file) {
+    show('msg', 'ok', 'Téléversement de l\'image…');
+    try {
+      var url = await uploadImage(file);
+      input.value = url;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      updateThumb(input);
+      show('msg', 'ok', 'Image ajoutée ✓ — le chemin est rempli automatiquement.');
+    } catch (e) { show('msg', 'err', String((e && e.message) || e)); }
+  }
+
+  function updateThumb(input) {
+    var f = input.closest && input.closest('.imgfield'); if (!f) return;
+    var th = f.querySelector('[data-thumb]'); if (!th) return;
+    if (input.value) { th.style.backgroundImage = 'url("' + String(input.value).replace(/"/g, '') + '")'; th.classList.add('on'); }
+    else { th.style.backgroundImage = ''; th.classList.remove('on'); }
+  }
+  document.addEventListener('input', function (e) {
+    if (e.target.classList && e.target.classList.contains('img-in')) updateThumb(e.target);
+  });
+  window.__refreshThumbs = function () { document.querySelectorAll('.img-in').forEach(updateThumb); };
 
   boot();
 })();
