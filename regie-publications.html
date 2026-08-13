@@ -97,8 +97,8 @@
       </div>
 
       <div class="row" style="margin-top:8px">
-        <div><label>Titre *</label><input id="f-title" placeholder="Titre de l'article / du journal"></div>
-        <div><label>Sous-titre</label><input id="f-subtitle"></div>
+        <div><label>Titre *</label><input id="f-title" spellcheck="true" lang="fr" placeholder="Titre de l'article / du journal"></div>
+        <div><label>Sous-titre</label><input id="f-subtitle" spellcheck="true" lang="fr"></div>
       </div>
       <div class="row3">
         <div><label>Catégorie</label>
@@ -108,12 +108,12 @@
           </select>
         </div>
         <div><label>Date de publication</label><input id="f-date" type="date"></div>
-        <div><label>Slug (auto)</label><input id="f-slug"></div>
+        <div><label>Slug (auto)</label><input id="f-slug" spellcheck="false" autocapitalize="off" autocomplete="off"></div>
       </div>
-      <label>Résumé (facultatif)</label><textarea id="f-excerpt"></textarea>
+      <label>Résumé (facultatif)</label><textarea id="f-excerpt" spellcheck="true" lang="fr"></textarea>
       <div class="row">
-        <div><label>Lien de l'article (facultatif, articles image)</label><input id="f-link" placeholder="https://…"></div>
-        <div><label>Texte alternatif (accessibilité)</label><input id="f-alt"></div>
+        <div><label>Lien de l'article (facultatif, articles image)</label><input id="f-link" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="https://…"></div>
+        <div><label>Texte alternatif (accessibilité)</label><input id="f-alt" spellcheck="true" lang="fr"></div>
       </div>
       <div class="chk"><input type="checkbox" id="f-featured" checked><label style="margin:0">Mettre à la une (recommandé)</label></div>
 
