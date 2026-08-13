@@ -672,6 +672,43 @@
   })();
   </script>
 
+  <!-- Aperçu en direct pour l'éditeur d'accueil (regie-accueil.html). N'a AUCUN
+       effet pour les visiteurs : il n'agit que si une fenêtre parente de MÊME
+       origine envoie un message {source:'tsf-accueil-preview', data:{…}}. -->
+  <script>
+  (function () {
+    const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const dig = (o, path) => path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+    window.__applyCmsPreview = function (data) {
+      if (!data) return;
+      document.querySelectorAll('[data-cms]').forEach(el => {
+        const v = dig(data, el.dataset.cms);
+        if (typeof v === 'string') el.textContent = v;
+      });
+      document.querySelectorAll('[data-cms-href]').forEach(el => {
+        const v = dig(data, el.dataset.cmsHref);
+        if (typeof v === 'string' && v.trim()) el.setAttribute('href', v);
+      });
+      document.querySelectorAll('[data-cms-src]').forEach(el => {
+        const v = dig(data, el.dataset.cmsSrc);
+        if (typeof v === 'string' && v.trim()) el.setAttribute('src', v);
+      });
+      if (data.une && data.une.image) document.documentElement.style.setProperty('--hero-img', 'url("' + data.une.image + '")');
+      const grid = document.getElementById('cms-articles');
+      if (grid && Array.isArray(data.articles)) {
+        grid.innerHTML = data.articles.map(a => '<a class="story" href="' + esc(a.lien || '#') + '"><img src="' + esc(a.image) + '" alt="' + esc(a.titre) + '" loading="lazy"><div class="story-content"><span class="label">' + esc(a.categorie) + '</span><h3>' + esc(a.titre) + '</h3><div class="meta">' + esc(a.meta) + '</div></div></a>').join('');
+      }
+    };
+    window.addEventListener('message', function (e) {
+      if (e.origin !== location.origin) return;
+      const m = e.data;
+      if (m && m.source === 'tsf-accueil-preview' && m.data) {
+        try { window.__applyCmsPreview(m.data); } catch (_) {}
+      }
+    });
+  })();
+  </script>
+
   <!-- Barre de navigation basse (mobile uniquement) -->
   <nav class="tmf-bottomnav" aria-label="Navigation mobile TomsoFoot">
     <a class="active" href="#" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span>Accueil</span></a>

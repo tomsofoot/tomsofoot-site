@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Régie accueil — aperçu en direct</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root{--ink:#060f22;--navy:#0a1b3d;--red:#ef3340;--muted:#93a3bd;--white:#f4f7fc;--line:rgba(255,255,255,.14)}
+  *{box-sizing:border-box}html,body{margin:0;height:100%}
+  body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--ink);color:var(--white);-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  #gate{height:100vh;display:grid;place-items:center;text-align:center;padding:24px}
+  .spin{width:24px;height:24px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--red);border-radius:50%;animation:s .8s linear infinite;margin:12px auto}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .btn{display:inline-block;background:var(--red);color:#fff;border:0;border-radius:9px;padding:11px 18px;font-weight:800;cursor:pointer;text-decoration:none}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--white)}
+  #app{display:none;grid-template-rows:auto 1fr;height:100vh}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 16px;border-bottom:1px solid var(--line);background:rgba(6,15,34,.9)}
+  .top .t{font-weight:800;font-size:14px}.top .t i{color:var(--red);font-style:normal}
+  .top .actions{display:flex;align-items:center;gap:10px}
+  .status{font-size:12px;color:var(--muted)}
+  .split{display:grid;grid-template-columns:minmax(360px,42%) 1fr;min-height:0}
+  .editor{overflow:auto;padding:16px 18px 60px;border-right:1px solid var(--line)}
+  .preview{position:relative;background:#0b1220}
+  .preview iframe{width:100%;height:100%;border:0;display:block;background:#fff}
+  .preview .pv-label{position:absolute;top:8px;left:8px;z-index:2;background:rgba(6,15,34,.8);color:#cfe;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:20px;border:1px solid var(--line)}
+  h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:22px 0 12px;border-top:1px solid var(--line);padding-top:16px}
+  h2:first-child{border-top:0;padding-top:0;margin-top:4px}
+  label{display:block;font-size:12px;color:#cdd8ea;margin:10px 0 5px;font-weight:600}
+  input,textarea,select{width:100%;background:#0c1730;border:1px solid var(--line);color:var(--white);border-radius:8px;padding:9px 10px;font:inherit}
+  textarea{min-height:64px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .card{border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px;background:rgba(255,255,255,.02)}
+  .card .chead{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}
+  .card .chead b{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  .mini{background:transparent;border:1px solid var(--line);color:var(--white);border-radius:7px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer}
+  .mini.del{border-color:rgba(240,120,120,.5);color:#ffb4b4}
+  .addrow{margin-top:6px}
+  .hint{font-size:11px;color:var(--muted);margin-top:4px}
+  .msg{font-size:13px;padding:9px 12px;border-radius:8px;margin-top:10px;display:none}
+  .msg.ok{display:block;background:rgba(30,120,60,.25);border:1px solid rgba(80,200,120,.4)}
+  .msg.err{display:block;background:rgba(150,40,40,.25);border:1px solid rgba(240,120,120,.4);color:#ffd0d0}
+  @media(max-width:820px){ .split{grid-template-columns:1fr;grid-template-rows:1fr 1fr} .editor{border-right:0;border-bottom:1px solid var(--line)} }
+</style>
+</head>
+<body>
+  <div id="gate">
+    <div>
+      <div class="spin" id="gate-spin"></div>
+      <p id="gate-msg">Vérification de ta session…</p>
+      <p id="gate-actions" style="display:none">
+        <a class="btn" href="regie.html">Se connecter via la Régie</a>
+      </p>
+    </div>
+  </div>
+
+  <div id="app">
+    <div class="top">
+      <div class="t">TOMSO<i>FOOT</i> · Régie accueil <span class="status" id="who"></span></div>
+      <div class="actions">
+        <span class="status" id="save-status"></span>
+        <button class="btn" id="btn-save">Enregistrer sur le site</button>
+        <a class="btn ghost" href="index.html">Voir le site</a>
+      </div>
+    </div>
+    <div class="split">
+      <div class="editor">
+        <div class="msg" id="msg"></div>
+
+        <h2>Article du jour (grand titre)</h2>
+        <label>Surtitre</label><input id="u-rubrique" data-u="rubrique">
+        <div class="row2">
+          <div><label>Titre — 1ʳᵉ ligne (pleine)</label><input id="u-titre1" data-u="titre1"></div>
+          <div><label>Titre — 2ᵉ ligne (contour)</label><input id="u-titre2" data-u="titre2"></div>
+        </div>
+        <label>Chapô</label><textarea id="u-chapo" data-u="chapo"></textarea>
+        <div class="row2">
+          <div><label>Texte du bouton</label><input id="u-bouton" data-u="bouton"></div>
+          <div><label>Lien du bouton</label><input id="u-lien" data-u="lien"></div>
+        </div>
+        <label>Ligne d'information</label><input id="u-meta" data-u="meta">
+        <label>Photo de fond (chemin, ex. images/xxx.jpg)</label><input id="u-image" data-u="image">
+        <p class="hint">Astuce : téléverse les images via la régie « Media » de Pages CMS, puis colle le chemin ici.</p>
+
+        <h2>À la une (les cartes)</h2>
+        <div id="arts"></div>
+        <button class="mini addrow" id="add-art">+ Ajouter une carte</button>
+
+        <div class="msg" id="msg2"></div>
+      </div>
+      <div class="preview">
+        <span class="pv-label">Aperçu en direct</span>
+        <iframe id="pv" src="index.html" title="Aperçu de l'accueil"></iframe>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  var SUPABASE_URL = 'https://yubndvqmglttlntkugzm.supabase.co';
+  var SUPABASE_ANON = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+  var $ = function (id) { return document.getElementById(id); };
+  var sb = window.supabase && window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  var base = {};          // contenu.json complet chargé
+  var accessToken = '';   // jeton Supabase de l'admin
+  var arts = [];          // liste "à la une" éditable
+  var CATS = ['Coupe du monde','Euro','Ligue des Nations','Ligue des champions','Europa League','Conference League','Ligue 1','Premier League','Liga','Serie A','Bundesliga','Histoire','Récit','Analyse','Édito'];
+
+  function gate(msg, showLogin) {
+    $('gate-spin').style.display = showLogin ? 'none' : '';
+    $('gate-msg').textContent = msg;
+    $('gate-actions').style.display = showLogin ? '' : 'none';
+  }
+
+  async function boot() {
+    if (!sb) return gate('Service de connexion indisponible. Réessaie.', true);
+    var host = location.hostname;
+    var isProd = (host === 'tomsofoot.fr' || host === 'www.tomsofoot.fr');
+    var session = (await sb.auth.getSession()).data.session;
+    if (session) accessToken = session.access_token;
+
+    if (isProd) {
+      // Production : accès réservé à l'admin connecté.
+      if (!session) return gate('Connecte-toi d\'abord à ta régie, puis reviens ici.', true);
+      var admin = false;
+      try { admin = (await sb.rpc('is_current_user_admin')).data === true; } catch (e) {}
+      if (!admin) return gate('Ce compte n\'est pas administrateur.', true);
+      $('who').textContent = '· ' + (session.user.email || '');
+    } else {
+      // Aperçu / dev : ouvert pour ESSAYER l'aperçu en direct. L'enregistrement
+      // reste protégé côté serveur (impossible sans jeton admin valide).
+      $('who').textContent = session ? ('· ' + session.user.email) : '· mode aperçu (essai)';
+    }
+    await loadContent();
+    $('gate').style.display = 'none';
+    $('app').style.display = 'grid';
+  }
+
+  async function loadContent() {
+    try {
+      var r = await fetch('contenu.json?v=' + Date.now());
+      base = await r.json();
+    } catch (e) { base = {}; }
+    var u = base.une || {};
+    ['rubrique','titre1','titre2','chapo','bouton','lien','meta','image'].forEach(function (k) {
+      var el = document.querySelector('[data-u="' + k + '"]'); if (el) el.value = u[k] || '';
+    });
+    arts = Array.isArray(base.articles) ? base.articles.map(function (a) { return Object.assign({}, a); }) : [];
+    renderArts();
+  }
+
+  function renderArts() {
+    var wrap = $('arts'); wrap.innerHTML = '';
+    arts.forEach(function (a, i) {
+      var card = document.createElement('div'); card.className = 'card';
+      var opts = CATS.map(function (c) { return '<option' + (c === a.categorie ? ' selected' : '') + '>' + c + '</option>'; }).join('');
+      card.innerHTML =
+        '<div class="chead"><b>Carte #' + (i + 1) + '</b><span>' +
+        '<button class="mini" data-mv="-1" data-i="' + i + '">↑</button> ' +
+        '<button class="mini" data-mv="1" data-i="' + i + '">↓</button> ' +
+        '<button class="mini del" data-del="' + i + '">Supprimer</button></span></div>' +
+        '<label>Rubrique</label><select data-i="' + i + '" data-k="categorie">' + opts + '</select>' +
+        '<label>Titre</label><input data-i="' + i + '" data-k="titre" value="' + esc(a.titre) + '">' +
+        '<label>Ligne d\'information</label><input data-i="' + i + '" data-k="meta" value="' + esc(a.meta) + '">' +
+        '<label>Photo (chemin)</label><input data-i="' + i + '" data-k="image" value="' + esc(a.image) + '">' +
+        '<label>Lien</label><input data-i="' + i + '" data-k="lien" value="' + esc(a.lien) + '">';
+      wrap.appendChild(card);
+    });
+    post();
+  }
+  function esc(s){ return String(s == null ? '' : s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+  function collect() {
+    var u = Object.assign({}, base.une || {});
+    document.querySelectorAll('[data-u]').forEach(function (el) { u[el.dataset.u] = el.value; });
+    return Object.assign({}, base, { une: u, articles: arts.map(function (a) { return Object.assign({}, a); }) });
+  }
+
+  function post() {
+    var iframe = $('pv');
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage({ source: 'tsf-accueil-preview', data: collect() }, location.origin);
+    }
+  }
+
+  // Événements formulaire "article du jour"
+  document.querySelectorAll('[data-u]').forEach(function (el) { el.addEventListener('input', post); });
+
+  // Événements liste "à la une" (délégation)
+  $('arts').addEventListener('input', function (e) {
+    var t = e.target; if (t.dataset.i == null || !t.dataset.k) return;
+    arts[+t.dataset.i][t.dataset.k] = t.value; post();
+  });
+  $('arts').addEventListener('click', function (e) {
+    var t = e.target;
+    if (t.dataset.del != null) { arts.splice(+t.dataset.del, 1); renderArts(); }
+    else if (t.dataset.mv != null) {
+      var i = +t.dataset.i, j = i + (+t.dataset.mv);
+      if (j >= 0 && j < arts.length) { var tmp = arts[i]; arts[i] = arts[j]; arts[j] = tmp; renderArts(); }
+    }
+  });
+  $('add-art').addEventListener('click', function () {
+    arts.push({ categorie: CATS[0], titre: 'Nouveau titre', meta: '', image: '', lien: 'magazine/lecteur.html' });
+    renderArts();
+  });
+
+  // Ré-applique l'aperçu quand l'iframe (re)charge
+  $('pv').addEventListener('load', function () { setTimeout(post, 200); });
+
+  // Enregistrer
+  $('btn-save').addEventListener('click', async function () {
+    if (!accessToken) { show('msg', 'err', 'Mode aperçu : l\'enregistrement se fait depuis tomsofoot.fr (connecté). Ici, tu testes seulement le rendu en direct.'); return; }
+    $('save-status').textContent = 'Enregistrement…';
+    $('btn-save').disabled = true;
+    try {
+      var res = await fetch('/.netlify/functions/save-accueil', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ contenu: collect(), accessToken: accessToken }),
+      });
+      var out = await res.json();
+      if (res.ok && out.ok) { show('msg', 'ok', 'Enregistré ! Le site se met à jour dans ~1 min (redéploiement).'); $('save-status').textContent = ''; }
+      else { show('msg', 'err', 'Échec : ' + (out.error || res.status) + (out.detail ? ' — ' + out.detail : '')); $('save-status').textContent = ''; }
+    } catch (e) { show('msg', 'err', 'Erreur réseau : ' + e); $('save-status').textContent = ''; }
+    $('btn-save').disabled = false;
+  });
+  function show(id, type, txt) { var el = $(id); el.className = 'msg ' + type; el.textContent = txt; }
+
+  boot();
+})();
+</script>
+</body>
+</html>
