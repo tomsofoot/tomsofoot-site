@@ -78,8 +78,45 @@
       <div class="match-inner"><span class="live-tag" data-cms="match.etiquette">À suivre</span><div class="score"><span data-cms="match.equipe1">Argentine</span><strong data-cms="match.centre">20:30</strong><span data-cms="match.equipe2">Angleterre</span><small data-cms="match.competition">Demi-finale</small></div><a class="match-link" data-cms-href="match.lien" href="#">Accéder au live →</a></div>
     </section>
 
+    <style id="tsf-pub-css">
+      .tsf-pub{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start}
+      .tsf-pub[hidden]{display:none}
+      .tsf-pub-main{display:block;min-width:0}
+      .tsf-pub-main .story{width:100%;min-height:610px}
+      .tsf-pub-main .story .tag{position:absolute;top:18px;left:18px;z-index:3;background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:6px 11px}
+      .tsf-pub-aside{background:var(--white);border:1px solid #cfd5dd;padding:20px 18px;align-self:stretch;min-width:0}
+      .tsf-arch-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #d8dde4;padding-bottom:12px;margin-bottom:4px}
+      .tsf-arch-head h3{font-family:"Archivo Black";font-weight:400;text-transform:uppercase;letter-spacing:-.035em;font-size:clamp(14px,1.2vw,18px);line-height:1;margin:0;color:var(--ink)}
+      #tsf-arch-filter{font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:var(--paper);border:1px solid #cfd5dd;border-radius:7px;padding:6px 8px;cursor:pointer}
+      .tsf-arch-list{display:flex;flex-direction:column;max-height:610px;overflow:auto}
+      .tsf-arch-item{display:grid;grid-template-columns:62px 1fr;gap:12px;align-items:center;padding:12px 2px;border-bottom:1px solid #e6e9ee;color:var(--ink)}
+      .tsf-arch-item:last-child{border-bottom:0}
+      .tsf-arch-thumb{position:relative;width:62px;height:62px;object-fit:cover;background:#dfe4ea;border:1px solid #d0d6de;display:block}
+      .tsf-arch-badge{position:absolute;left:0;bottom:0;background:var(--ink);color:#fff;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 4px}
+      .tsf-arch-txt{min-width:0}
+      .tsf-arch-txt .k{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--red)}
+      .tsf-arch-txt h4{font-family:"Archivo Black";font-weight:400;font-size:14px;line-height:1.06;text-transform:uppercase;letter-spacing:-.03em;margin:3px 0 4px;color:var(--ink)}
+      .tsf-arch-item:hover .tsf-arch-txt h4{color:var(--red)}
+      .tsf-arch-txt .d{font-size:11px;color:#66707d}
+      .tsf-arch-empty{color:#66707d;font-size:13px;padding:14px 2px 2px}
+      @media(max-width:900px){.tsf-pub{grid-template-columns:1fr}.tsf-arch-list{max-height:none}}
+    </style>
     <section class="section" id="actu">
-      <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#">Toutes les publications →</a></div>
+      <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#magazine">Toutes les publications →</a></div>
+      <!-- Fil publié depuis la régie (Supabase). Le plus récent passe à la une ;
+           les précédents glissent dans l'encart, triables par mois/année. -->
+      <div class="tsf-pub" id="tsf-pub" hidden>
+        <div class="tsf-pub-main" id="tsf-pub-lead"></div>
+        <aside class="tsf-pub-aside" aria-label="Articles et journaux précédents">
+          <div class="tsf-arch-head">
+            <h3>Articles et journaux précédents</h3>
+            <select id="tsf-arch-filter" aria-label="Filtrer par mois de publication"></select>
+          </div>
+          <div class="tsf-arch-list" id="tsf-arch-list"></div>
+          <p class="tsf-arch-empty" id="tsf-arch-empty" hidden>Aucun élément pour cette période.</p>
+        </aside>
+      </div>
+      <!-- Repli éditorial (contenu.json) : affiché tant qu'aucune publication Supabase n'existe. -->
       <div class="story-grid" id="cms-articles"></div>
     </section>
 
@@ -669,6 +706,93 @@
         setTimeout(() => { positionArrows(); updateArrows(); }, 250);
       }
     }
+  })();
+  </script>
+
+  <!-- Fil « Articles & journaux » (Supabase). Lecture publique via REST + clé
+       anon (publishable) : AUCUNE librairie externe / CDN, un simple fetch.
+       Le plus récent passe à la une ; les précédents alimentent l'encart
+       « Articles et journaux précédents », triable par mois/année. -->
+  <script>
+  (function () {
+    var SB_URL = 'https://yubndvqmglttlntkugzm.supabase.co';
+    var SB_KEY = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+    var pub = document.getElementById('tsf-pub');
+    var lead = document.getElementById('tsf-pub-lead');
+    var listEl = document.getElementById('tsf-arch-list');
+    var filterEl = document.getElementById('tsf-arch-filter');
+    var emptyEl = document.getElementById('tsf-arch-empty');
+    var curated = document.getElementById('cms-articles');
+    if (!pub || !lead || !listEl || !filterEl) return;
+
+    var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); };
+    var MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+    var dateOf = function (p) { return (p.sort_date || p.publication_date || (p.published_at ? p.published_at.slice(0,10) : '') || ''); };
+    var frDate = function (iso) { if (!iso) return ''; var d = String(iso).slice(0,10).split('-'); if (d.length < 3) return iso; return parseInt(d[2],10) + ' ' + (MONTHS[parseInt(d[1],10)-1]||'') + ' ' + d[0]; };
+    var ym = function (iso) { return String(iso).slice(0,7); }; // YYYY-MM
+    var ymLabel = function (k) { var p = k.split('-'); return (MONTHS[parseInt(p[1],10)-1]||'') + ' ' + p[0]; };
+    var hrefOf = function (p) {
+      if (p.kind === 'journal') {
+        // Journal Supabase : ouverture directe du PDF (feuilletable) sans dépendre
+        // de publications.json. Repli sur ?edition= si l'URL du PDF manque.
+        if (p.pdf_url) return 'magazine/lecteur.html?pdf=' + encodeURIComponent(p.pdf_url);
+        return 'magazine/lecteur.html?edition=' + encodeURIComponent(p.slug || '');
+      }
+      if (p.link_url) return p.link_url;
+      return p.cover_url || '#';
+    };
+    var newTab = function (p) { return p.kind === 'journal' ? '' : ' target="_blank" rel="noopener"'; };
+
+    function leadCard(p) {
+      var kindLbl = (p.kind === 'journal') ? 'Journal · à feuilleter' : 'Article';
+      var img = p.cover_url || p.thumbnail_url || '';
+      var meta = [frDate(dateOf(p)), p.subtitle || ''].filter(Boolean).join(' · ');
+      return '<a class="story" href="' + esc(hrefOf(p)) + '"' + newTab(p) + '>' +
+        '<span class="tag">' + esc(kindLbl) + '</span>' +
+        (img ? '<img src="' + esc(img) + '" alt="' + esc(p.alt_text || p.title || '') + '" loading="lazy">' : '') +
+        '<div class="story-content"><span class="label">' + esc(p.category || 'À la une') + '</span>' +
+        '<h3>' + esc(p.title || '') + '</h3>' +
+        '<div class="meta">' + esc(meta) + '</div></div></a>';
+    }
+
+    function archItem(p) {
+      var badge = (p.kind === 'journal') ? 'PDF' : 'Article';
+      var img = p.thumbnail_url || p.cover_url || '';
+      return '<a class="tsf-arch-item" href="' + esc(hrefOf(p)) + '"' + newTab(p) + '>' +
+        '<span class="tsf-arch-thumb">' +
+        (img ? '<img src="' + esc(img) + '" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">' : '') +
+        '<span class="tsf-arch-badge">' + esc(badge) + '</span></span>' +
+        '<span class="tsf-arch-txt"><span class="k">' + esc(p.category || (p.kind === 'journal' ? 'Journal' : 'Article')) + '</span>' +
+        '<h4>' + esc(p.title || '') + '</h4><span class="d">' + esc(frDate(dateOf(p))) + '</span></span></a>';
+    }
+
+    var previous = [];
+    function renderList(monthKey) {
+      var items = (monthKey === 'all') ? previous : previous.filter(function (p) { return ym(dateOf(p)) === monthKey; });
+      listEl.innerHTML = items.map(archItem).join('');
+      if (emptyEl) emptyEl.hidden = items.length > 0;
+    }
+
+    fetch(SB_URL + '/rest/v1/publications?select=slug,title,subtitle,excerpt,category,kind,issue_number,cover_url,thumbnail_url,pdf_url,link_url,page_count,featured,sort_date,publication_date,published_at,status,alt_text&order=sort_date.desc.nullslast,published_at.desc.nullslast', {
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + SB_KEY }
+    }).then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) {
+      if (!Array.isArray(rows) || !rows.length) return; // repli : on garde la grille contenu.json
+      var featured = rows.find(function (p) { return p.featured; }) || rows[0];
+      previous = rows.filter(function (p) { return p !== featured; });
+
+      lead.innerHTML = leadCard(featured);
+
+      // Options mois/année (distinctes, ordre décroissant déjà fourni par le tri).
+      var keys = [];
+      previous.forEach(function (p) { var k = ym(dateOf(p)); if (k && keys.indexOf(k) === -1) keys.push(k); });
+      var opts = ['<option value="all">Tous les mois</option>'].concat(keys.map(function (k) { return '<option value="' + k + '">' + esc(ymLabel(k)) + '</option>'; }));
+      filterEl.innerHTML = opts.join('');
+      filterEl.onchange = function () { renderList(filterEl.value); };
+      renderList('all');
+
+      if (curated) curated.style.display = 'none';
+      pub.hidden = false;
+    }).catch(function () { /* réseau indisponible : la grille contenu.json reste affichée */ });
   })();
   </script>
 
