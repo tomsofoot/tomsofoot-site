@@ -6,6 +6,10 @@ import { ReaderError } from './pdf-loader.js';
 
 const REGISTRY_URL = new URL('../../../publications.json', import.meta.url);
 
+// Identifiants publics Supabase (clé « publishable », sans danger côté client).
+const SB_URL = 'https://yubndvqmglttlntkugzm.supabase.co';
+const SB_KEY = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+
 let _registryPromise = null;
 export function loadRegistry() {
   if (!_registryPromise) {
@@ -48,6 +52,9 @@ export function normalizePub(pub) {
     title: pub.title || 'Journal TomsoFoot',
     subtitle: pub.subtitle || '',
     excerpt: pub.excerpt || '',
+    // Type déclaré par la régie : 'journal' (paysage) ou 'article' (A4 portrait).
+    // Le lecteur s'en sert pour NE JAMAIS interpréter un A4 comme un journal.
+    pubType: pub.pub_type || pub.kind || null,
     issueNumber: pub.issue_number ?? null,
     publicationDate: pub.publication_date || '',
     coverUrl: siteAbsolute(pub.cover_url),
@@ -84,27 +91,35 @@ export async function getFeatured() {
 export async function resolveFromLocation(search = location.search) {
   const params = new URLSearchParams(search);
   const slug = params.get('edition');
-  const legacyPdf = params.get('pdf');
+  const directPdf = params.get('pdf');
 
   if (slug) {
+    // 1) Supabase (numéros récents) : PDF privé + URL signée temporaire.
+    const viaSb = await resolveViaSupabase(slug);
+    if (viaSb) return viaSb;
+    // 2) Repli : registre statique publications.json (anciens numéros).
     const all = await loadRegistry();
-    const found = all.map(normalizePub).find((p) => p.slug === slug);
-    if (!found) throw new ReaderError('not_found', 'Cette publication n\'existe pas.');
-    if (!isPubliclyVisible(all.find((p) => p.slug === slug))) {
-      throw new ReaderError('unavailable', 'Cette publication n\'est pas encore disponible.');
-    }
-    return found;
+    const rec = all.find((p) => p.slug === slug);
+    if (rec && isPubliclyVisible(rec)) return normalizePub(rec);
+    throw new ReaderError('not_found', 'Cette publication n\'existe pas ou n\'est pas disponible.');
   }
 
-  if (legacyPdf) {
-    // Lien historique : on ouvre le PDF tel quel, sans métadonnées de régie.
+  if (directPdf) {
+    // Lien direct : ouvre un PDF donné (ex. prévisualisation d'un brouillon via
+    // une URL signée fournie par la régie admin). Métadonnées facultatives en
+    // paramètres pour afficher le bon titre / n° / nombre de pages / couverture.
     return normalizePub({
-      slug: 'lien-direct',
-      title: 'Journal TomsoFoot',
-      pdf_url: legacyPdf,
+      slug: params.get('slug') || 'lien-direct',
+      title: params.get('title') || 'Journal TomsoFoot',
+      subtitle: params.get('subtitle') || '',
+      pub_type: params.get('pubtype') || null,
+      issue_number: params.get('issue') ? Number(params.get('issue')) : null,
+      cover_url: params.get('cover') || '',
+      page_count: params.get('pages') ? Number(params.get('pages')) : null,
+      pdf_url: directPdf,
       pdf_version: 'v1',
       status: 'published',
-      download_enabled: true,
+      download_enabled: params.get('dl') !== '0',
     });
   }
 
@@ -113,10 +128,55 @@ export async function resolveFromLocation(search = location.search) {
   return featured;
 }
 
-// --- Hook Supabase (désactivé par défaut) --------------------------------
-// À activer si le site passe en stockage Supabase (voir supabase/migrations).
-// N'utilise QUE la clé anon (jamais service_role). Pour un bucket privé,
-// remplacer par un appel à une Edge Function qui renvoie une URL signée.
-export async function resolveViaSupabase(/* slug, { supabaseUrl, anonKey } */) {
-  throw new ReaderError('unsupported', 'Adaptateur Supabase non activé (mode dépôt/Netlify).');
+// --- Adaptateur Supabase (numéros publiés/archivés) ----------------------
+// Récupère la fiche du numéro via l'API REST (clé anon, lecture publique des
+// numéros visibles) puis demande au serveur Storage une URL SIGNÉE temporaire
+// pour le PDF privé. La RLS n'autorise cette signature que pour un numéro
+// réellement visible : un brouillon reste privé. Aucune clé service_role.
+// Retourne null si le numéro est introuvable ou non visible (repli possible).
+export async function resolveViaSupabase(slug) {
+  if (!slug) return null;
+  let row = null;
+  try {
+    const sel = 'slug,title,subtitle,excerpt,kind,issue_number,publication_date,published_at,status,cover_url,thumbnail_url,pdf_path,pdf_bucket,pdf_version,page_count,featured,download_enabled,alt_text';
+    const r = await fetch(`${SB_URL}/rest/v1/publications?slug=eq.${encodeURIComponent(slug)}&select=${sel}&limit=1`,
+      { headers: { apikey: SB_KEY, authorization: 'Bearer ' + SB_KEY }, cache: 'no-store' });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    row = Array.isArray(rows) ? rows[0] : null;
+  } catch (_) { return null; }
+  if (!row || !row.pdf_path) return null;
+
+  let signed = '';
+  try {
+    const bucket = row.pdf_bucket || 'journaux';
+    const s = await fetch(`${SB_URL}/storage/v1/object/sign/${bucket}/${row.pdf_path}`, {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + SB_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ expiresIn: 3600 }),
+    });
+    if (!s.ok) return null; // non visible → non signable (brouillon privé)
+    const j = await s.json();
+    if (j && j.signedURL) signed = SB_URL + '/storage/v1' + j.signedURL;
+  } catch (_) { return null; }
+  if (!signed) return null;
+
+  return {
+    slug: row.slug,
+    title: row.title || 'Journal TomsoFoot',
+    subtitle: row.subtitle || '',
+    excerpt: row.excerpt || '',
+    pubType: row.kind || null,
+    issueNumber: row.issue_number ?? null,
+    publicationDate: row.publication_date || '',
+    coverUrl: row.cover_url || '',
+    thumbnailUrl: row.thumbnail_url || row.cover_url || '',
+    pdfUrl: signed,
+    pdfVersion: row.pdf_version || 'v1',
+    pageCount: row.page_count ?? null,
+    featured: !!row.featured,
+    downloadEnabled: row.download_enabled !== false,
+    altText: row.alt_text || row.title || 'Couverture du journal',
+    status: row.status || 'published',
+  };
 }
