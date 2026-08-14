@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Toutes les publications TomsoFoot : journaux et articles à feuilleter, classés par compétition, zone et rubrique.">
+  <title>Archives — TomsoFoot</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#07101f;--navy:#091a33;--blue:#1167ff;--red:#ef3340;--paper:#f3f0e9;--white:#fff;--mist:#d8e0eb;--line:#c3cad4;--max:1280px;--pad:clamp(20px,4vw,64px)}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Arial,sans-serif}
+    a{color:inherit;text-decoration:none}button,select{font:inherit}:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+    .site-header{position:sticky;top:0;z-index:20;background:rgba(7,16,31,.94);color:#fff;border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:blur(18px)}
+    .nav{max-width:var(--max);height:72px;margin:auto;padding:0 var(--pad);display:flex;align-items:center;justify-content:space-between;gap:24px}
+    .logo{font-family:"Archivo Black";font-size:clamp(20px,2vw,28px);letter-spacing:-.06em}.logo i{color:var(--red);font-style:normal}
+    .nav-links{display:flex;gap:22px}.nav-links a{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.nav-links a:hover{color:var(--red)}
+    @media(max-width:640px){.nav-links a:not(.home){display:none}}
+    .head{background:var(--ink);color:#fff}
+    .head-inner{max-width:var(--max);margin:auto;padding:64px var(--pad) 40px}
+    .kicker{color:var(--red);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+    .head h1{font-family:"Archivo Black";font-weight:400;font-size:clamp(40px,6vw,84px);line-height:.92;letter-spacing:-.06em;text-transform:uppercase;margin:10px 0 12px}
+    .head p{max-width:60ch;color:#aeb8c7;font-family:"Source Serif 4",Georgia,serif;font-size:18px;line-height:1.6;margin:0}
+    .filters{max-width:var(--max);margin:auto;padding:22px var(--pad);display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+    .fgrp{display:flex;flex-direction:column;gap:5px}
+    .fgrp label{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#5a6472}
+    .fgrp select{min-width:150px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink)}
+    .freset{margin-left:auto;align-self:flex-end;background:transparent;border:1px solid var(--line);border-radius:9px;padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer;color:#3a4453}
+    .freset:hover{border-color:var(--red);color:var(--red)}
+    .count{max-width:var(--max);margin:auto;padding:0 var(--pad) 6px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#66707e}
+    .grid{max-width:var(--max);margin:auto;padding:14px var(--pad) 90px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}
+    .card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .2s,box-shadow .2s}
+    .card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(7,16,31,.14)}
+    .card-cov{position:relative;aspect-ratio:3/2;background:#0c1730 center/cover no-repeat;display:block}
+    .card-cov.port{aspect-ratio:3/4}
+    .card-cov .ph{position:absolute;inset:0;display:grid;place-items:center;color:#4a6;font-family:"Archivo Black";font-size:34px;color:rgba(255,255,255,.14)}
+    .card-type{position:absolute;top:10px;left:10px;background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 9px;border-radius:6px}
+    .card-b{padding:16px 16px 18px;display:flex;flex-direction:column;gap:9px;flex:1}
+    .card-b h3{font-family:"Archivo Black";font-weight:400;font-size:19px;line-height:1.08;letter-spacing:-.03em;margin:0}
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:#3a4453;background:#f6f4ee}
+    .chip.comp{border-color:#b9c8ef;color:#1a48b8;background:#eef3ff}
+    .chip.rub{border-color:#e6cfae;color:#8a5a12;background:#fbf3e6}
+    .card-meta{margin-top:auto;font-size:12px;color:#79828f;display:flex;justify-content:space-between;gap:8px}
+    .card-cta{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+    .empty{max-width:var(--max);margin:auto;padding:60px var(--pad) 120px;text-align:center;color:#66707e}
+    .empty b{display:block;font-size:18px;color:var(--ink);margin-bottom:6px}
+    .skel{height:280px;border-radius:14px;background:linear-gradient(100deg,#e9e5db 30%,#f3f0e9 50%,#e9e5db 70%);background-size:200% 100%;animation:sh 1.2s infinite}
+    @keyframes sh{to{background-position:-200% 0}}
+    footer{background:#040b16;color:#fff;padding:56px var(--pad) 34px}.footer-inner{max-width:var(--max);margin:auto}
+    .footer-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:30px;border-bottom:1px solid #263141;padding-bottom:40px}
+    .footer-logo{font-family:"Archivo Black";font-size:clamp(32px,5vw,64px);letter-spacing:-.075em}
+    .footer-links{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 44px;font-size:12px}.footer-links a:hover{color:var(--red)}
+    .copyright{display:flex;justify-content:space-between;padding-top:22px;color:#748096;font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="/">TOMSO<i>FOOT</i></a>
+      <div class="nav-links">
+        <a class="home" href="/">Accueil</a>
+        <a href="/#magazine">Magazine</a>
+        <a href="/#videos">Vidéos</a>
+        <a href="/jeu">Jeu</a>
+      </div>
+    </nav>
+  </header>
+
+  <section class="head">
+    <div class="head-inner">
+      <div class="kicker">Toutes les publications</div>
+      <h1>Archives</h1>
+      <p>Retrouvez chaque journal et chaque article à feuilleter, classés par compétition, zone et rubrique. Les anciens numéros restent consultables dans leur format d'origine.</p>
+    </div>
+  </section>
+
+  <div class="filters" id="filters" hidden>
+    <div class="fgrp"><label for="f-type">Type</label><select id="f-type"><option value="">Tous</option><option value="journal">Journaux</option><option value="article">Articles</option></select></div>
+    <div class="fgrp"><label for="f-year">Année</label><select id="f-year"><option value="">Toutes</option></select></div>
+    <div class="fgrp"><label for="f-month">Mois</label><select id="f-month"><option value="">Tous</option></select></div>
+    <div class="fgrp"><label for="f-zone">Zone</label><select id="f-zone"><option value="">Toutes</option></select></div>
+    <div class="fgrp"><label for="f-comp">Compétition</label><select id="f-comp"><option value="">Toutes</option></select></div>
+    <div class="fgrp"><label for="f-rub">Rubrique</label><select id="f-rub"><option value="">Toutes</option></select></div>
+    <button class="freset" id="f-reset" type="button">Réinitialiser</button>
+  </div>
+  <div class="count" id="count" hidden></div>
+
+  <div class="grid" id="grid">
+    <div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>
+  </div>
+  <div class="empty" id="empty" hidden><b>Aucune publication pour ces filtres.</b>Essayez d'élargir votre recherche.</div>
+
+  <footer><div class="footer-inner"><div class="footer-top"><div><div class="footer-logo">TOMSOFOOT</div><p style="color:#8995a5">Le football, notre passion.</p></div><div class="footer-links"><a href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">YouTube ↗</a><a href="https://www.instagram.com/tomso_foot/" target="_blank" rel="noopener">Instagram ↗</a><a href="/">Accueil</a><a href="/jeu">Jogadle (le jeu)</a><a href="/mentions-legales">Mentions légales</a><a href="/confidentialite">Confidentialité</a></div></div><div class="copyright"><span>© 2026 TomsoFoot</span><span>Information · Culture · Passion</span></div></div></footer>
+
+  <script src="assets/js/taxonomy.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (function () {
+    var SB_URL = 'https://yubndvqmglttlntkugzm.supabase.co';
+    var SB_KEY = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+    var T = window.TFTaxo;
+    var $ = function (id) { return document.getElementById(id); };
+    var MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+    var rows = [];
+
+    // Codes de classement EFFECTIFS : colonnes canoniques si présentes, sinon
+    // repli sur l'ancienne « category » libre normalisée (mapping d'alias).
+    function effective(r) {
+      var legacy = (T && T.classifyLegacy) ? T.classifyLegacy(r.category) : { zone:'', competition:'', rubrique:'' };
+      return {
+        zone: r.zone_code || legacy.zone || '',
+        competition: r.competition_code || legacy.competition || '',
+        rubrique: r.rubrique_code || legacy.rubrique || '',
+      };
+    }
+    function dateOf(r) { return r.sort_date || r.publication_date || (r.published_at ? r.published_at.slice(0,10) : '') || ''; }
+    function visible(r) {
+      if (r.status === 'archived') return true;
+      if (r.status === 'published') { return !r.published_at || Date.parse(r.published_at) <= Date.now(); }
+      return false;
+    }
+
+    function labelZone(c){ return (T && T.zoneLabel(c)) || c; }
+    function labelComp(c){ return (T && T.competitionLabel(c)) || c; }
+    function labelRub(c){ return (T && T.rubriqueLabel(c)) || c; }
+
+    function buildFilterOptions() {
+      var years = {}, zones = {}, comps = {}, rubs = {};
+      rows.forEach(function (r) {
+        var d = dateOf(r); if (d) years[d.slice(0,4)] = true;
+        var e = r._eff;
+        if (e.zone) zones[e.zone] = true;
+        if (e.competition) comps[e.competition] = true;
+        if (e.rubrique) rubs[e.rubrique] = true;
+      });
+      var yEl = $('f-year');
+      Object.keys(years).sort().reverse().forEach(function (y) { yEl.insertAdjacentHTML('beforeend', '<option value="'+y+'">'+y+'</option>'); });
+      var mEl = $('f-month');
+      for (var i=0;i<12;i++) mEl.insertAdjacentHTML('beforeend', '<option value="'+(i+1)+'">'+MONTHS[i].charAt(0).toUpperCase()+MONTHS[i].slice(1)+'</option>');
+      // Zones/compétitions/rubriques : suivre l'ordre canonique de la taxonomie.
+      if (T) {
+        T.ZONES.forEach(function (x){ if (zones[x.code]) $('f-zone').insertAdjacentHTML('beforeend','<option value="'+x.code+'">'+x.label+'</option>'); });
+        T.COMPETITIONS.forEach(function (x){ if (comps[x.code]) $('f-comp').insertAdjacentHTML('beforeend','<option value="'+x.code+'">'+x.label+'</option>'); });
+        T.RUBRIQUES.forEach(function (x){ if (rubs[x.code]) $('f-rub').insertAdjacentHTML('beforeend','<option value="'+x.code+'">'+x.label+'</option>'); });
+      }
+    }
+
+    function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+    function card(r) {
+      var e = r._eff;
+      var isArticle = r.kind === 'article';
+      var cov = r.thumbnail_url || r.cover_url || '';
+      var d = dateOf(r); var dtxt = '';
+      if (d) { var p = d.split('-'); dtxt = (p[2]?p[2]+' ':'') + (MONTHS[(+p[1]||1)-1]||'') + ' ' + p[0]; }
+      var chips = '';
+      if (e.competition) chips += '<span class="chip comp">'+esc(labelComp(e.competition))+'</span>';
+      else if (e.zone) chips += '<span class="chip">'+esc(labelZone(e.zone))+'</span>';
+      if (e.zone && e.competition) chips += '<span class="chip">'+esc(labelZone(e.zone))+'</span>';
+      if (e.rubrique) chips += '<span class="chip rub">'+esc(labelRub(e.rubrique))+'</span>';
+      var covStyle = cov ? ' style="background-image:url(\''+esc(cov)+'\')"' : '';
+      var portClass = isArticle ? ' port' : '';
+      var href = 'magazine/lecteur.html?edition=' + encodeURIComponent(r.slug);
+      return '<a class="card" href="'+href+'">'
+        + '<span class="card-cov'+portClass+'"'+covStyle+'>'
+          + (cov ? '' : '<span class="ph">TF</span>')
+          + '<span class="card-type">'+(isArticle?'Article':'Journal')+'</span>'
+        + '</span>'
+        + '<span class="card-b">'
+          + '<h3>'+esc(r.title||'Sans titre')+'</h3>'
+          + (chips ? '<span class="chips">'+chips+'</span>' : '')
+          + '<span class="card-meta"><span>'+esc(dtxt)+(r.page_count?(' · '+r.page_count+' p.'):'')+'</span><span class="card-cta">Lire →</span></span>'
+        + '</span>'
+      + '</a>';
+    }
+
+    function apply() {
+      var ft = $('f-type').value, fy = $('f-year').value, fm = $('f-month').value,
+          fz = $('f-zone').value, fc = $('f-comp').value, fr = $('f-rub').value;
+      var out = rows.filter(function (r) {
+        if (ft && r.kind !== ft) return false;
+        var d = dateOf(r);
+        if (fy && d.slice(0,4) !== fy) return false;
+        if (fm && (+d.slice(5,7)) !== (+fm)) return false;
+        if (fz && r._eff.zone !== fz) return false;
+        if (fc && r._eff.competition !== fc) return false;
+        if (fr && r._eff.rubrique !== fr) return false;
+        return true;
+      });
+      var grid = $('grid');
+      if (!out.length) { grid.innerHTML = ''; $('empty').hidden = false; }
+      else { $('empty').hidden = true; grid.innerHTML = out.map(card).join(''); }
+      $('count').hidden = false;
+      $('count').textContent = out.length + (out.length > 1 ? ' publications' : ' publication');
+    }
+
+    function wire() {
+      ['f-type','f-year','f-month','f-zone','f-comp','f-rub'].forEach(function (id) { $(id).addEventListener('change', apply); });
+      $('f-reset').addEventListener('click', function () {
+        ['f-type','f-year','f-month','f-zone','f-comp','f-rub'].forEach(function (id) { $(id).value=''; });
+        apply();
+      });
+    }
+
+    async function boot() {
+      // Amorce de test hors-ligne (inerte en production : jamais défini côté site).
+      if (window.__ARCHIVES_MOCK) {
+        rows = window.__ARCHIVES_MOCK.filter(visible);
+        rows.forEach(function (r) { r._eff = effective(r); });
+        buildFilterOptions(); wire(); $('filters').hidden = false; apply(); return;
+      }
+      var sb = window.supabase && window.supabase.createClient(SB_URL, SB_KEY);
+      try {
+        var sel = 'slug,title,kind,status,published_at,publication_date,sort_date,page_count,cover_url,thumbnail_url,category,zone_code,competition_code,rubrique_code';
+        var res = await sb.from('publications').select(sel).in('status', ['published','archived']).order('sort_date', { ascending: false });
+        if (res.error) throw res.error;
+        rows = (res.data || []).filter(visible);
+        rows.forEach(function (r) { r._eff = effective(r); });
+      } catch (e) {
+        $('grid').innerHTML = '';
+        $('empty').hidden = false;
+        $('empty').innerHTML = '<b>Archives momentanément indisponibles.</b>Réessayez dans un instant.';
+        return;
+      }
+      buildFilterOptions();
+      wire();
+      $('filters').hidden = false;
+      apply();
+    }
+    boot();
+  })();
+  </script>
+</body>
+</html>

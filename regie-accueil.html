@@ -72,6 +72,21 @@
   .pd-uptext{font-size:12px;color:#cfe4ff;margin-top:7px;font-weight:700}
   .pd-okhead{display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap}
   .pd-badge{background:rgba(30,120,60,.32);border:1px solid rgba(80,200,120,.5);color:#c7f2d6;border-radius:999px;padding:3px 10px;font-weight:800;font-size:12px}
+  .pd-detect{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .pd-detect[hidden]{display:none}
+  .pd-fmt{align-self:flex-start;border-radius:999px;padding:3px 11px;font-weight:800;font-size:12px;border:1px solid}
+  .pd-fmt.ok{background:rgba(30,120,60,.30);border-color:rgba(80,200,120,.5);color:#c7f2d6}
+  .pd-fmt.info{background:rgba(30,90,180,.28);border-color:rgba(90,150,240,.5);color:#cfe0ff}
+  .pd-fmt.warn{background:rgba(150,110,20,.30);border-color:rgba(230,180,60,.55);color:#ffe6ad}
+  .pd-fmt.block{background:rgba(140,30,30,.32);border-color:rgba(240,120,120,.6);color:#ffd0d0}
+  .pd-dims{font-size:12px;color:#cfe4ff;line-height:1.6}
+  .pd-dims b{color:#fff}
+  .pd-warn{font-size:11.5px;color:#ffe6ad;line-height:1.5;margin:0}
+  .pd-warn[hidden]{display:none}
+  .taxo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+  .taxo label{font-size:12px;color:#9fb0cc;margin-bottom:3px}
+  .taxo select{width:100%;box-sizing:border-box;background:#0c1730;border:1px solid var(--line);border-radius:8px;color:#fff;padding:9px 10px;font-size:13px}
+  @media (max-width:640px){.taxo{grid-template-columns:1fr}}
   .pd-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   .pd-err{color:#ffd0d0;font-size:13px;font-weight:600}
   .pubmodal{position:fixed;inset:0;background:rgba(4,9,20,.66);display:grid;place-items:center;z-index:50}
@@ -139,6 +154,11 @@
           </div>
           <div class="pd-ok">
             <div class="pd-okhead"><span class="pd-badge">✓ PDF prêt</span> <span id="pd-okmeta">—</span></div>
+            <div class="pd-detect" id="pd-detect" hidden>
+              <span class="pd-fmt" id="pd-fmt">—</span>
+              <div class="pd-dims" id="pd-dims"></div>
+              <p class="pd-warn" id="pd-warn" hidden></p>
+            </div>
             <div class="pd-actions">
               <button type="button" class="mini" id="pd-preview">Prévisualiser</button>
               <button type="button" class="mini" id="pd-replace">Remplacer</button>
@@ -148,6 +168,12 @@
           </div>
           <div class="pd-err" id="pd-err">Ce fichier n'est pas un PDF valide.</div>
         </div>
+        <div class="taxo">
+          <div><label>Zone</label><select id="j-zone"></select></div>
+          <div><label>Compétition</label><select id="j-competition"></select></div>
+          <div><label>Rubrique</label><select id="j-rubrique"></select></div>
+        </div>
+        <p class="hint">Classement du journal pour la page Archives (facultatif mais recommandé). Choisir une compétition pré-remplit la zone.</p>
 
         <label>Ligne d'information</label><input id="u-meta" data-u="meta" spellcheck="true" lang="fr">
         <label>Photo de fond (glisse une image, ou colle un chemin)</label>
@@ -158,6 +184,48 @@
         </div>
         <p class="hint">Glisse-dépose une image directement ici : elle se téléverse et le chemin se remplit tout seul (connexion admin requise).</p>
         <p class="hint dim">📐 Format idéal : <b>paysage 3:2 — 2400 × 1600 px</b> (min. 1920 × 1280). Sujet bien centré (les bords peuvent être rognés selon l'écran).</p>
+
+        <h2>Article PDF — format A4 (portrait)</h2>
+        <p class="hint">Zone <b>indépendante</b> du journal ci-dessus. Dépose un PDF <b>A4 portrait</b> : il devient un article feuilletable (double-page sur ordinateur, page par page sur mobile). Il n'écrase pas le journal de l'accueil et rejoindra la page Archives.</p>
+        <label>Titre de l'article</label><input id="ad-title" spellcheck="true" lang="fr" placeholder="Titre affiché dans le lecteur et les archives">
+        <div class="taxo">
+          <div><label>Zone</label><select id="a-zone"></select></div>
+          <div><label>Compétition</label><select id="a-competition"></select></div>
+          <div><label>Rubrique</label><select id="a-rubrique"></select></div>
+        </div>
+        <label>Article PDF — version feuilletable</label>
+        <div class="pdfdrop" id="adrop" data-state="empty">
+          <input type="file" id="article-file" accept="application/pdf" hidden>
+          <div class="pd-empty">
+            <svg class="pd-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 16h6"/></svg>
+            <b>Glissez-déposez le PDF de l'article (A4) ici</b>
+            <span>ou cliquez pour sélectionner un fichier</span><br>
+            <button type="button" class="mini" id="ad-pick">Sélectionner un PDF…</button>
+            <p class="pd-sub">PDF A4 portrait · Le fichier reste en brouillon privé jusqu'à sa publication</p>
+          </div>
+          <div class="pd-over"><b>Déposez l'article ici</b></div>
+          <div class="pd-up">
+            <div class="pd-uprow"><span id="ad-upname">fichier.pdf</span><button type="button" class="pd-cancel" id="ad-cancel">Annuler</button></div>
+            <div class="pd-bar"><i id="ad-fill"></i></div>
+            <div class="pd-uptext" id="ad-uptext">Téléversement de l'article… 0 %</div>
+          </div>
+          <div class="pd-ok">
+            <div class="pd-okhead"><span class="pd-badge">✓ PDF prêt</span> <span id="ad-okmeta">—</span></div>
+            <div class="pd-detect" id="ad-detect" hidden>
+              <span class="pd-fmt" id="ad-fmt">—</span>
+              <div class="pd-dims" id="ad-dims"></div>
+              <p class="pd-warn" id="ad-warn" hidden></p>
+            </div>
+            <div class="pd-actions">
+              <button type="button" class="mini" id="ad-preview">Prévisualiser</button>
+              <button type="button" class="mini" id="ad-publish">Publier l'article</button>
+              <button type="button" class="mini" id="ad-replace">Remplacer</button>
+              <button type="button" class="mini del" id="ad-remove">Retirer</button>
+            </div>
+            <p class="pd-sub" id="ad-okhint">Brouillon privé · clique « Publier l'article » pour le mettre en ligne (indépendant de l'accueil).</p>
+          </div>
+          <div class="pd-err" id="ad-err">Ce fichier n'est pas un PDF valide.</div>
+        </div>
 
         <h2>À la une (les cartes)</h2>
         <div id="arts"></div>
@@ -179,6 +247,7 @@
   </div>
 </div>
 
+<script src="assets/js/taxonomy.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module">
 import * as pdfjsLib from './assets/vendor/pdfjs/pdf.min.mjs';
@@ -308,7 +377,11 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.work
 
     // Un journal en brouillon est-il en attente de publication ?
     if (journalState && !journalState.published) {
-      var ok = await confirmPublish();
+      if (journalState.format && journalState.format.level === 'block') {
+        show('msg', 'err', 'Publication bloquée : ' + journalState.format.note);
+        return;
+      }
+      var ok = await confirmPublish(journalState.format, 'journal');
       if (!ok) return;
       $('btn-save').disabled = true; $('save-status').textContent = 'Publication du journal…';
       try {
@@ -427,14 +500,100 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.work
 
   function slugify(s) { return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
   function humanSize(b) { if (b < 1024) return b + ' o'; if (b < 1048576) return (b / 1024).toFixed(0) + ' Ko'; return (b / 1048576).toFixed(1).replace('.', ',') + ' Mo'; }
+  // --- Détection du format (dimensions / ratio / format reconnu) ----------
+  var PT2MM = 25.4 / 72;
+  function nf(n, d) { var p = Math.pow(10, d); return (Math.round(n * p) / p).toFixed(d).replace('.', ','); }
+  // Validation SOUPLE (option 1) : on n'interdit rien, sauf des pages de
+  // tailles différentes. 16:9 et ~3:2 (historique) sont acceptés tels quels ;
+  // les autres ratios passent en avertissement (publication après confirmation).
+  // zone = 'journal' (paysage attendu) ou 'article' (A4 portrait attendu).
+  // Le FORMAT reconnu est identique quelle que soit la zone ; seuls le niveau
+  // (ok/info/warn/block) et le message dépendent de la zone de dépôt.
+  function classifyPdf(dims, zone) {
+    zone = zone || 'journal';
+    if (!dims || !dims.length) return null;
+    var w = Math.round(dims[0].w), h = Math.round(dims[0].h), ratio = w / h;
+    var uniform = dims.every(function (d) { return Math.abs(d.w - dims[0].w) <= 1.5 && Math.abs(d.h - dims[0].h) <= 1.5; });
+    var o = { w: w, h: h, wmm: w * PT2MM, hmm: h * PT2MM, ratio: ratio, orient: ratio >= 1 ? 'paysage' : 'portrait', uniform: uniform, zone: zone };
+    // Pages non uniformes → toujours bloquant, quelle que soit la zone.
+    if (!uniform) {
+      o.code = 'mixte'; o.label = 'Pages de tailles différentes'; o.level = 'block';
+      o.note = 'Toutes les pages n\'ont pas le même format : la publication est bloquée. Réexporte le PDF avec une taille de page unique.';
+      return o;
+    }
+    // Format reconnu (indépendant de la zone).
+    if (ratio >= 1) {
+      if (Math.abs(ratio - 16 / 9) <= 0.06) { o.code = 'journal-169'; o.label = 'Journal 16:9'; }
+      else if (ratio >= 1.45 && ratio <= 1.62) { o.code = 'journal-historique'; o.label = 'Journal historique (~3:2)'; }
+      else { o.code = 'paysage-autre'; o.label = 'Paysage inhabituel (' + nf(ratio, 2) + ':1)'; }
+    } else {
+      if (Math.abs(ratio - 1 / Math.SQRT2) <= 0.03) { o.code = 'article-a4'; o.label = 'Article A4'; }
+      else { o.code = 'portrait-autre'; o.label = 'Portrait inhabituel (' + nf(ratio, 2) + ':1)'; }
+    }
+    // Niveau + message selon la zone.
+    if (zone === 'article') {
+      if (o.code === 'article-a4') { o.level = 'ok'; o.note = 'Format A4 reconnu. Lecture double-page sur ordinateur, page par page sur mobile.'; }
+      else if (o.orient === 'paysage') { o.level = 'warn'; o.note = 'Ce PDF est en paysage : il ressemble à un journal. Pour un journal 16:9, utilise plutôt la zone Journal ci-dessus. Publié ici, il sera lu comme un article.'; }
+      else { o.level = 'warn'; o.note = 'Portrait inhabituel (ce n\'est pas un A4 standard). Le lecteur l\'affichera au ratio réel ; vérifie le rendu avant de publier.'; }
+    } else {
+      if (o.code === 'journal-169') { o.level = 'ok'; o.note = 'Format cible standard. Affiché en pleine page paysage.'; }
+      else if (o.code === 'journal-historique') { o.level = 'ok'; o.note = 'Format historique reconnu. Affiché tel quel, sans déformation ni conversion.'; }
+      else if (o.code === 'article-a4') { o.level = 'info'; o.note = 'Format A4 portrait détecté. Pour un article A4, utilise la zone « Article PDF — format A4 » plus bas. Déposé ici, il sera lu page par page.'; }
+      else if (o.orient === 'paysage') { o.level = 'warn'; o.note = 'Ce ratio ne correspond ni au 16:9 ni au format historique. Le lecteur l\'affichera au ratio réel, mais vérifie le rendu avant de publier.'; }
+      else { o.level = 'warn'; o.note = 'PDF au format portrait inhabituel. Vérifie qu\'il s\'agit bien du bon fichier pour la zone Journal.'; }
+    }
+    return o;
+  }
+  // ids par défaut = zone Journal ; passe {box,fmt,dims,warn} pour une autre zone.
+  function renderDetect(fmt, pageCount, ids) {
+    ids = ids || { box: 'pd-detect', fmt: 'pd-fmt', dims: 'pd-dims', warn: 'pd-warn' };
+    var box = $(ids.box), badge = $(ids.fmt), dimsEl = $(ids.dims), warnEl = $(ids.warn);
+    if (!fmt) { box.hidden = true; return; }
+    box.hidden = false;
+    badge.className = 'pd-fmt ' + (fmt.level === 'ok' ? 'ok' : fmt.level === 'info' ? 'info' : fmt.level === 'block' ? 'block' : 'warn');
+    badge.textContent = (fmt.level === 'ok' ? '✓ ' : fmt.level === 'block' ? '⛔ ' : fmt.level === 'warn' ? '⚠️ ' : 'ℹ️ ') + fmt.label;
+    dimsEl.innerHTML = 'Dimensions : <b>' + fmt.w + ' × ' + fmt.h + ' pt</b> (' + Math.round(fmt.wmm) + ' × ' + Math.round(fmt.hmm) + ' mm) · Ratio <b>' + nf(fmt.ratio, 2) + '</b> · <b>' + pageCount + '</b> page' + (pageCount > 1 ? 's' : '') + ' · ' + fmt.orient;
+    warnEl.textContent = fmt.note || '';
+    warnEl.hidden = !fmt.note;
+  }
+
+  // --- Classement canonique (zones / compétitions / rubriques) ------------
+  function _opt(v, label, sel) { return '<option value="' + v + '"' + (sel ? ' selected' : '') + '>' + label + '</option>'; }
+  function fillTaxo(prefix) {
+    var T = window.TFTaxo; if (!T) return;
+    var z = $(prefix + '-zone'), c = $(prefix + '-competition'), r = $(prefix + '-rubrique');
+    if (z) z.innerHTML = _opt('', '— Zone —', true) + T.ZONES.map(function (x) { return _opt(x.code, x.label); }).join('');
+    if (c) c.innerHTML = _opt('', '— Compétition —', true) + T.COMPETITIONS.map(function (x) { return _opt(x.code, x.label); }).join('');
+    if (r) r.innerHTML = _opt('', '— Rubrique —', true) + T.RUBRIQUES.map(function (x) { return _opt(x.code, x.label); }).join('');
+    if (c && z) c.addEventListener('change', function () { var zc = T.zoneForCompetition(c.value); if (zc && !z.value) z.value = zc; });
+  }
+  function readTaxo(prefix) {
+    var T = window.TFTaxo || {};
+    var zc = ($(prefix + '-zone') || {}).value || null;
+    var cc = ($(prefix + '-competition') || {}).value || null;
+    var rc = ($(prefix + '-rubrique') || {}).value || null;
+    return {
+      zone_code: zc, zone_label: zc && T.zoneLabel ? T.zoneLabel(zc) : null,
+      competition_code: cc, competition_label: cc && T.competitionLabel ? T.competitionLabel(cc) : null,
+      rubrique_code: rc, rubrique_label: rc && T.rubriqueLabel ? T.rubriqueLabel(rc) : null,
+    };
+  }
+  function dimsRec(fmt) { return fmt ? { pdf_width: fmt.w, pdf_height: fmt.h, pdf_ratio: Math.round(fmt.ratio * 1000) / 1000 } : {}; }
+
   function pdState(s) { $('pdfdrop').setAttribute('data-state', s); }
   function pdError(msg) { $('pd-err').textContent = msg; pdState('error'); }
   function setFill(p) { $('pd-fill').style.width = p + '%'; $('pd-uptext').textContent = 'Téléversement du journal… ' + p + ' %'; }
   function setLien(slug) { $('u-lien').value = slug ? ('magazine/lecteur.html?edition=' + slug) : 'magazine/lecteur.html'; try { $('u-lien').dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {} }
 
   // Confirmation de publication (modale) → Promise<boolean>
-  function confirmPublish() {
+  // kind = 'journal' (défaut) ou 'article' ; f = format détecté (pour l'avertissement).
+  function confirmPublish(f, kind) {
     return new Promise(function (resolve) {
+      var noun = kind === 'article' ? 'article' : 'journal de l\'article du jour';
+      $('pub-ok').textContent = kind === 'article' ? 'Publier l\'article' : 'Publier le numéro';
+      $('pubmsg').textContent = (f && f.level === 'warn')
+        ? '⚠️ ' + f.note + ' Publier quand même ce PDF comme nouveau ' + noun + ' ?'
+        : 'Publier ce PDF comme nouveau ' + noun + ' ?';
       var m = $('pubmodal'); m.hidden = false;
       function done(v) { m.hidden = true; $('pub-ok').onclick = null; $('pub-cancel').onclick = null; resolve(v); }
       $('pub-ok').onclick = function () { done(true); };
@@ -470,21 +629,40 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.work
     try { buf = await file.arrayBuffer(); } catch (_) { return pdError('Lecture du fichier impossible.'); }
     if (new TextDecoder().decode(new Uint8Array(buf.slice(0, 5))) !== '%PDF-') return pdError('Ce fichier n\'est pas un PDF valide.');
 
-    var pageCount, coverBlob = null, thumbBlob = null;
+    var pageCount, coverBlob = null, thumbBlob = null, pdf = null;
+    // 1) Nombre de pages (essentiel : valide aussi la lisibilité du PDF).
     try {
-      var pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+      pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
       pageCount = pdf.numPages;
       if (!pageCount || pageCount < 1) throw new Error('vide');
+    } catch (_) { return pdError('PDF illisible ou corrompu.'); }
+    // 1b) Dimensions de CHAQUE page (getViewport ne rend rien → rapide) :
+    //     format reconnu + contrôle d'uniformité (pages de tailles différentes).
+    var fmt = null;
+    try {
+      var dims = [];
+      for (var pi = 1; pi <= pageCount; pi++) {
+        var pg = await pdf.getPage(pi);
+        var v = pg.getViewport({ scale: 1 });
+        dims.push({ w: v.width, h: v.height });
+      }
+      fmt = classifyPdf(dims, 'journal');
+    } catch (_) { fmt = null; }
+    // 2) Couverture (facultative) : garde-fou anti-blocage. Si le rendu échoue
+    //    ou traîne (onglet en arrière-plan p.ex.), on continue SANS couverture —
+    //    le lecteur affiche de toute façon les pages du PDF lui-même.
+    try {
       var page = await pdf.getPage(1);
       var vpb = page.getViewport({ scale: 1 });
-      var vp = page.getViewport({ scale: Math.min(1200 / vpb.width, 3) });
+      var vp = page.getViewport({ scale: Math.min(1200 / vpb.width, 2) });
       var c = document.createElement('canvas'); c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
-      await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      var task = page.render({ canvasContext: c.getContext('2d'), viewport: vp });
+      await Promise.race([ task.promise, new Promise(function (_, rej) { setTimeout(function () { try { task.cancel(); } catch (e) {} rej(new Error('cover-timeout')); }, 12000); }) ]);
       coverBlob = await new Promise(function (r) { c.toBlob(r, 'image/webp', 0.9); });
       var t = document.createElement('canvas'); t.width = 400; t.height = Math.round(400 * c.height / c.width);
       t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
       thumbBlob = await new Promise(function (r) { t.toBlob(r, 'image/webp', 0.85); });
-    } catch (_) { return pdError('PDF illisible ou corrompu.'); }
+    } catch (_) { coverBlob = null; thumbBlob = null; }
 
     var title = [$('u-titre1').value, $('u-titre2').value].filter(Boolean).join(' ').trim() || 'Journal TomsoFoot';
     var issueM = ($('u-meta').value || '').match(/n[°o]\s*(\d+)/i); var issue = issueM ? Number(issueM[1]) : null;
@@ -514,11 +692,13 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.work
       page_count: pageCount, pdf_bucket: 'journaux', pdf_path: pdfPath, pdf_version: 'v' + version,
       cover_url: coverUrl || null, thumbnail_url: thumbUrl || null, alt_text: title, download_enabled: false,
     };
+    Object.assign(rec, readTaxo('j'), dimsRec(fmt));
     try { var up = await sb.from('publications').upsert(rec, { onConflict: 'slug' }); if (up.error) throw up.error; }
     catch (err) { return pdError('Enregistrement du brouillon impossible : ' + ((err && err.message) || err)); }
 
-    journalState = { slug: slug, title: title, pageCount: pageCount, size: file.size, pdfPath: pdfPath, coverUrl: coverUrl, thumbUrl: thumbUrl, version: version, issue: issue, published: false };
+    journalState = { slug: slug, title: title, pageCount: pageCount, size: file.size, pdfPath: pdfPath, coverUrl: coverUrl, thumbUrl: thumbUrl, version: version, issue: issue, published: false, format: fmt };
     $('pd-okmeta').textContent = pageCount + ' pages · ' + humanSize(file.size);
+    renderDetect(fmt, pageCount);
     $('pd-okhint').textContent = 'Brouillon privé · deviendra le journal de l\'article du jour après « Enregistrer sur le site ».';
     pdState('ready');
     setLien(slug);
@@ -558,6 +738,118 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.work
     } catch (e) { pdError('Aperçu impossible : ' + ((e && e.message) || e)); }
   }
 
+  // ===================== Article PDF A4 (zone indépendante) ================
+  // Publie un PDF A4 portrait comme article feuilletable autonome (bucket privé
+  // 'articles', URL signée). N'écrase JAMAIS le journal de l'accueil : publication
+  // découplée (status=published, sans featured, sans toucher au héros).
+  var articleState = null;
+
+  function adState(s) { $('adrop').setAttribute('data-state', s); }
+  function adError(msg) { $('ad-err').textContent = msg; adState('error'); }
+  function setAFill(p) { $('ad-fill').style.width = p + '%'; $('ad-uptext').textContent = 'Téléversement de l\'article… ' + p + ' %'; }
+
+  async function handleArticle(file) {
+    if (!sb || !accessToken) return adError('Connecte-toi (compte admin) pour téléverser un article.');
+    if (!/\.pdf$/i.test(file.name) || (file.type && file.type !== 'application/pdf')) return adError('Ce fichier n\'est pas un PDF valide.');
+    if (file.size === 0) return adError('Ce fichier est vide.');
+    if (file.size > 100 * 1024 * 1024) return adError('PDF trop lourd (max 100 Mo).');
+
+    var buf;
+    try { buf = await file.arrayBuffer(); } catch (_) { return adError('Lecture du fichier impossible.'); }
+    if (new TextDecoder().decode(new Uint8Array(buf.slice(0, 5))) !== '%PDF-') return adError('Ce fichier n\'est pas un PDF valide.');
+
+    var pageCount, coverBlob = null, thumbBlob = null, pdf = null, fmt = null;
+    try {
+      pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+      pageCount = pdf.numPages;
+      if (!pageCount || pageCount < 1) throw new Error('vide');
+    } catch (_) { return adError('PDF illisible ou corrompu.'); }
+    // Dimensions de chaque page → format reconnu (zone 'article') + uniformité.
+    try {
+      var dims = [];
+      for (var pi = 1; pi <= pageCount; pi++) { var pg = await pdf.getPage(pi); var v = pg.getViewport({ scale: 1 }); dims.push({ w: v.width, h: v.height }); }
+      fmt = classifyPdf(dims, 'article');
+    } catch (_) { fmt = null; }
+    // Couverture facultative (garde-fou anti-blocage identique au journal).
+    try {
+      var page = await pdf.getPage(1);
+      var vpb = page.getViewport({ scale: 1 });
+      var vp = page.getViewport({ scale: Math.min(1200 / vpb.width, 2) });
+      var cc = document.createElement('canvas'); cc.width = Math.floor(vp.width); cc.height = Math.floor(vp.height);
+      var task = page.render({ canvasContext: cc.getContext('2d'), viewport: vp });
+      await Promise.race([task.promise, new Promise(function (_, rej) { setTimeout(function () { try { task.cancel(); } catch (e) {} rej(new Error('cover-timeout')); }, 12000); })]);
+      coverBlob = await new Promise(function (r) { cc.toBlob(r, 'image/webp', 0.9); });
+      var tt = document.createElement('canvas'); tt.width = 400; tt.height = Math.round(400 * cc.height / cc.width);
+      tt.getContext('2d').drawImage(cc, 0, 0, tt.width, tt.height);
+      thumbBlob = await new Promise(function (r) { tt.toBlob(r, 'image/webp', 0.85); });
+    } catch (_) { coverBlob = null; thumbBlob = null; }
+
+    var title = ($('ad-title').value || '').trim() || file.name.replace(/\.pdf$/i, '') || 'Article TomsoFoot';
+    var reuse = articleState && !articleState.published;
+    var slug = reuse ? articleState.slug : (slugify(title) + '-' + Math.random().toString(36).slice(2, 7));
+    var version = reuse ? (articleState.version + 1) : 1;
+    var now = new Date(), y = now.getFullYear(), mo = String(now.getMonth() + 1).padStart(2, '0');
+    var dir = y + '/' + mo + '/' + slug;
+    var pdfPath = dir + '/article-v' + version + '-' + Date.now() + '.pdf';
+
+    adState('uploading'); $('ad-upname').textContent = file.name + ' · ' + humanSize(file.size); setAFill(0);
+    try { await uploadWithProgress('articles', pdfPath, file, 'application/pdf', setAFill); }
+    catch (err) { if (err && err.aborted) { adState(articleState ? 'ready' : 'empty'); return; } return adError('Le téléversement a échoué. Réessayez.'); }
+
+    var coverUrl = '', thumbUrl = '';
+    try {
+      await sb.storage.from('publications').upload(dir + '/couverture.webp', coverBlob, { contentType: 'image/webp', upsert: true });
+      coverUrl = sb.storage.from('publications').getPublicUrl(dir + '/couverture.webp').data.publicUrl;
+      await sb.storage.from('publications').upload(dir + '/miniature.webp', thumbBlob, { contentType: 'image/webp', upsert: true });
+      thumbUrl = sb.storage.from('publications').getPublicUrl(dir + '/miniature.webp').data.publicUrl;
+    } catch (_) {}
+
+    var rec = {
+      slug: slug, title: title, kind: 'article', status: 'draft', featured: false,
+      publication_date: now.toISOString().slice(0, 10), sort_date: now.toISOString().slice(0, 10),
+      page_count: pageCount, pdf_bucket: 'articles', pdf_path: pdfPath, pdf_version: 'v' + version,
+      cover_url: coverUrl || null, thumbnail_url: thumbUrl || null, alt_text: title, download_enabled: false,
+    };
+    Object.assign(rec, readTaxo('a'), dimsRec(fmt));
+    try { var up = await sb.from('publications').upsert(rec, { onConflict: 'slug' }); if (up.error) throw up.error; }
+    catch (err) { return adError('Enregistrement du brouillon impossible : ' + ((err && err.message) || err)); }
+
+    articleState = { slug: slug, title: title, pageCount: pageCount, size: file.size, pdfPath: pdfPath, coverUrl: coverUrl, thumbUrl: thumbUrl, version: version, published: false, format: fmt };
+    $('ad-okmeta').textContent = pageCount + ' pages · ' + humanSize(file.size);
+    renderDetect(fmt, pageCount, { box: 'ad-detect', fmt: 'ad-fmt', dims: 'ad-dims', warn: 'ad-warn' });
+    $('ad-okhint').textContent = 'Brouillon privé · clique « Publier l\'article » pour le mettre en ligne (indépendant de l\'accueil).';
+    adState('ready');
+  }
+
+  async function publishArticle() {
+    var slug = articleState.slug;
+    var r = await sb.from('publications').update({ status: 'published', published_at: new Date().toISOString() }).eq('slug', slug);
+    if (r.error) throw r.error;
+    articleState.published = true;
+    return slug;
+  }
+
+  async function previewArticle() {
+    if (!articleState) return;
+    try {
+      var u = new URL('magazine/lecteur.html', location.href);
+      if (articleState.published) {
+        u.searchParams.set('edition', articleState.slug);
+      } else {
+        var sg = await sb.storage.from('articles').createSignedUrl(articleState.pdfPath, 600);
+        if (sg.error) throw sg.error;
+        u.searchParams.set('pdf', sg.data.signedUrl);
+        u.searchParams.set('slug', articleState.slug);
+        u.searchParams.set('title', articleState.title);
+        u.searchParams.set('pubtype', 'article');
+        if (articleState.pageCount) u.searchParams.set('pages', articleState.pageCount);
+        if (articleState.coverUrl) u.searchParams.set('cover', articleState.coverUrl);
+        u.searchParams.set('dl', '0');
+      }
+      window.open(u.toString(), '_blank', 'noopener');
+    } catch (e) { adError('Aperçu impossible : ' + ((e && e.message) || e)); }
+  }
+
   // Reflète le numéro déjà en ligne au chargement (depuis site_content.une.journalSlug).
   window.__initHeroJournal = async function () {
     currentHeroSlug = (base.une && base.une.journalSlug) || '';
@@ -568,6 +860,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.work
       if (row) {
         journalState = { slug: row.slug, title: row.title, pageCount: row.page_count, size: null, pdfPath: row.pdf_path, coverUrl: row.cover_url, thumbUrl: row.cover_url, version: parseInt(String(row.pdf_version || 'v1').replace(/\D/g, ''), 10) || 1, issue: row.issue_number, published: true };
         $('pd-okmeta').textContent = (row.page_count ? row.page_count + ' pages' : 'Numéro en ligne');
+        renderDetect(null);
         $('pd-okhint').textContent = 'Numéro actuellement en ligne. Dépose un PDF pour préparer un remplacement.';
         pdState('ready');
         setLien(currentHeroSlug);
@@ -595,6 +888,43 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.work
   $('pd-remove').addEventListener('click', async function () {
     if (journalState && !journalState.published) { try { await sb.from('publications').delete().eq('slug', journalState.slug); } catch (_) {} }
     journalState = null; pdState('empty'); setLien(currentHeroSlug);
+  });
+
+  // Remplit les listes de classement (journal + article).
+  fillTaxo('j'); fillTaxo('a');
+
+  // --- Câblage de la zone Article A4 ---
+  $('ad-pick').addEventListener('click', function (e) { e.stopPropagation(); $('article-file').click(); });
+  $('adrop').addEventListener('click', function (e) { if ($('adrop').getAttribute('data-state') === 'empty' && !e.target.closest('button')) $('article-file').click(); });
+  $('article-file').addEventListener('change', function (e) { var f = e.target.files[0]; if (f) handleArticle(f); e.target.value = ''; });
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    $('adrop').addEventListener(ev, function (e) { e.preventDefault(); var st = $('adrop').getAttribute('data-state'); if (st === 'empty' || st === 'ready' || st === 'error') { $('adrop').__prev = st; adState('over'); } });
+  });
+  $('adrop').addEventListener('dragleave', function (e) { if (e.target !== $('adrop')) return; if ($('adrop').getAttribute('data-state') === 'over') adState($('adrop').__prev || 'empty'); });
+  $('adrop').addEventListener('drop', function (e) {
+    e.preventDefault();
+    if ($('adrop').getAttribute('data-state') === 'over') adState($('adrop').__prev || 'empty');
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleArticle(f);
+  });
+  $('ad-cancel').addEventListener('click', function () { if (pdfXhr) pdfXhr.abort(); });
+  $('ad-preview').addEventListener('click', previewArticle);
+  $('ad-replace').addEventListener('click', function () { $('article-file').click(); });
+  $('ad-remove').addEventListener('click', async function () {
+    if (articleState && !articleState.published) { try { await sb.from('publications').delete().eq('slug', articleState.slug); } catch (_) {} }
+    articleState = null; adState('empty');
+  });
+  $('ad-publish').addEventListener('click', async function () {
+    if (!articleState || articleState.published) return;
+    if (!sb || !accessToken) { adError('Connecte-toi (compte admin) pour publier.'); return; }
+    if (articleState.format && articleState.format.level === 'block') { $('ad-okhint').textContent = '⛔ Publication bloquée : ' + articleState.format.note; return; }
+    var ok = await confirmPublish(articleState.format, 'article'); if (!ok) return;
+    $('ad-publish').disabled = true; $('ad-okhint').textContent = 'Publication de l\'article…';
+    try {
+      var slug = await publishArticle();
+      $('ad-okhint').textContent = 'Article en ligne ✓ — lien de lecture : magazine/lecteur.html?edition=' + slug;
+    } catch (e) { $('ad-okhint').textContent = 'Publication échouée : ' + ((e && e.message) || e); }
+    $('ad-publish').disabled = false;
   });
 
   boot();
