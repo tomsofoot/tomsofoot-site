@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Barlow+Semi+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/tomsofoot-game-modal.css">
   <style>
     :root{--hero-img:url("images/messi-atlanta.jpg");--ink:#07101f;--navy:#091a33;--blue:#1167ff;--red:#ef3340;--paper:#f3f0e9;--white:#fff;--mist:#d8e0eb;--gold:#cbb583;--max:1440px;--pad:clamp(20px,4vw,72px)}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Arial,sans-serif}a{color:inherit;text-decoration:none}button{font:inherit}img{max-width:100%}
@@ -61,7 +62,7 @@
         <div class="eyebrow" data-cms="une.rubrique">Article du jour · Coupe du monde 2026</div>
         <h1><span data-cms="une.titre1">Le match</span> <span class="stroke" data-cms="une.titre2">qui n'a jamais pris fin.</span></h1>
         <p class="hero-copy" data-cms="une.chapo">Argentine–Angleterre à Atlanta. De Wembley aux Malouines jusqu'à la main de Maradona : soixante ans de mémoire tiennent dans une demi-finale.</p>
-        <div class="cta-row"><a class="btn primary" data-cms="une.bouton" data-cms-href="une.lien" href="magazine/lecteur.html">Lire le journal</a><a class="btn" href="#actu">Toutes les publications</a></div>
+        <div class="cta-row"><a class="btn primary" data-cms="une.bouton" data-cms-href="une.lien" href="lecteur.html?pdf=numeros/n12.pdf">Lire le journal</a><a class="btn" href="#actu">Toutes les publications</a></div>
         <p class="hero-meta" data-cms="une.meta">N°12 · 15 juillet 2026 · 28 pages · Par la rédaction</p>
       </div>
     </section>
@@ -78,61 +79,24 @@
       <div class="match-inner"><span class="live-tag" data-cms="match.etiquette">À suivre</span><div class="score"><span data-cms="match.equipe1">Argentine</span><strong data-cms="match.centre">20:30</strong><span data-cms="match.equipe2">Angleterre</span><small data-cms="match.competition">Demi-finale</small></div><a class="match-link" data-cms-href="match.lien" href="#">Accéder au live →</a></div>
     </section>
 
-    <style id="tsf-pub-css">
-      .tsf-pub{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start}
-      .tsf-pub[hidden]{display:none}
-      .tsf-pub-main{display:block;min-width:0}
-      .tsf-pub-main .story{width:100%;min-height:610px}
-      .tsf-pub-main .story .tag{position:absolute;top:18px;left:18px;z-index:3;background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:6px 11px}
-      .tsf-pub-aside{background:var(--white);border:1px solid #cfd5dd;padding:20px 18px;align-self:stretch;min-width:0}
-      .tsf-arch-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #d8dde4;padding-bottom:12px;margin-bottom:4px}
-      .tsf-arch-head h3{font-family:"Archivo Black";font-weight:400;text-transform:uppercase;letter-spacing:-.035em;font-size:clamp(14px,1.2vw,18px);line-height:1;margin:0;color:var(--ink)}
-      #tsf-arch-filter{font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:var(--paper);border:1px solid #cfd5dd;border-radius:7px;padding:6px 8px;cursor:pointer}
-      .tsf-arch-list{display:flex;flex-direction:column;max-height:610px;overflow:auto}
-      .tsf-arch-item{display:grid;grid-template-columns:62px 1fr;gap:12px;align-items:center;padding:12px 2px;border-bottom:1px solid #e6e9ee;color:var(--ink)}
-      .tsf-arch-item:last-child{border-bottom:0}
-      .tsf-arch-thumb{position:relative;width:62px;height:62px;object-fit:cover;background:#dfe4ea;border:1px solid #d0d6de;display:block}
-      .tsf-arch-badge{position:absolute;left:0;bottom:0;background:var(--ink);color:#fff;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 4px}
-      .tsf-arch-txt{min-width:0}
-      .tsf-arch-txt .k{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--red)}
-      .tsf-arch-txt h4{font-family:"Archivo Black";font-weight:400;font-size:14px;line-height:1.06;text-transform:uppercase;letter-spacing:-.03em;margin:3px 0 4px;color:var(--ink)}
-      .tsf-arch-item:hover .tsf-arch-txt h4{color:var(--red)}
-      .tsf-arch-txt .d{font-size:11px;color:#66707d}
-      .tsf-arch-empty{color:#66707d;font-size:13px;padding:14px 2px 2px}
-      @media(max-width:900px){.tsf-pub{grid-template-columns:1fr}.tsf-arch-list{max-height:none}}
-    </style>
+    <section class="section" id="actu">
+      <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#">Toutes les publications →</a></div>
+      <div class="story-grid" id="cms-articles"></div>
+    </section>
+
     <section class="issue" id="magazine">
       <div class="issue-inner">
         <div>
           <span class="kicker" data-cms="magazine.surtitre">Le magazine · N°12</span>
           <h2 data-cms="magazine.titre">Un numéro qui se feuillette</h2>
           <p data-cms="magazine.texte">Chaque numéro est mis en page comme une revue, puis publié ici en lecture page à page. Sur ordinateur, la double page. Sur téléphone, une page à la fois. Aucune application à installer.</p>
-          <div class="cta-row"><a class="btn primary" style="border-color:white;background:white;color:var(--ink)" data-cms="magazine.bouton" data-cms-href="magazine.lien" href="magazine/lecteur.html">Ouvrir le numéro 12</a></div>
+          <div class="cta-row"><a class="btn primary" style="border-color:white;background:white;color:var(--ink)" data-cms="magazine.bouton" data-cms-href="magazine.lien" href="lecteur.html?pdf=numeros/n12.pdf">Ouvrir le numéro 12</a></div>
         </div>
-        <a class="issue-cover" data-cms-href="magazine.lien" href="magazine/lecteur.html" aria-label="Ouvrir le numéro 12">
+        <a class="issue-cover" data-cms-href="magazine.lien" href="lecteur.html?pdf=numeros/n12.pdf" aria-label="Ouvrir le numéro 12">
           <span data-cms="magazine.pastille">N°12</span>
           <img data-cms-src="magazine.couverture" src="images/couverture-n12.jpg" alt="Couverture du numéro">
         </a>
       </div>
-    </section>
-
-    <section class="section" id="actu">
-      <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#magazine">Toutes les publications →</a></div>
-      <!-- Fil publié depuis la régie (Supabase). Le plus récent passe à la une ;
-           les précédents glissent dans l'encart, triables par mois/année. -->
-      <div class="tsf-pub" id="tsf-pub" hidden>
-        <div class="tsf-pub-main" id="tsf-pub-lead"></div>
-        <aside class="tsf-pub-aside" aria-label="Articles et journaux précédents">
-          <div class="tsf-arch-head">
-            <h3>Articles et journaux précédents</h3>
-            <select id="tsf-arch-filter" aria-label="Filtrer par mois de publication"></select>
-          </div>
-          <div class="tsf-arch-list" id="tsf-arch-list"></div>
-          <p class="tsf-arch-empty" id="tsf-arch-empty" hidden>Aucun élément pour cette période.</p>
-        </aside>
-      </div>
-      <!-- Repli éditorial (contenu.json) : affiché tant qu'aucune publication Supabase n'existe. -->
-      <div class="story-grid" id="cms-articles"></div>
     </section>
 
     <section class="section" id="videos">
@@ -314,7 +278,7 @@
         <nav class="tmf-menu-panel" id="tmf-menu-panel" aria-label="Menu TomsoFoot">
           <a href="#">Accueil</a>
           <a href="/jeu">Le jeu</a>
-          <a href="magazine/lecteur.html" target="_blank" rel="noopener">Le magazine</a>
+          <a href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener">Le magazine</a>
           <a href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener">Live</a>
           <a href="#actu">Actualités</a>
           <a href="#videos">Vidéos</a>
@@ -322,7 +286,7 @@
         <nav class="tmf-tabs" aria-label="Sections">
           <a class="active" href="#" aria-current="page">Accueil</a>
           <a href="/jeu">Le jeu</a>
-          <a href="magazine/lecteur.html" target="_blank" rel="noopener">Le mag</a>
+          <a href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener">Le mag</a>
           <a href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener">Live</a>
         </nav>
         <div class="section-head"><div><span class="kicker">Une marque, trois expériences</span><h2>Choisissez votre terrain</h2></div></div>
@@ -333,16 +297,16 @@
           <nav class="tsf-hot" aria-label="Navigation TomsoFoot">
             <a class="tsf-spot" style="--x:499;--y:32;--w:141;--h:57" href="/" aria-label="Accueil"></a>
             <a class="tsf-spot" style="--x:676;--y:31;--w:123;--h:61" href="/jeu" aria-label="Le jeu"></a>
-            <a class="tsf-spot" style="--x:818;--y:31;--w:172;--h:61" href="magazine/lecteur.html" target="_blank" rel="noopener" aria-label="Le magazine"></a>
+            <a class="tsf-spot" style="--x:818;--y:31;--w:172;--h:61" href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener" aria-label="Le magazine"></a>
             <a class="tsf-spot" style="--x:1005;--y:31;--w:112;--h:61" href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener" aria-label="Live Twitch"></a>
             <a class="tsf-spot" style="--x:1454;--y:27;--w:178;--h:70" href="/jeu" aria-label="Mon espace"></a>
           </nav>
 
           <div class="tsf-hot" aria-label="Contenus TomsoFoot">
             <a class="tsf-spot" style="--x:54;--y:143;--w:376;--h:675" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener" aria-label="Chaîne YouTube TomsoFoot"></a>
-            <a class="tsf-spot" style="--x:446;--y:143;--w:352;--h:675" href="magazine/lecteur.html" target="_blank" rel="noopener" aria-label="Lire le magazine Le Voyage"></a>
+            <a class="tsf-spot" style="--x:446;--y:143;--w:352;--h:675" href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener" aria-label="Lire le magazine Le Voyage"></a>
             <a class="tsf-spot" style="--x:813;--y:141;--w:805;--h:357" href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener" aria-label="Le live TomsoFoot sur Twitch"></a>
-            <a class="tsf-spot" style="--x:813;--y:511;--w:805;--h:307" href="/jeu" aria-label="Jouer à Jogadle"></a>
+            <a class="tsf-spot" style="--x:813;--y:511;--w:805;--h:307" href="/jeu" aria-label="Jouer à Jogadle" data-open-game-choice></a>
           </div>
 
           <div class="tsf-ov tsf-cd" style="--x:1330;--y:611;--w:248;--h:60"><span class="tsf-clk" id="tsf-clk">--:--:--</span></div>
@@ -380,7 +344,7 @@
               <div class="tmf-cta">
                 <p>Prochain joueur dans</p>
                 <time class="tmf-time" id="tsf-mclk" aria-live="polite">--:--:--</time>
-                <a class="tmf-primary" href="/jeu">Jouer maintenant <span aria-hidden="true">→</span></a>
+                <a class="tmf-primary" href="/jeu" data-open-game-choice>Jouer maintenant <span aria-hidden="true">→</span></a>
               </div>
             </div>
           </section>
@@ -404,7 +368,7 @@
               <a class="tmf-card" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener" aria-label="Coup d'envoi — chaîne YouTube TomsoFoot">
                 <img src="/images/coup-envoi.png" alt="Coup d'envoi, joueur de football dans un stade bleu">
               </a>
-              <a class="tmf-card" href="magazine/lecteur.html" target="_blank" rel="noopener" aria-label="Le Voyage — le magazine TomsoFoot">
+              <a class="tmf-card" href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener" aria-label="Le Voyage — le magazine TomsoFoot">
                 <img src="/images/le-voyage.png" alt="Le Voyage, magazine TomsoFoot, ballon et chaussure en noir et blanc">
               </a>
               <a class="tmf-card tmf-doc" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener" aria-label="Les documentaires TomsoFoot sur YouTube">
@@ -583,15 +547,6 @@
       data = await r.json();
     } catch (e) { return; }
 
-    // Contenu de l'accueil enregistré depuis la régie « Éditer l'accueil » (Supabase,
-    // sans jeton). S'il existe, il prend le pas sur contenu.json. Repli silencieux.
-    try {
-      const SB = 'https://yubndvqmglttlntkugzm.supabase.co';
-      const K = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
-      const sr = await fetch(SB + '/rest/v1/site_content?key=eq.accueil&select=data', { headers: { apikey: K, authorization: 'Bearer ' + K } });
-      if (sr.ok) { const rows = await sr.json(); if (rows && rows[0] && rows[0].data && typeof rows[0].data === 'object') data = Object.assign({}, data, rows[0].data); }
-    } catch (_) { /* pas d'override : on garde contenu.json */ }
-
     document.querySelectorAll('[data-cms]').forEach(el => {
       const v = dig(data, el.dataset.cms);
       if (typeof v === 'string' && v.trim()) el.textContent = v;
@@ -614,40 +569,6 @@
       if (data.bandeau && data.bandeau.trim()) bandeau.textContent = data.bandeau;
       else bandeau.style.display = 'none';
     }
-
-    // --- Numéro À LA UNE (publications.json) : met à jour AUTOMATIQUEMENT le
-    // bandeau + la carte magazine à chaque publication, sans toucher au code.
-    // La publication mise en avant est celle marquée "featured" (sinon la plus
-    // récente visible). Le grand titre héros reste piloté par contenu.json.
-    try {
-      const pr = await fetch('publications.json?v=' + Date.now());
-      if (pr.ok) {
-        const pd = await pr.json();
-        const now = Date.now();
-        const vis = p => {
-          const w = p.published_at ? Date.parse(p.published_at) : (p.publication_date ? Date.parse(p.publication_date) : 0);
-          return p.status === 'archived'
-            || (p.status === 'published' && (!w || w <= now))
-            || (p.status === 'scheduled' && w && w <= now);
-        };
-        const list = (pd.publications || []).filter(vis)
-          .sort((a, b) => Date.parse(b.publication_date || 0) - Date.parse(a.publication_date || 0));
-        const feat = list.find(p => p.featured) || list[0];
-        if (feat) {
-          const n = feat.issue_number;
-          const href = 'magazine/lecteur.html?edition=' + encodeURIComponent(feat.slug);
-          const setTxt = (sel, t) => { const el = document.querySelector(sel); if (el && t != null && String(t).trim()) el.textContent = t; };
-          if (bandeau) { bandeau.style.display = ''; bandeau.textContent = 'Le numéro ' + (n ?? '') + ' est en ligne · ' + feat.title; }
-          setTxt('[data-cms="magazine.surtitre"]', n != null ? ('Le magazine · N°' + n) : 'Le magazine');
-          setTxt('[data-cms="magazine.titre"]', feat.title);
-          setTxt('[data-cms="magazine.bouton"]', n != null ? ('Ouvrir le numéro ' + n) : 'Ouvrir le journal');
-          setTxt('[data-cms="magazine.pastille"]', n != null ? ('N°' + n) : '');
-          const cov = document.querySelector('[data-cms-src="magazine.couverture"]');
-          if (cov && feat.cover_url) { cov.setAttribute('src', feat.cover_url); if (feat.alt_text) cov.setAttribute('alt', feat.alt_text); }
-          document.querySelectorAll('[data-cms-href="magazine.lien"], [data-cms-href="une.lien"]').forEach(a => a.setAttribute('href', href));
-        }
-      }
-    } catch (_) { /* publications.json absent : on garde contenu.json */ }
 
     const grid = document.getElementById('cms-articles');
     if (grid && Array.isArray(data.articles)) {
@@ -718,138 +639,128 @@
   })();
   </script>
 
-  <!-- Fil « Articles & journaux » (Supabase). Lecture publique via REST + clé
-       anon (publishable) : AUCUNE librairie externe / CDN, un simple fetch.
-       Le plus récent passe à la une ; les précédents alimentent l'encart
-       « Articles et journaux précédents », triable par mois/année. -->
-  <script>
-  (function () {
-    var SB_URL = 'https://yubndvqmglttlntkugzm.supabase.co';
-    var SB_KEY = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
-    var pub = document.getElementById('tsf-pub');
-    var lead = document.getElementById('tsf-pub-lead');
-    var listEl = document.getElementById('tsf-arch-list');
-    var filterEl = document.getElementById('tsf-arch-filter');
-    var emptyEl = document.getElementById('tsf-arch-empty');
-    var curated = document.getElementById('cms-articles');
-    if (!pub || !lead || !listEl || !filterEl) return;
-
-    var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); };
-    var MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-    var dateOf = function (p) { return (p.sort_date || p.publication_date || (p.published_at ? p.published_at.slice(0,10) : '') || ''); };
-    var frDate = function (iso) { if (!iso) return ''; var d = String(iso).slice(0,10).split('-'); if (d.length < 3) return iso; return parseInt(d[2],10) + ' ' + (MONTHS[parseInt(d[1],10)-1]||'') + ' ' + d[0]; };
-    var ym = function (iso) { return String(iso).slice(0,7); }; // YYYY-MM
-    var ymLabel = function (k) { var p = k.split('-'); return (MONTHS[parseInt(p[1],10)-1]||'') + ' ' + p[0]; };
-    var hrefOf = function (p) {
-      if (p.kind === 'journal') {
-        // Journal Supabase : ouverture directe du PDF (feuilletable) sans dépendre
-        // de publications.json. Repli sur ?edition= si l'URL du PDF manque.
-        if (p.pdf_url) return 'magazine/lecteur.html?pdf=' + encodeURIComponent(p.pdf_url);
-        return 'magazine/lecteur.html?edition=' + encodeURIComponent(p.slug || '');
-      }
-      if (p.link_url) return p.link_url;
-      return p.cover_url || '#';
-    };
-    var newTab = function (p) { return p.kind === 'journal' ? '' : ' target="_blank" rel="noopener"'; };
-
-    function leadCard(p) {
-      var kindLbl = (p.kind === 'journal') ? 'Journal · à feuilleter' : 'Article';
-      var img = p.cover_url || p.thumbnail_url || '';
-      var meta = [frDate(dateOf(p)), p.subtitle || ''].filter(Boolean).join(' · ');
-      return '<a class="story" href="' + esc(hrefOf(p)) + '"' + newTab(p) + '>' +
-        '<span class="tag">' + esc(kindLbl) + '</span>' +
-        (img ? '<img src="' + esc(img) + '" alt="' + esc(p.alt_text || p.title || '') + '" loading="lazy">' : '') +
-        '<div class="story-content"><span class="label">' + esc(p.category || 'À la une') + '</span>' +
-        '<h3>' + esc(p.title || '') + '</h3>' +
-        '<div class="meta">' + esc(meta) + '</div></div></a>';
-    }
-
-    function archItem(p) {
-      var badge = (p.kind === 'journal') ? 'PDF' : 'Article';
-      var img = p.thumbnail_url || p.cover_url || '';
-      return '<a class="tsf-arch-item" href="' + esc(hrefOf(p)) + '"' + newTab(p) + '>' +
-        '<span class="tsf-arch-thumb">' +
-        (img ? '<img src="' + esc(img) + '" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">' : '') +
-        '<span class="tsf-arch-badge">' + esc(badge) + '</span></span>' +
-        '<span class="tsf-arch-txt"><span class="k">' + esc(p.category || (p.kind === 'journal' ? 'Journal' : 'Article')) + '</span>' +
-        '<h4>' + esc(p.title || '') + '</h4><span class="d">' + esc(frDate(dateOf(p))) + '</span></span></a>';
-    }
-
-    var previous = [];
-    function renderList(monthKey) {
-      var items = (monthKey === 'all') ? previous : previous.filter(function (p) { return ym(dateOf(p)) === monthKey; });
-      listEl.innerHTML = items.map(archItem).join('');
-      if (emptyEl) emptyEl.hidden = items.length > 0;
-    }
-
-    fetch(SB_URL + '/rest/v1/publications?select=slug,title,subtitle,excerpt,category,kind,issue_number,cover_url,thumbnail_url,pdf_url,link_url,page_count,featured,sort_date,publication_date,published_at,status,alt_text&order=sort_date.desc.nullslast,published_at.desc.nullslast', {
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + SB_KEY }
-    }).then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) {
-      if (!Array.isArray(rows) || !rows.length) return; // repli : on garde la grille contenu.json
-      var featured = rows.find(function (p) { return p.featured; }) || rows[0];
-      previous = rows.filter(function (p) { return p !== featured; });
-
-      lead.innerHTML = leadCard(featured);
-
-      // Options mois/année (distinctes, ordre décroissant déjà fourni par le tri).
-      var keys = [];
-      previous.forEach(function (p) { var k = ym(dateOf(p)); if (k && keys.indexOf(k) === -1) keys.push(k); });
-      var opts = ['<option value="all">Tous les mois</option>'].concat(keys.map(function (k) { return '<option value="' + k + '">' + esc(ymLabel(k)) + '</option>'; }));
-      filterEl.innerHTML = opts.join('');
-      filterEl.onchange = function () { renderList(filterEl.value); };
-      renderList('all');
-
-      if (curated) curated.style.display = 'none';
-      pub.hidden = false;
-    }).catch(function () { /* réseau indisponible : la grille contenu.json reste affichée */ });
-  })();
-  </script>
-
-  <!-- Aperçu en direct pour l'éditeur d'accueil (regie-accueil.html). N'a AUCUN
-       effet pour les visiteurs : il n'agit que si une fenêtre parente de MÊME
-       origine envoie un message {source:'tsf-accueil-preview', data:{…}}. -->
-  <script>
-  (function () {
-    const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    const dig = (o, path) => path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
-    window.__applyCmsPreview = function (data) {
-      if (!data) return;
-      document.querySelectorAll('[data-cms]').forEach(el => {
-        const v = dig(data, el.dataset.cms);
-        if (typeof v === 'string') el.textContent = v;
-      });
-      document.querySelectorAll('[data-cms-href]').forEach(el => {
-        const v = dig(data, el.dataset.cmsHref);
-        if (typeof v === 'string' && v.trim()) el.setAttribute('href', v);
-      });
-      document.querySelectorAll('[data-cms-src]').forEach(el => {
-        const v = dig(data, el.dataset.cmsSrc);
-        if (typeof v === 'string' && v.trim()) el.setAttribute('src', v);
-      });
-      if (data.une && data.une.image) document.documentElement.style.setProperty('--hero-img', 'url("' + data.une.image + '")');
-      const grid = document.getElementById('cms-articles');
-      if (grid && Array.isArray(data.articles)) {
-        grid.innerHTML = data.articles.map(a => '<a class="story" href="' + esc(a.lien || '#') + '"><img src="' + esc(a.image) + '" alt="' + esc(a.titre) + '" loading="lazy"><div class="story-content"><span class="label">' + esc(a.categorie) + '</span><h3>' + esc(a.titre) + '</h3><div class="meta">' + esc(a.meta) + '</div></div></a>').join('');
-      }
-    };
-    window.addEventListener('message', function (e) {
-      if (e.origin !== location.origin) return;
-      const m = e.data;
-      if (m && m.source === 'tsf-accueil-preview' && m.data) {
-        try { window.__applyCmsPreview(m.data); } catch (_) {}
-      }
-    });
-  })();
-  </script>
-
   <!-- Barre de navigation basse (mobile uniquement) -->
   <nav class="tmf-bottomnav" aria-label="Navigation mobile TomsoFoot">
     <a class="active" href="#" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span>Accueil</span></a>
     <a href="/jeu"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="5"/><path d="M7 12h3M8.5 10.5v3"/><circle cx="15.5" cy="11" r="1"/><circle cx="17.5" cy="13" r="1"/></svg><span>Jeu</span></a>
-    <a href="magazine/lecteur.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 6c-2-1.5-5-1.5-8-1v13c3-.5 6-.5 8 1 2-1.5 5-1.5 8-1V5c-3-.5-6-.5-8 1z"/><path d="M12 6v13"/></svg><span>Mag</span></a>
+    <a href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 6c-2-1.5-5-1.5-8-1v13c3-.5 6-.5 8 1 2-1.5 5-1.5 8-1V5c-3-.5-6-.5-8 1z"/><path d="M12 6v13"/></svg><span>Mag</span></a>
     <a href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M6 8a8 8 0 0 0 0 8M18 8a8 8 0 0 1 0 8M9 10.5a4 4 0 0 0 0 3M15 10.5a4 4 0 0 1 0 3"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg><span>Live</span></a>
   </nav>
-  <!-- Accès régie réservé au propriétaire (lien discret, visible seulement pour toi) -->
-  <script src="assets/js/regie-access.js"></script>
+
+  <!-- Pop-up « Choisissez votre défi » (kit validé — composant isolé tsf-game-*) -->
+<div class="tsf-game-choice" data-game-choice-root>
+    <div class="tsf-game-choice__backdrop" data-game-choice-close></div>
+
+    <section
+      class="tsf-game-choice__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="game-choice-title"
+      aria-describedby="game-choice-description"
+      tabindex="-1"
+    >
+      <header class="tsf-game-choice__header">
+        <div class="tsf-game-choice__heading">
+          <p class="tsf-game-choice__eyebrow">LE VESTIAIRE DES DÉFIS</p>
+          <h1 id="game-choice-title">CHOISISSEZ VOTRE DÉFI</h1>
+          <p id="game-choice-description">Deux jeux. Deux défis quotidiens.</p>
+        </div>
+
+        <div class="tsf-game-choice__progress" aria-live="polite">
+          <span class="tsf-game-choice__progress-dot"></span>
+          <span>DÉFIS DU JOUR · <strong data-completed-count>0/2</strong> TERMINÉS</span>
+        </div>
+
+        <button class="tsf-game-choice__close" type="button" aria-label="Fermer" data-game-choice-close>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"></path>
+          </svg>
+        </button>
+      </header>
+
+      <div class="tsf-game-choice__cards" role="list" aria-label="Jeux disponibles">
+        <article
+          class="tsf-game-card tsf-game-card--player is-selected"
+          data-game-card="daily-player"
+          data-state="available"
+          role="listitem"
+        >
+          <div class="tsf-game-card__art" aria-hidden="true">
+            <div class="tsf-game-card__stadium-lines"></div>
+            <img class="tsf-game-card__player" src="/assets/jeux/player-silhouette.svg" alt="">
+          </div>
+          <div class="tsf-game-card__shade"></div>
+
+          <div class="tsf-game-card__content">
+            <div class="tsf-game-card__topline">
+              <span class="tsf-game-card__status" data-game-status>À JOUER</span>
+              <span class="tsf-game-card__number">01</span>
+            </div>
+            <div class="tsf-game-card__copy">
+              <p class="tsf-game-card__kicker">LE DÉFI QUOTIDIEN</p>
+              <h2>LE JOUEUR<br>DU JOUR</h2>
+              <p>Devine le footballeur mystère<br>et grimpe au championnat.</p>
+            </div>
+
+            <div class="tsf-game-card__meta">
+              <span>CHAMPIONNAT EN DIRECT</span>
+              <strong>100 PTS EN JEU</strong>
+            </div>
+
+            <button class="tsf-game-card__cta" type="button" data-game-select="daily-player">
+              <span>JOUER MAINTENANT</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>
+            </button>
+          </div>
+        </article>
+
+        <article
+          class="tsf-game-card tsf-game-card--career"
+          data-game-card="career-mode"
+          data-state="available"
+          role="listitem"
+        >
+          <div class="tsf-game-card__art" aria-hidden="true">
+            <div class="tsf-game-card__career-wall"></div>
+            <div class="tsf-game-card__career-glow"></div>
+            <img class="tsf-game-card__manager" src="/assets/jeux/manager-reference.jpg" alt="">
+          </div>
+          <div class="tsf-game-card__shade"></div>
+
+          <div class="tsf-game-card__content">
+            <div class="tsf-game-card__topline">
+              <span class="tsf-game-card__status" data-game-status>À JOUER</span>
+              <span class="tsf-game-card__number">02</span>
+            </div>
+            <div class="tsf-game-card__copy">
+              <p class="tsf-game-card__kicker">LE PARCOURS DU COACH</p>
+              <h2>MODE<br>CARRIÈRE</h2>
+              <p>Retrouve le joueur d’après<br>son parcours en clubs.</p>
+            </div>
+
+            <div class="tsf-game-card__meta">
+              <span>3 NIVEAUX</span>
+              <strong>SANS CLASSEMENT</strong>
+            </div>
+
+            <button class="tsf-game-card__cta" type="button" data-game-select="career-mode">
+              <span>COMMENCER LE PARCOURS</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <footer class="tsf-game-choice__footer">
+        <div class="tsf-game-choice__controls" aria-hidden="true">
+          <span><b class="is-confirm">A</b> SÉLECTIONNER</span>
+          <span><b class="is-back">B</b> RETOUR</span>
+        </div>
+        <p data-game-choice-message>DEUX DÉFIS VOUS ATTENDENT AUJOURD’HUI</p>
+      </footer>
+    </section>
+  </div>
+  <script src="/assets/js/jeux/tomsofoot-game-modal.js"></script>
+  <script src="/assets/js/jeux/jeux-init.js"></script>
 </body>
 </html>
