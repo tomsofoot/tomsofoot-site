@@ -97,6 +97,8 @@ async function boot() {
   flipbook = new FlipbookController(stagebook, pdf, {
     onChange: (info) => ctx.updateCounter?.(info),
     onPageError: () => {},
+    publication: pub,
+    pubType: pub.pubType || null,
   });
   ctx.flipbook = flipbook;
 
