@@ -47,6 +47,38 @@
   .img-pick{white-space:nowrap}
   .img-thumb{width:42px;height:42px;border-radius:7px;border:1px solid var(--line);background:#0c1730 center/cover no-repeat;flex:0 0 42px;display:none}
   .img-thumb.on{display:block}
+  /* Zone de dépôt PDF du journal */
+  .pdfdrop{position:relative;border:2px dashed rgba(255,255,255,.28);border-radius:8px;background:#0c1730;padding:16px;margin-top:5px;transition:border-color .18s, background .18s, transform .18s, box-shadow .18s}
+  .pdfdrop>div{display:none}
+  .pdfdrop[data-state="empty"]{cursor:pointer}
+  .pdfdrop[data-state="empty"] .pd-empty{display:block;text-align:center}
+  .pdfdrop[data-state="over"]{border-color:#3aa0ff;border-style:solid;background:rgba(40,120,220,.16);transform:translateY(-2px);box-shadow:0 8px 22px rgba(30,90,200,.28)}
+  .pdfdrop[data-state="over"] .pd-over{display:grid;place-items:center;min-height:86px;color:#dbeafe}
+  .pdfdrop[data-state="uploading"] .pd-up{display:block}
+  .pdfdrop[data-state="ready"]{border-style:solid;border-color:rgba(80,200,120,.55);background:rgba(24,60,40,.18)}
+  .pdfdrop[data-state="ready"] .pd-ok{display:block}
+  .pdfdrop[data-state="error"]{border-color:rgba(240,120,120,.65);background:rgba(80,20,20,.14)}
+  .pdfdrop[data-state="error"] .pd-err{display:block}
+  .pd-ic{width:34px;height:34px;color:#9fb0cc;display:block;margin:0 auto 6px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
+  .pd-empty b{display:block;font-size:14px;margin:2px 0}
+  .pd-empty>span{color:var(--muted);font-size:12px}
+  .pd-empty .mini{margin:10px auto 0;display:inline-block}
+  .pd-sub{color:var(--muted);font-size:11px;margin-top:8px;line-height:1.5}
+  .pd-over b{font-size:16px;font-weight:800}
+  .pd-uprow{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:8px;gap:10px}
+  .pd-cancel{background:transparent;border:1px solid var(--line);color:#ffb4b4;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer}
+  .pd-bar{height:9px;border-radius:6px;background:#0a1226;overflow:hidden;border:1px solid var(--line)}
+  .pd-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3aa0ff,#6b4bd6);transition:width .15s}
+  .pd-uptext{font-size:12px;color:#cfe4ff;margin-top:7px;font-weight:700}
+  .pd-okhead{display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap}
+  .pd-badge{background:rgba(30,120,60,.32);border:1px solid rgba(80,200,120,.5);color:#c7f2d6;border-radius:999px;padding:3px 10px;font-weight:800;font-size:12px}
+  .pd-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .pd-err{color:#ffd0d0;font-size:13px;font-weight:600}
+  .pubmodal{position:fixed;inset:0;background:rgba(4,9,20,.66);display:grid;place-items:center;z-index:50}
+  .pubmodal[hidden]{display:none}
+  .pubbox{width:min(420px,92vw);background:#0c1730;border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+  .pubbox p{margin:0 0 18px;font-size:15px;line-height:1.5}
+  .pubrow{display:flex;gap:10px;justify-content:flex-end}
   .msg{font-size:13px;padding:9px 12px;border-radius:8px;margin-top:10px;display:none}
   .msg.ok{display:block;background:rgba(30,120,60,.25);border:1px solid rgba(80,200,120,.4)}
   .msg.err{display:block;background:rgba(150,40,40,.25);border:1px solid rgba(240,120,120,.4);color:#ffd0d0}
@@ -86,8 +118,37 @@
         <label>Chapô</label><textarea id="u-chapo" data-u="chapo" spellcheck="true" lang="fr"></textarea>
         <div class="row2">
           <div><label>Texte du bouton</label><input id="u-bouton" data-u="bouton" spellcheck="true" lang="fr"></div>
-          <div><label>Lien du bouton</label><input id="u-lien" data-u="lien" spellcheck="false" autocapitalize="off" autocomplete="off"></div>
+          <div><label>Lien du bouton (généré automatiquement)</label><input id="u-lien" data-u="lien" readonly spellcheck="false" autocapitalize="off" autocomplete="off" title="Généré à partir du numéro publié — non modifiable"></div>
         </div>
+
+        <label>Journal PDF — version feuilletable</label>
+        <div class="pdfdrop" id="pdfdrop" data-state="empty">
+          <input type="file" id="pdf-file" accept="application/pdf" hidden>
+          <div class="pd-empty">
+            <svg class="pd-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 16h6"/></svg>
+            <b>Glissez-déposez le PDF du nouveau numéro ici</b>
+            <span>ou cliquez pour sélectionner un fichier</span><br>
+            <button type="button" class="mini" id="pd-pick">Sélectionner un PDF…</button>
+            <p class="pd-sub">PDF uniquement · Le fichier restera en brouillon jusqu'à l'enregistrement</p>
+          </div>
+          <div class="pd-over"><b>Déposez le journal ici</b></div>
+          <div class="pd-up">
+            <div class="pd-uprow"><span id="pd-upname">fichier.pdf</span><button type="button" class="pd-cancel" id="pd-cancel">Annuler</button></div>
+            <div class="pd-bar"><i id="pd-fill"></i></div>
+            <div class="pd-uptext" id="pd-uptext">Téléversement du journal… 0 %</div>
+          </div>
+          <div class="pd-ok">
+            <div class="pd-okhead"><span class="pd-badge">✓ PDF prêt</span> <span id="pd-okmeta">—</span></div>
+            <div class="pd-actions">
+              <button type="button" class="mini" id="pd-preview">Prévisualiser</button>
+              <button type="button" class="mini" id="pd-replace">Remplacer</button>
+              <button type="button" class="mini del" id="pd-remove">Retirer</button>
+            </div>
+            <p class="pd-sub" id="pd-okhint">Brouillon privé · deviendra le journal de l'article du jour après « Enregistrer sur le site ».</p>
+          </div>
+          <div class="pd-err" id="pd-err">Ce fichier n'est pas un PDF valide.</div>
+        </div>
+
         <label>Ligne d'information</label><input id="u-meta" data-u="meta" spellcheck="true" lang="fr">
         <label>Photo de fond (glisse une image, ou colle un chemin)</label>
         <div class="imgfield">
@@ -111,8 +172,17 @@
     </div>
   </div>
 
+<div class="pubmodal" id="pubmodal" hidden>
+  <div class="pubbox">
+    <p id="pubmsg">Publier ce PDF comme nouveau journal de l'article du jour ?</p>
+    <div class="pubrow"><button class="btn ghost" id="pub-cancel" type="button">Annuler</button><button class="btn" id="pub-ok" type="button">Publier le numéro</button></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
+<script type="module">
+import * as pdfjsLib from './assets/vendor/pdfjs/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./assets/vendor/pdfjs/pdf.worker.min.mjs', import.meta.url).href;
 (function () {
   var SUPABASE_URL = 'https://yubndvqmglttlntkugzm.supabase.co';
   var SUPABASE_ANON = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
@@ -166,6 +236,7 @@
     arts = Array.isArray(base.articles) ? base.articles.map(function (a) { return Object.assign({}, a); }) : [];
     renderArts();
     if (window.__refreshThumbs) window.__refreshThumbs();
+    if (window.__initHeroJournal) window.__initHeroJournal();
   }
 
   function renderArts() {
@@ -234,10 +305,29 @@
   // Enregistrer
   $('btn-save').addEventListener('click', async function () {
     if (!sb || !accessToken) { show('msg', 'err', 'Connecte-toi d\'abord (compte admin) pour enregistrer. Ici, tu testes seulement le rendu en direct.'); return; }
+
+    // Un journal en brouillon est-il en attente de publication ?
+    if (journalState && !journalState.published) {
+      var ok = await confirmPublish();
+      if (!ok) return;
+      $('btn-save').disabled = true; $('save-status').textContent = 'Publication du journal…';
+      try {
+        var slug = await publishJournal();
+        base.une = base.une || {}; base.une.journalSlug = slug;
+        $('u-lien').value = 'magazine/lecteur.html?edition=' + slug;
+      } catch (e) {
+        show('msg', 'err', 'Publication du journal échouée : ' + ((e && e.message) || e));
+        $('btn-save').disabled = false; $('save-status').textContent = ''; return;
+      }
+    } else if (!journalState && !( (base.une || {}).journalSlug )) {
+      // Aucun journal associé : on prévient sans bloquer l'enregistrement des textes.
+      show('msg', 'ok', 'Note : aucun journal n\'est associé à l\'article du jour pour l\'instant.');
+    }
+
     $('save-status').textContent = 'Enregistrement…';
     $('btn-save').disabled = true;
     try {
-      // Enregistrement direct dans Supabase (aucun jeton GitHub requis).
+      // Enregistrement direct dans Supabase (aucun jeton requis).
       var up = await sb.from('site_content').upsert({ key: 'accueil', data: collect() }, { onConflict: 'key' });
       if (up.error) throw up.error;
       show('msg', 'ok', 'Enregistré ✓ — le site est à jour immédiatement (recharge l\'accueil pour voir).');
@@ -329,6 +419,183 @@
     if (e.target.classList && e.target.classList.contains('img-in')) updateThumb(e.target);
   });
   window.__refreshThumbs = function () { document.querySelectorAll('.img-in').forEach(updateThumb); };
+
+  // ===================== Journal PDF (Article du jour) =====================
+  var journalState = null;   // brouillon/numéro courant : {slug,title,pageCount,size,pdfPath,coverUrl,thumbUrl,version,issue,published}
+  var currentHeroSlug = '';  // slug du numéro actuellement en ligne (depuis site_content)
+  var pdfXhr = null;
+
+  function slugify(s) { return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+  function humanSize(b) { if (b < 1024) return b + ' o'; if (b < 1048576) return (b / 1024).toFixed(0) + ' Ko'; return (b / 1048576).toFixed(1).replace('.', ',') + ' Mo'; }
+  function pdState(s) { $('pdfdrop').setAttribute('data-state', s); }
+  function pdError(msg) { $('pd-err').textContent = msg; pdState('error'); }
+  function setFill(p) { $('pd-fill').style.width = p + '%'; $('pd-uptext').textContent = 'Téléversement du journal… ' + p + ' %'; }
+  function setLien(slug) { $('u-lien').value = slug ? ('magazine/lecteur.html?edition=' + slug) : 'magazine/lecteur.html'; try { $('u-lien').dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {} }
+
+  // Confirmation de publication (modale) → Promise<boolean>
+  function confirmPublish() {
+    return new Promise(function (resolve) {
+      var m = $('pubmodal'); m.hidden = false;
+      function done(v) { m.hidden = true; $('pub-ok').onclick = null; $('pub-cancel').onclick = null; resolve(v); }
+      $('pub-ok').onclick = function () { done(true); };
+      $('pub-cancel').onclick = function () { done(false); };
+    });
+  }
+
+  // Téléversement avec progression réelle + annulation (XHR direct sur Storage).
+  function uploadWithProgress(bucket, path, file, contentType, onProgress) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest(); pdfXhr = xhr;
+      var url = SUPABASE_URL + '/storage/v1/object/' + bucket + '/' + path.split('/').map(encodeURIComponent).join('/');
+      xhr.open('POST', url);
+      xhr.setRequestHeader('authorization', 'Bearer ' + accessToken);
+      xhr.setRequestHeader('apikey', SUPABASE_ANON);
+      xhr.setRequestHeader('content-type', contentType);
+      xhr.setRequestHeader('x-upsert', 'true');
+      xhr.upload.onprogress = function (e) { if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100)); };
+      xhr.onload = function () { pdfXhr = null; (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error('http ' + xhr.status)); };
+      xhr.onerror = function () { pdfXhr = null; reject(new Error('réseau')); };
+      xhr.onabort = function () { pdfXhr = null; var e = new Error('annulé'); e.aborted = true; reject(e); };
+      xhr.send(file);
+    });
+  }
+
+  async function handlePdf(file) {
+    if (!sb || !accessToken) return pdError('Connecte-toi (compte admin) pour téléverser un journal.');
+    if (!/\.pdf$/i.test(file.name) || (file.type && file.type !== 'application/pdf')) return pdError('Ce fichier n\'est pas un PDF valide.');
+    if (file.size === 0) return pdError('Ce fichier est vide.');
+    if (file.size > 100 * 1024 * 1024) return pdError('PDF trop lourd (max 100 Mo).');
+
+    var buf;
+    try { buf = await file.arrayBuffer(); } catch (_) { return pdError('Lecture du fichier impossible.'); }
+    if (new TextDecoder().decode(new Uint8Array(buf.slice(0, 5))) !== '%PDF-') return pdError('Ce fichier n\'est pas un PDF valide.');
+
+    var pageCount, coverBlob = null, thumbBlob = null;
+    try {
+      var pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+      pageCount = pdf.numPages;
+      if (!pageCount || pageCount < 1) throw new Error('vide');
+      var page = await pdf.getPage(1);
+      var vpb = page.getViewport({ scale: 1 });
+      var vp = page.getViewport({ scale: Math.min(1200 / vpb.width, 3) });
+      var c = document.createElement('canvas'); c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+      await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      coverBlob = await new Promise(function (r) { c.toBlob(r, 'image/webp', 0.9); });
+      var t = document.createElement('canvas'); t.width = 400; t.height = Math.round(400 * c.height / c.width);
+      t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+      thumbBlob = await new Promise(function (r) { t.toBlob(r, 'image/webp', 0.85); });
+    } catch (_) { return pdError('PDF illisible ou corrompu.'); }
+
+    var title = [$('u-titre1').value, $('u-titre2').value].filter(Boolean).join(' ').trim() || 'Journal TomsoFoot';
+    var issueM = ($('u-meta').value || '').match(/n[°o]\s*(\d+)/i); var issue = issueM ? Number(issueM[1]) : null;
+    // Réutiliser le brouillon en cours (Remplacer) sinon nouveau slug unique (versionnage, jamais d'écrasement de numéro).
+    var reuse = journalState && !journalState.published;
+    var slug = reuse ? journalState.slug : (slugify(title) + '-' + Math.random().toString(36).slice(2, 7));
+    var version = reuse ? (journalState.version + 1) : 1;
+    var now = new Date(), y = now.getFullYear(), mo = String(now.getMonth() + 1).padStart(2, '0');
+    var dir = y + '/' + mo + '/' + slug;
+    var pdfPath = dir + '/journal-v' + version + '-' + Date.now() + '.pdf';
+
+    pdState('uploading'); $('pd-upname').textContent = file.name + ' · ' + humanSize(file.size); setFill(0);
+    try { await uploadWithProgress('journaux', pdfPath, file, 'application/pdf', setFill); }
+    catch (err) { if (err && err.aborted) { pdState(journalState ? 'ready' : 'empty'); return; } return pdError('Le téléversement a échoué. Réessayez.'); }
+
+    var coverUrl = '', thumbUrl = '';
+    try {
+      await sb.storage.from('publications').upload(dir + '/couverture.webp', coverBlob, { contentType: 'image/webp', upsert: true });
+      coverUrl = sb.storage.from('publications').getPublicUrl(dir + '/couverture.webp').data.publicUrl;
+      await sb.storage.from('publications').upload(dir + '/miniature.webp', thumbBlob, { contentType: 'image/webp', upsert: true });
+      thumbUrl = sb.storage.from('publications').getPublicUrl(dir + '/miniature.webp').data.publicUrl;
+    } catch (_) {}
+
+    var rec = {
+      slug: slug, title: title, kind: 'journal', issue_number: issue, status: 'draft', featured: false,
+      publication_date: now.toISOString().slice(0, 10), sort_date: now.toISOString().slice(0, 10),
+      page_count: pageCount, pdf_bucket: 'journaux', pdf_path: pdfPath, pdf_version: 'v' + version,
+      cover_url: coverUrl || null, thumbnail_url: thumbUrl || null, alt_text: title, download_enabled: false,
+    };
+    try { var up = await sb.from('publications').upsert(rec, { onConflict: 'slug' }); if (up.error) throw up.error; }
+    catch (err) { return pdError('Enregistrement du brouillon impossible : ' + ((err && err.message) || err)); }
+
+    journalState = { slug: slug, title: title, pageCount: pageCount, size: file.size, pdfPath: pdfPath, coverUrl: coverUrl, thumbUrl: thumbUrl, version: version, issue: issue, published: false };
+    $('pd-okmeta').textContent = pageCount + ' pages · ' + humanSize(file.size);
+    $('pd-okhint').textContent = 'Brouillon privé · deviendra le journal de l\'article du jour après « Enregistrer sur le site ».';
+    pdState('ready');
+    setLien(slug);
+  }
+
+  async function publishJournal() {
+    var slug = journalState.slug;
+    if (currentHeroSlug && currentHeroSlug !== slug) {
+      try { await sb.from('publications').update({ featured: false, status: 'archived' }).eq('slug', currentHeroSlug); } catch (_) {}
+    }
+    try { await sb.from('publications').update({ featured: false }).eq('featured', true); } catch (_) {}
+    var r = await sb.from('publications').update({ status: 'published', featured: true, published_at: new Date().toISOString() }).eq('slug', slug);
+    if (r.error) throw r.error;
+    journalState.published = true; currentHeroSlug = slug;
+    $('pd-okhint').textContent = 'Numéro en ligne ✓ — ouvert par « Lire le journal » sur l\'accueil.';
+    return slug;
+  }
+
+  async function previewJournal() {
+    if (!journalState) return;
+    try {
+      var u = new URL('magazine/lecteur.html', location.href);
+      if (journalState.published) {
+        u.searchParams.set('edition', journalState.slug);
+      } else {
+        var sg = await sb.storage.from('journaux').createSignedUrl(journalState.pdfPath, 600);
+        if (sg.error) throw sg.error;
+        u.searchParams.set('pdf', sg.data.signedUrl);
+        u.searchParams.set('slug', journalState.slug);
+        u.searchParams.set('title', journalState.title);
+        if (journalState.pageCount) u.searchParams.set('pages', journalState.pageCount);
+        if (journalState.issue) u.searchParams.set('issue', journalState.issue);
+        if (journalState.coverUrl) u.searchParams.set('cover', journalState.coverUrl);
+        u.searchParams.set('dl', '0');
+      }
+      window.open(u.toString(), '_blank', 'noopener');
+    } catch (e) { pdError('Aperçu impossible : ' + ((e && e.message) || e)); }
+  }
+
+  // Reflète le numéro déjà en ligne au chargement (depuis site_content.une.journalSlug).
+  window.__initHeroJournal = async function () {
+    currentHeroSlug = (base.une && base.une.journalSlug) || '';
+    if (!currentHeroSlug) { journalState = null; pdState('empty'); return; }
+    try {
+      var r = await sb.from('publications').select('slug,title,page_count,pdf_path,pdf_version,issue_number,cover_url,status').eq('slug', currentHeroSlug).limit(1);
+      var row = r.data && r.data[0];
+      if (row) {
+        journalState = { slug: row.slug, title: row.title, pageCount: row.page_count, size: null, pdfPath: row.pdf_path, coverUrl: row.cover_url, thumbUrl: row.cover_url, version: parseInt(String(row.pdf_version || 'v1').replace(/\D/g, ''), 10) || 1, issue: row.issue_number, published: true };
+        $('pd-okmeta').textContent = (row.page_count ? row.page_count + ' pages' : 'Numéro en ligne');
+        $('pd-okhint').textContent = 'Numéro actuellement en ligne. Dépose un PDF pour préparer un remplacement.';
+        pdState('ready');
+        setLien(currentHeroSlug);
+      }
+    } catch (_) {}
+  };
+
+  // --- Câblage de la zone ---
+  $('pd-pick').addEventListener('click', function (e) { e.stopPropagation(); $('pdf-file').click(); });
+  $('pdfdrop').addEventListener('click', function (e) { if ($('pdfdrop').getAttribute('data-state') === 'empty' && !e.target.closest('button')) $('pdf-file').click(); });
+  $('pdf-file').addEventListener('change', function (e) { var f = e.target.files[0]; if (f) handlePdf(f); e.target.value = ''; });
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    $('pdfdrop').addEventListener(ev, function (e) { e.preventDefault(); var st = $('pdfdrop').getAttribute('data-state'); if (st === 'empty' || st === 'ready' || st === 'error') { $('pdfdrop').__prev = st; pdState('over'); } });
+  });
+  $('pdfdrop').addEventListener('dragleave', function (e) { if (e.target !== $('pdfdrop')) return; if ($('pdfdrop').getAttribute('data-state') === 'over') pdState($('pdfdrop').__prev || 'empty'); });
+  $('pdfdrop').addEventListener('drop', function (e) {
+    e.preventDefault();
+    if ($('pdfdrop').getAttribute('data-state') === 'over') pdState($('pdfdrop').__prev || 'empty');
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handlePdf(f);
+  });
+  $('pd-cancel').addEventListener('click', function () { if (pdfXhr) pdfXhr.abort(); });
+  $('pd-preview').addEventListener('click', previewJournal);
+  $('pd-replace').addEventListener('click', function () { $('pdf-file').click(); });
+  $('pd-remove').addEventListener('click', async function () {
+    if (journalState && !journalState.published) { try { await sb.from('publications').delete().eq('slug', journalState.slug); } catch (_) {} }
+    journalState = null; pdState('empty'); setLien(currentHeroSlug);
+  });
 
   boot();
 })();
