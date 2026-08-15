@@ -65,43 +65,63 @@ function tableBlock(t){
   const head = t.head && Array.isArray(t.head)
     ? '<thead><tr>'+t.head.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead>' : '';
   const body = '<tbody>'+t.rows.map(r=>'<tr>'+(r||[]).map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody>';
-  return '<div class="a-table-wrap"><table class="a-table">'+(t.caption?'<caption>'+esc(t.caption)+'</caption>':'')+head+body+'</table></div>';
+  return '<div class="a-table-wrap"><table class="a-table"'+colorStyle(t.textColor)+'>'+(t.caption?'<caption>'+esc(t.caption)+'</caption>':'')+head+body+'</table></div>';
 }
+
+// Couleur validée : #RGB / #RRGGBB / rgb() -> #RRGGBB majuscules, sinon null.
+function normColor(v){
+  if(v==null) return null;
+  let s = String(v).trim();
+  const rgb = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i.exec(s);
+  if(rgb){ const to=n=>Math.max(0,Math.min(255,+n)).toString(16).padStart(2,'0'); return ('#'+to(rgb[1])+to(rgb[2])+to(rgb[3])).toUpperCase(); }
+  s = s.replace(/^#/,'');
+  if(/^[0-9a-fA-F]{3}$/.test(s)) s = s.split('').map(c=>c+c).join('');
+  if(!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  return '#'+s.toUpperCase();
+}
+function colorStyle(v){ const c = normColor(v); return c ? ' style="color:'+c+'"' : ''; }
+function colorSpan(text, v){ const c = normColor(v); return c ? '<span style="color:'+c+'">'+text+'</span>' : text; }
 
 // Sanitizeur inline serveur : le texte des paragraphes/citations est déjà nettoyé
 // côté régie (liste blanche), mais on re-filtre ici par prudence (defense-in-depth).
-// Autorise uniquement : b,i,em,strong,u,a[href],ul,ol,li,sup,sub,br. Tout le reste est neutralisé.
+// Autorise : b,i,em,strong,u,a[href],ul,ol,li,sup,sub,br + span[style=color validée]. Le reste est neutralisé.
 function safeInline(htmlStr){
-  const allowed = new Set(['b','i','em','strong','u','a','ul','ol','li','sup','sub','br']);
+  const allowed = new Set(['b','i','em','strong','u','a','ul','ol','li','sup','sub','br','span']);
   let s = String(htmlStr == null ? '' : htmlStr);
-  // Neutralise les balises non autorisées en échappant leurs chevrons ; conserve les autorisées.
   s = s.replace(/<\/?([a-zA-Z0-9]+)([^>]*)>/g, (m, tag, attrs) => {
     const t = tag.toLowerCase();
     if(!allowed.has(t)) return esc(m);
+    const close = /^<\//.test(m);
     if(t === 'a'){
       const hrefM = /href\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs || '');
       let href = hrefM ? (hrefM[2] || hrefM[3] || hrefM[4] || '') : '';
-      if(!/^https?:|^\//i.test(href)) return m[1] === '/' ? '</a>' : ''; // lien non http/relatif => retire l'ouverture
-      const close = /^<\//.test(m);
+      if(!/^https?:|^\//i.test(href)) return close ? '</a>' : '';
       return close ? '</a>' : '<a href="'+escAttr(href)+'" rel="noopener nofollow" target="_blank">';
     }
-    return /^<\//.test(m) ? '</'+t+'>' : '<'+t+'>';
+    if(t === 'span'){
+      if(close) return '</span>';
+      const cm = /(?:^|[;\s"'({])color\s*:\s*([^;"')}]+)/i.exec(attrs || '');
+      const col = cm ? normColor(cm[1]) : null;
+      return col ? '<span style="color:'+col+'">' : '<span>';   // aucune autre propriété conservée
+    }
+    return close ? '</'+t+'>' : '<'+t+'>';
   });
   return s;
 }
 
 function renderBlock(b){
   const c = b.content || {};
+  const cs = colorStyle(c.textColor);
   switch(b.type){
-    case 'paragraph': { const t = safeInline(c.text||''); return t.trim() ? '<p>'+t+'</p>' : ''; }
-    case 'heading':   return '<h2 class="a-h2" id="'+escAttr((c.id||slugify(c.text||'')))+'">'+esc(c.text||'')+'</h2>';
-    case 'subheading':return '<h3 class="a-h3">'+esc(c.text||'')+'</h3>';
+    case 'paragraph': { const t = safeInline(c.text||''); return t.trim() ? '<p'+cs+'>'+t+'</p>' : ''; }
+    case 'heading':   return '<h2 class="a-h2"'+cs+' id="'+escAttr((c.id||slugify(c.text||'')))+'">'+esc(c.text||'')+'</h2>';
+    case 'subheading':return '<h3 class="a-h3"'+cs+'>'+esc(c.text||'')+'</h3>';
     case 'spacer':    return '<div class="a-spacer" style="height:'+({petit:14,normal:30,grand:56}[c.size]||30)+'px"></div>';
-    case 'image':     return '<figure class="a-figure">'+pictureTag(c.image, '(min-width:800px) 720px, 100vw')
-                           + (c.image&&(c.image.caption||c.image.credit) ? '<figcaption>'+esc(c.image.caption||'')
-                           + (c.image.credit?' <span class="a-credit">© '+esc(c.image.credit)+'</span>':'')+'</figcaption>' : '')
-                           + '</figure>';
-    case 'quote':     return '<blockquote class="a-quote"><p>'+safeInline(c.text||'')+'</p>'
+    case 'image':     { const im=c.image||{}; return '<figure class="a-figure">'+pictureTag(im, '(min-width:800px) 720px, 100vw')
+                           + ((im.caption||im.credit) ? '<figcaption>'+colorSpan(esc(im.caption||''), im.captionColor)
+                           + (im.credit?' <span class="a-credit"'+colorStyle(im.creditColor)+'>© '+esc(im.credit)+'</span>':'')+'</figcaption>' : '')
+                           + '</figure>'; }
+    case 'quote':     return '<blockquote class="a-quote"'+cs+'><p>'+safeInline(c.text||'')+'</p>'
                            + (c.cite?'<cite>'+esc(c.cite)+'</cite>':'')+'</blockquote>';
     case 'stats':     return statsBlock(c);
     case 'video':     return videoEmbed(c) || '';
@@ -117,7 +137,7 @@ function renderBlock(b){
 function statsBlock(c){
   const rows = (c.rows||[]).filter(r=>r && (r.k||r.v));
   if(!rows.length) return '';
-  return '<div class="a-stats">'+rows.map(r=>'<div class="a-stat"><b>'+esc(r.v||'')+'</b><span>'+esc(r.k||'')+'</span></div>').join('')+'</div>';
+  return '<div class="a-stats"'+colorStyle(c.textColor)+'>'+rows.map(r=>'<div class="a-stat"><b>'+esc(r.v||'')+'</b><span>'+esc(r.k||'')+'</span></div>').join('')+'</div>';
 }
 
 function relatedBlock(c){
@@ -137,7 +157,8 @@ function fmtDate(iso){
   catch(e){ return ''; }
 }
 
-function page(a, blocks, labels, isPreview){
+function page(a, blocks, labels, isPreview, hc){
+  hc = hc || {};
   const url = SITE + '/articles/' + a.slug;
   const kicker = [labels.competition, labels.genre].filter(Boolean).join(' · ');
   const title = a.seo_title || a.title;
@@ -156,7 +177,7 @@ function page(a, blocks, labels, isPreview){
   };
   const heroFig = a.hero_image
     ? '<figure class="a-hero"><picture><img src="'+escAttr(a.hero_image)+'" alt="'+escAttr(a.hero_alt||a.title)+'" width="1600" height="900" fetchpriority="high" decoding="async"></picture>'
-      + ((a.hero_caption||a.hero_credit)?'<figcaption>'+esc(a.hero_caption||'')+(a.hero_credit?' <span class="a-credit">© '+esc(a.hero_credit)+'</span>':'')+'</figcaption>':'')
+      + ((a.hero_caption||a.hero_credit)?'<figcaption'+colorStyle(hc.hero_caption)+'>'+esc(a.hero_caption||'')+(a.hero_credit?' <span class="a-credit"'+colorStyle(hc.hero_credit)+'>© '+esc(a.hero_credit)+'</span>':'')+'</figcaption>':'')
       + '</figure>' : '';
   const journalCta = a.journal_slug
     ? '<a class="a-cta a-cta--ghost" href="/magazine/lecteur.html?pub='+escAttr(a.journal_slug)+'">Lire le journal</a>' : '';
@@ -180,9 +201,9 @@ function page(a, blocks, labels, isPreview){
   + '<main class="a-main">'
   + '<article class="a-article">'
   +   '<div class="a-head">'
-  +     (kicker?'<p class="a-kicker">'+esc(kicker)+'</p>':'')
-  +     '<h1 class="a-title">'+esc(a.title)+'</h1>'
-  +     (a.deck?'<p class="a-deck">'+esc(a.deck)+'</p>':'')
+  +     (kicker?'<p class="a-kicker"'+colorStyle(hc.kicker)+'>'+esc(kicker)+'</p>':'')
+  +     '<h1 class="a-title"'+colorStyle(hc.title)+'>'+esc(a.title)+'</h1>'
+  +     (a.deck?'<p class="a-deck"'+colorStyle(hc.deck)+'>'+esc(a.deck)+'</p>':'')
   +     '<div class="a-byline">'
   +       (a.author?'<span class="a-author">Par '+esc(a.author)+'</span>':'<span class="a-author">La rédaction</span>')
   +       (a.published_at?'<span class="a-dot">·</span><time datetime="'+escAttr(a.published_at)+'">'+esc(fmtDate(a.published_at))+'</time>':'')
@@ -317,7 +338,16 @@ export default async (req) => {
   if(a.genre_id){ const g = await sb('editorial_genres?id=eq.'+encodeURIComponent(a.genre_id)+'&select=label_fr'); labels.genre = g && g[0] && g[0].label_fr; }
   if(a.zone_id){ const z = await sb('editorial_zones?id=eq.'+encodeURIComponent(a.zone_id)+'&select=label_fr'); labels.zone = z && z[0] && z[0].label_fr; }
 
-  return html(200, page(a, blocks, labels, isPreview && !!token));
+  // Couleurs d'en-tête (surtitre/titre/chapô/légende hero) : sidecar public facultatif, best-effort.
+  let hcolors = {};
+  try {
+    const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 1500);
+    const mr = await fetch(SUPABASE_URL+'/storage/v1/object/public/articles/meta/'+a.id+'.json', { signal: ctrl.signal });
+    clearTimeout(timer);
+    if(mr.ok){ const j = await mr.json(); if(j && j.headerColors) hcolors = j.headerColors; }
+  } catch(e){}
+
+  return html(200, page(a, blocks, labels, isPreview && !!token, hcolors));
 };
 
 function notFound(){
