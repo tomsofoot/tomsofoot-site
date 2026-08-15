@@ -1715,6 +1715,47 @@ input:focus-visible {
   }
 }
 
+/* ============================================================
+   TomsoFoot — Correctif ergonomie MOBILE de la recherche (Mode Carriere)
+   Selecteurs par ID : gagnent la cascade quel que soit l'ordre d'inclusion.
+   Desktop inchange (tout est sous @media max-width:720px, sauf dvh/safe-area,
+   neutres ailleurs).
+   ============================================================ */
+#jogadle { min-height: 100vh; min-height: 100dvh; }
+#guessInput { scroll-margin-top: 14px; }
+
+@media (max-width: 820px) {
+  /* 1) La liste de suggestions rejoint le FLUX NORMAL : plus aucun recouvrement.
+        Ordre vertical : champ -> suggestions -> Valider. */
+  #guessForm { display: flex; flex-direction: column; gap: 10px; }
+  #guessForm .autocomplete { position: static; display: flex; flex-direction: column; }
+  #suggestions {
+    position: static;
+    inset: auto;
+    width: 100%;
+    margin-top: 8px;
+    max-height: min(48dvh, 340px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  #validateButton { width: 100%; min-height: 50px; }
+
+  /* 2) Ordre des commandes : Indice ultime + cartes d'indices, PUIS Reveler. */
+  #hintButton { order: 0; }
+  #playerClues { order: 1; }
+  #revealAnswerButton { order: 2; }
+
+  /* 3) Pendant une recherche active : on masque indices / indice ultime /
+        reveler / « deja utilises » pour dedier l'ecran a la recherche.
+        display:none => non cliquable, hors Tab, hors lecteur d'ecran. */
+  #jogadle.is-searching .game-controls,
+  #jogadle.is-searching #usedPlayers { display: none !important; }
+
+  /* 4) Zone de securite iPhone (encoche / barre home). */
+  #jogadle { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+}
+
 
 /* --- Animation + jouabilité (additif) --- */
 .career-timeline{bottom:54px}
@@ -2596,8 +2637,8 @@ body.sr-lock{overflow:hidden}
   <section class="answer-section">
     <form class="answer-form" id="guessForm" autocomplete="off">
       <div class="autocomplete">
-        <input class="guess-input" id="guessInput" type="text" name="guess" placeholder="Rechercher un joueur…" aria-label="Rechercher un joueur" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
-        <div class="suggestions" id="suggestions" hidden></div>
+        <input class="guess-input" id="guessInput" type="text" name="guess" placeholder="Rechercher un joueur…" aria-label="Rechercher un joueur" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions" aria-haspopup="listbox" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+        <div class="suggestions" id="suggestions" role="listbox" aria-label="Suggestions de joueurs" hidden></div>
       </div>
       <button class="validate-button" id="validateButton" type="submit">VALIDER</button>
     </form>
@@ -2892,7 +2933,7 @@ body.sr-lock{overflow:hidden}
   var LOGOS=DATA.logos, BYLEVEL=DATA.byLevel, POOL=DATA.pool;
   var LEVELS={
     amateur:{num:'1',label:'NIVEAU AMATEUR',cluesAt:0,nameAt:0},
-    pro:{num:'4',label:'NIVEAU PRO',cluesAt:3,nameAt:3},
+    pro:{num:'4',label:'NIVEAU PRO',cluesAt:3,nameAt:3,clueAt:{nat:2,pos:3}},
     expert:{num:'7',label:'NIVEAU EXPERT',cluesAt:3,nameAt:5,clueAt:{nat:3,pos:5}}
   };
   var MAXDOTS=5, ORDER=['amateur','pro','expert'];
@@ -3115,18 +3156,40 @@ body.sr-lock{overflow:hidden}
   function onDemand(){return level!=='amateur';}                 // pro/expert : indices à la demande
   function bothCluesSeen(){var c=S[level].clue;return !!(c&&c.nat&&c.pos);}
   // EXPERT : paliers d'essais avant de pouvoir consulter un indice (nat dès le 3e essai, pos dès le 5e).
+  // TomsoFoot — comptage strict des mauvaises reponses VALIDES et DISTINCTES (Mode Carriere / Pro).
+  // Ne compte que les propositions reconnues (vrai joueur du POOL), dedupliquees. Exclut : noms
+  // inexistants, doublons, ouverture/fermeture de la recherche, survols. N'affecte ni le score,
+  // ni st.attempts, ni les autres difficultes.
+  function isKnownPlayer(full){ if(!full)return false; var c=compact(full); for(var i=0;i<POOL.length;i++){var e=POOL[i]; if(compact(e.full)===c||compact(e.nom)===c)return true;} return false; }
+  function validWrongCount(st){
+    st=st||S[level]; if(!st||!st.guesses)return 0;
+    var seen={},n=0;
+    for(var i=0;i<st.guesses.length;i++){
+      var g=st.guesses[i]; if(!g||g.ok!==false)continue;
+      var full=(g.name&&String(g.name).trim())||resolveGuessName(g.v);
+      if(!isKnownPlayer(full))continue;
+      var k=compact(full); if(!k||seen[k])continue; seen[k]=1; n++;
+    }
+    return n;
+  }
+  function proGateCount(){ return validWrongCount(S[level]); }
   function clueThreshold(kind){var lv=LEVELS[level],g=lv&&lv.clueAt;return (g&&g[kind])||0;}
-  function clueAvailable(kind){var st=S[level];if(st.solved||st.answerRevealed)return true;return st.attempts>=clueThreshold(kind);}
+  function clueAvailable(kind){var st=S[level];if(st.solved||st.answerRevealed)return true;var have=(level==='pro')?proGateCount():st.attempts;return have>=clueThreshold(kind);}
   function paintClue(card,valEl,val,seen,kind){
     if(!card)return;
     if(seen){card.classList.remove('is-locked','is-gated');card.classList.add('is-revealed');valEl.textContent=val||'—';return;}
     card.classList.remove('is-revealed');
-    if(kind&&!clueAvailable(kind)){                               // pas encore débloqué : palier d'essais non atteint
+    if(kind&&!clueAvailable(kind)){                               // pas encore débloqué : palier non atteint
       card.classList.add('is-locked','is-gated');
-      valEl.textContent='Dès '+clueThreshold(kind)+' essais';
+      if(level==='pro'){                                          // PRO : progression en mauvaises réponses valides distinctes
+        var need=clueThreshold(kind), have=Math.min(proGateCount(),need);
+        valEl.textContent=have+'/'+need+' mauvaise réponse';
+      }else{
+        valEl.textContent='Dès '+clueThreshold(kind)+' essais';   // Expert : inchangé
+      }
     }else{
       card.classList.remove('is-gated');card.classList.add('is-locked');
-      valEl.textContent='Voir l’indice';
+      valEl.textContent=(level==='pro')?('Indice '+(kind==='nat'?'1':'2')+' disponible'):'Voir l’indice';
     }
   }
   function renderClues(){
@@ -3148,9 +3211,10 @@ body.sr-lock{overflow:hidden}
     var st=S[level];
     if(!onDemand()||st.solved||st.answerRevealed)return;
     if(st.clue[kind])return;
-    if(!clueAvailable(kind)){                                     // palier d'essais non atteint (EXPERT)
+    if(!clueAvailable(kind)){                                     // palier non atteint
       var n=clueThreshold(kind);
-      setMsg('Indice disponible à partir du '+n+(n===1?'er':'e')+' essai.','is-error');
+      if(level==='pro') setMsg('Indice disponible après '+n+' mauvaises réponses.','is-error');
+      else setMsg('Indice disponible à partir du '+n+(n===1?'er':'e')+' essai.','is-error');
       return;
     }
     st.clue[kind]=true;
@@ -3644,7 +3708,7 @@ body.sr-lock{overflow:hidden}
     applyState();
     if(!already){ await wait(250); await revealSequence(st.order); }
     renderClues();
-    if(my===token && !st.solved && !st.answerRevealed) requestAnimationFrame(function(){input.focus();});
+    if(my===token && !st.solved && !st.answerRevealed) requestAnimationFrame(function(){_skipAutoOpen=true;input.focus();});
   }
   // ===== Progression verrouillée : Pro après Amateur, Expert après Pro =====
   function levelDone(l){var st=S[l];return !!(st&&(st.solved||st.answerRevealed));}
@@ -3724,7 +3788,7 @@ body.sr-lock{overflow:hidden}
     }
     renderHint(); saveProgress();
     try{ if(typeof checkEtoilesReward==='function') checkEtoilesReward(); }catch(e){}   // participation (LDC) : contrôle assiduité
-    input.value=''; input.focus();
+    input.value=''; _skipAutoOpen=true; input.focus();
   }
   async function submit(e){
     e.preventDefault(); hideSug();
@@ -3830,16 +3894,25 @@ body.sr-lock{overflow:hidden}
   function pushRecent(e){if(!e)return;try{var a=loadRecent().filter(function(r){return r.id!==e.id&&r.full!==e.full;});a.unshift({id:e.id||null,full:e.full});Store.setJSON('jogadle-recent',a.slice(0,5));}catch(err){}}
 
   var sug=[],act=-1,selectedQid=null;
-  function hideSug(){box.hidden=true;box.innerHTML='';sug=[];act=-1;}
+  var _skipAutoOpen=false;
+  function setSearching(on){ try{ if(root)root.classList.toggle('is-searching',!!on); input.setAttribute('aria-expanded',on?'true':'false'); }catch(e){} }
+  function bringSearchIntoView(){
+    try{
+      var run=function(){ try{ var vv=window.visualViewport, r=input.getBoundingClientRect(), want=(vv?vv.offsetTop:0)+10, dy=r.top-want; if(Math.abs(dy)>10)window.scrollBy({top:dy,left:0,behavior:'smooth'}); }catch(e){} };
+      setTimeout(run,300);
+      if(window.visualViewport){ var once=function(){ run(); try{window.visualViewport.removeEventListener('resize',once);}catch(e){} }; window.visualViewport.addEventListener('resize',once); setTimeout(function(){ try{window.visualViewport.removeEventListener('resize',once);}catch(e){} },1200); }
+    }catch(e){}
+  }
+  function hideSug(){box.hidden=true;box.innerHTML='';sug=[];act=-1;setSearching(false);}
   function selectable(){var r=[];for(var i=0;i<sug.length;i++)if(!sug[i].used)r.push(i);return r;}
   function rowHtml(s,i){
     var e=s.e,nom=esc((e.nom||e.full||'').toUpperCase()),pre=esc(e.prenom||'');
-    if(s.used) return '<div class="suggestion-item is-used" data-i="'+i+'"><span class="sg-left"><b>'+nom+'</b>'+(pre?' '+pre:'')+'</span><span class="sg-used">joueur déjà utilisé</span></div>';
-    return '<button type="button" class="suggestion-item" data-i="'+i+'"><span class="sg-nom">'+nom+'</span>'+(pre?'<span class="sg-prenom">'+pre+'</span>':'')+'</button>';
+    if(s.used) return '<div class="suggestion-item is-used" role="option" aria-disabled="true" aria-selected="false" data-i="'+i+'"><span class="sg-left"><b>'+nom+'</b>'+(pre?' '+pre:'')+'</span><span class="sg-used">joueur déjà utilisé</span></div>';
+    return '<button type="button" class="suggestion-item" role="option" aria-selected="false" data-i="'+i+'"><span class="sg-nom">'+nom+'</span>'+(pre?'<span class="sg-prenom">'+pre+'</span>':'')+'</button>';
   }
   // Surbrillance clavier UNIQUEMENT (la souris est gérée en CSS :hover, instantané). kb=true seulement en navigation clavier.
   var kb=false;
-  function paintActive(){[].forEach.call(box.querySelectorAll('.suggestion-item'),function(c){c.classList.toggle('is-keyboard-active',kb&&+c.getAttribute('data-i')===act);});}
+  function paintActive(){[].forEach.call(box.querySelectorAll('.suggestion-item'),function(c){var on=kb&&+c.getAttribute('data-i')===act;c.classList.toggle('is-keyboard-active',on);c.setAttribute('aria-selected',on?'true':'false');});}
   function renderEmpty(){
     var used=S[level].used||{}, rec=loadRecent(), html='', players=[];
     rec.forEach(function(r){var e=(r.id&&indexById(r.id))||null; if(!e){for(var i=0;i<IDX.length;i++){if(IDX[i].full===r.full){e=IDX[i];break;}}} if(e)players.push(e);});
@@ -3848,7 +3921,7 @@ body.sr-lock{overflow:hidden}
     if(sug.length){ html+='<div class="sg-head">Tes dernières propositions</div>'+sug.map(function(s,i){return rowHtml(s,i);}).join(''); }
     html+='<button type="button" class="sg-browse" data-act="browse-open">Parcourir tous les joueurs →</button>';
     box.innerHTML=html; box.hidden=false;
-    var sel=selectable(); act=sel.length?sel[0]:-1; kb=false; paintActive();
+    var sel=selectable(); act=sel.length?sel[0]:-1; kb=false; paintActive(); setSearching(true);
   }
   function renderSug(){
     var q=normKey(input.value);
@@ -3858,7 +3931,7 @@ body.sr-lock{overflow:hidden}
     sug=res.map(function(e){return {e:e,used:!!used[compact(e.full)]};});
     var sel=selectable(); if(sel.indexOf(act)<0) act=sel.length?sel[0]:-1;
     box.innerHTML=sug.map(function(s,i){return rowHtml(s,i);}).join('');
-    box.hidden=false; kb=false; paintActive();
+    box.hidden=false; kb=false; paintActive(); setSearching(true);
   }
   // Garde la proposition active visible par repositionnement IMMÉDIAT (jamais de défilement animé).
   function ensureActiveVisible(){
@@ -3873,7 +3946,15 @@ body.sr-lock{overflow:hidden}
   var searchRAF=0;
   function scheduleSearch(){ if(searchRAF)cancelAnimationFrame(searchRAF); searchRAF=requestAnimationFrame(function(){searchRAF=0;renderSug();}); }
   input.addEventListener('input',function(){act=-1;selectedQid=null;scheduleSearch();});
-  input.addEventListener('focus',function(){if(!input.disabled&&!input.value.trim())renderEmpty();});
+  function isMobileVP(){ try{return window.matchMedia('(max-width:820px)').matches;}catch(e){return false;} }
+  input.addEventListener('focus',function(){
+    var mob=isMobileVP();
+    if(mob&&_skipAutoOpen){_skipAutoOpen=false;return;}
+    _skipAutoOpen=false;
+    if(!input.disabled&&!input.value.trim())renderEmpty();
+    if(mob)bringSearchIntoView();
+  });
+  input.addEventListener('blur',function(){ if(!isMobileVP())return; setTimeout(function(){if(document.activeElement!==input)hideSug();},120); });
   input.addEventListener('keydown',function(e){
     if(box.hidden){ if(e.key==='ArrowDown'&&!input.value.trim()){renderEmpty();} return; }
     var sel=selectable();
