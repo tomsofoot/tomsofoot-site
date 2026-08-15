@@ -84,7 +84,7 @@
             <div class="mc-dots" id="mc-dots"></div>
             <button type="button" class="mc-arw" data-mb="prev" aria-label="Groupe de matchs précédent">‹</button>
             <button type="button" class="mc-arw" data-mb="next" aria-label="Groupe de matchs suivant">›</button>
-            <span class="mc-rot">Rotation dans 45 s</span>
+            <span class="mc-rot">Rotation dans 10 s</span>
           </div>
         </header>
         <div class="mc-stage" id="mc-stage"></div>
@@ -806,7 +806,7 @@
 /* TomsoFoot — Match Center « À suivre ». 1 seul appel API (mis en cache 20 min côté serveur) ;
    la rotation 45 s est purement visuelle : aucun rappel API. */
 (function(){
-  var API='/.netlify/functions/matches', T=45000;
+  var API='/.netlify/functions/matches', T=10000;
   var LIVE={'1H':1,'2H':1,'ET':1,'BT':1,'P':1,'LIVE':1,'INT':1,'HT':1};
   var FIN={'FT':1,'AET':1,'PEN':1};
   var STATES={'PST':'Reporté','CANC':'Annulé','ABD':'Abandonné','SUSP':'Suspendu','TBD':'Horaire à venir','WO':'Forfait','AWD':'Décision','NPP':'Non joué'};
