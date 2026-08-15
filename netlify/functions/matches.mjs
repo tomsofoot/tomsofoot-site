@@ -74,22 +74,17 @@ export default async () => {
   const todayStr = parisDate(0);
 
   try {
+    // Aujourd'hui + demain ensemble : chaque match est étiqueté (AUJOURD'HUI / DEMAIN).
+    // 1 appel par date (aujourd'hui et demain), chacun mis en cache 20 min.
     const today = await fetchDay(store, todayStr);
-    // matchs du jour non terminés (à venir ou en cours)
-    const liveOrUpcoming = today.matches.filter(m => UPCOMING.has(m.status));
-    let shown = today.matches.filter(m => !FINISHED.has(m.status));
-    let dayShown = "today";
+    const tomorrow = await fetchDay(store, parisDate(1));
 
-    // Plus aucun match à venir aujourd'hui -> on bascule sur demain (J+1).
-    if (liveOrUpcoming.length === 0) {
-      const tmr = await fetchDay(store, parisDate(1));
-      shown = tmr.matches.filter(m => !FINISHED.has(m.status));
-      dayShown = "tomorrow";
-    }
+    const todayM = today.matches.filter(m => !FINISHED.has(m.status)).map(m => ({ ...m, day: "today" }));
+    const tmrM   = tomorrow.matches.filter(m => !FINISHED.has(m.status)).map(m => ({ ...m, day: "tomorrow" }));
+    const shown = todayM.concat(tmrM);
 
-    shown = shown.map(m => ({ ...m, day: dayShown }));
-    return new Response(JSON.stringify({ matches: shown, day: dayShown }), { headers: H });
+    return new Response(JSON.stringify({ matches: shown, day: "both" }), { headers: H });
   } catch (e) {
-    return new Response(JSON.stringify({ error: "fetch_failed", matches: [], day: "today" }), { headers: H });
+    return new Response(JSON.stringify({ error: "fetch_failed", matches: [], day: "both" }), { headers: H });
   }
 };
