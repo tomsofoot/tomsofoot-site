@@ -1,7 +1,9 @@
-// TomsoFoot — matchs du jour via api-sports.io (API-Football v3).
+// TomsoFoot — matchs via api-sports.io (API-Football v3).
 // Filtre : Premier League + Ligue 1 (toutes) ; clubs Real Madrid, FC Barcelone,
 // Atlético Madrid, Bayern Munich, Borussia Dortmund, RB Leipzig (toutes compétitions).
-// 1 seul appel API par fenêtre de cache (Netlify Blobs) pour économiser le quota.
+// Affiche les matchs du jour ; quand il n'y a plus aucun match à venir aujourd'hui,
+// bascule automatiquement sur les matchs de demain (J+1).
+// 1 seul appel API par date et par fenêtre de cache (Netlify Blobs) pour économiser le quota.
 import { getStore } from "@netlify/blobs";
 
 const KEY = process.env.APISPORTS_KEY;
@@ -9,44 +11,37 @@ const LEAGUES = new Set([39, 61]);                         // Premier League, Li
 const TEAMS   = new Set([541, 529, 530, 157, 165, 173]);   // Real, Barça, Atlético, Bayern, Dortmund, Leipzig
 const CACHE_MS = 20 * 60 * 1000;
 
+// statuts « à venir ou en cours » : tant qu'il en reste aujourd'hui, on reste sur aujourd'hui.
+const UPCOMING = new Set(["TBD", "NS", "1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
+const FINISHED = new Set(["FT", "AET", "PEN"]);
+
 const H = { "content-type": "application/json", "cache-control": "public, max-age=300" };
 
-function parisDate() {
-  try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date()); }
-  catch (e) { return new Date().toISOString().slice(0, 10); }
+function parisDate(offsetDays) {
+  const d = new Date();
+  if (offsetDays) d.setUTCDate(d.getUTCDate() + offsetDays);
+  try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(d); }
+  catch (e) { return d.toISOString().slice(0, 10); }
 }
 function parisTime(iso) {
   try { return new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" }).format(new Date(iso)); }
   catch (e) { return ""; }
 }
 
-export default async () => {
-  if (!KEY) return new Response(JSON.stringify({ error: "no_key", matches: [] }), { headers: H });
-
-  const store = getStore("apisports-cache");
-  const day = parisDate();
-  const cacheKey = `fixtures:${day}`;
-
+// Récupère + filtre + normalise les matchs d'une date donnée, avec cache par date.
+async function fetchDay(store, date) {
+  const cacheKey = `fixtures:${date}`;
   try {
     const c = await store.get(cacheKey, { type: "json" });
-    if (c && (Date.now() - c.ts) < CACHE_MS) {
-      return new Response(JSON.stringify({ matches: c.matches, cached: true, day }), { headers: H });
-    }
+    if (c && (Date.now() - c.ts) < CACHE_MS) return { matches: c.matches, cached: true };
   } catch (e) {}
 
   let data;
-  try {
-    const url = `https://v3.football.api-sports.io/fixtures?date=${day}&timezone=Europe/Paris`;
-    const r = await fetch(url, { headers: { "x-apisports-key": KEY } });
-    data = await r.json();
-  } catch (e) {
-    return new Response(JSON.stringify({ error: "fetch_failed", matches: [] }), { headers: H });
-  }
+  const url = `https://v3.football.api-sports.io/fixtures?date=${date}&timezone=Europe/Paris`;
+  const r = await fetch(url, { headers: { "x-apisports-key": KEY } });
+  data = await r.json();
 
-  // api-football renvoie { errors, response }. On expose errors pour le debug si besoin.
-  const apiErrors = data && data.errors && (Array.isArray(data.errors) ? data.errors.length : Object.keys(data.errors).length) ? data.errors : null;
   const raw = (data && Array.isArray(data.response)) ? data.response : [];
-
   const matches = raw.filter(f => {
     const lid = f.league && f.league.id;
     const hid = f.teams && f.teams.home && f.teams.home.id;
@@ -69,6 +64,32 @@ export default async () => {
   })).sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
 
   try { await store.setJSON(cacheKey, { ts: Date.now(), matches }); } catch (e) {}
+  return { matches, cached: false };
+}
 
-  return new Response(JSON.stringify({ matches, cached: false, day, apiErrors }), { headers: H });
+export default async () => {
+  if (!KEY) return new Response(JSON.stringify({ error: "no_key", matches: [], day: "today" }), { headers: H });
+
+  const store = getStore("apisports-cache");
+  const todayStr = parisDate(0);
+
+  try {
+    const today = await fetchDay(store, todayStr);
+    // matchs du jour non terminés (à venir ou en cours)
+    const liveOrUpcoming = today.matches.filter(m => UPCOMING.has(m.status));
+    let shown = today.matches.filter(m => !FINISHED.has(m.status));
+    let dayShown = "today";
+
+    // Plus aucun match à venir aujourd'hui -> on bascule sur demain (J+1).
+    if (liveOrUpcoming.length === 0) {
+      const tmr = await fetchDay(store, parisDate(1));
+      shown = tmr.matches.filter(m => !FINISHED.has(m.status));
+      dayShown = "tomorrow";
+    }
+
+    shown = shown.map(m => ({ ...m, day: dayShown }));
+    return new Response(JSON.stringify({ matches: shown, day: dayShown }), { headers: H });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: "fetch_failed", matches: [], day: "today" }), { headers: H });
+  }
 };
