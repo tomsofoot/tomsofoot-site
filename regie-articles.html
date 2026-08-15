@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Régie articles — TomsoFoot (maquette éditeur v2)</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:ital,wght@0,700;0,800;1,800&family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b1a33;--navy:#071426;--panel:#0d1f3d;--red:#ff334d;--muted:#8ba0be;--line:rgba(140,170,220,.18);--field:#0c1730;--white:#eef4fc}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--navy);color:var(--white);-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;cursor:pointer}
+/* ---- Buttons : plus grands, hiérarchisés, tactiles ---- */
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--white);border-radius:11px;font-weight:700;font-size:15px;line-height:1}
+.btn:hover{border-color:#4a76c9}
+.btn:focus-visible{outline:3px solid #4a76c9;outline-offset:2px}
+.btn--primary{min-height:50px;padding:0 20px;font-size:16px;font-weight:800;background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 8px 20px rgba(255,51,77,.28)}
+.btn--primary:hover{filter:brightness(1.08);border-color:var(--red)}
+.btn--danger{background:transparent;border-color:rgba(255,80,100,.5);color:#ff8ea0}
+.btn--danger:hover{background:rgba(255,51,77,.14);border-color:var(--red);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;filter:none}
+.icon-btn{display:grid;place-items:center;width:36px;height:36px;min-width:36px;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:9px;color:#cdd9ea;font-size:15px}
+.icon-btn:hover{border-color:var(--red);color:#fff}
+/* Top bar */
+.rb-top{display:flex;align-items:center;gap:14px;padding:10px 16px;background:linear-gradient(180deg,#0a1b3d,#081428);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.rb-brand{font-family:"Archivo Black";font-style:italic;letter-spacing:-.02em;font-size:16px}.rb-brand span{color:var(--red)}
+.rb-id{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:12px;color:#cdd9ea}
+.rb-id b{color:#fff;font-weight:800;letter-spacing:.02em}
+.rb-id .st{color:var(--muted)}
+.rb-copy{border:0;background:transparent;color:#9fb2cc;font-size:14px}.rb-copy:hover{color:#fff}
+.rb-status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;font-weight:600}
+.rb-dot{width:8px;height:8px;border-radius:50%;background:#3fdc8b}.rb-dot.saving{background:#f5c451;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.4}}
+.rb-spacer{flex:1}
+.rb-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+/* Layout */
+.rb-main{display:grid;grid-template-columns:55% 45%;height:calc(100vh - 66px)}
+.rb-editor{overflow-y:auto;padding:18px 18px 140px;border-right:1px solid var(--line);position:relative}
+.rb-preview{display:flex;flex-direction:column;background:#050d1a}
+.rb-tabs{display:none}
+/* Editor sections */
+.rb-sec{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.rb-sec__t{font-family:"Barlow Condensed";font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#cdd9ea;font-size:15px;margin:0 0 12px}
+.rb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.rb-grid .full{grid-column:1/-1}
+label.rb-l{display:block;font-size:11px;color:#9fb2cc;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em}
+input.rb-i,textarea.rb-i,select.rb-i{width:100%;background:var(--field);border:1px solid var(--line);color:var(--white);border-radius:9px;padding:11px 12px;font:inherit;font-size:15px}
+input.rb-i:focus,textarea.rb-i:focus,select.rb-i:focus{border-color:#4a76c9;outline:none}
+textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
+.rb-hint{font-size:12px;color:var(--muted);margin:4px 0 0}
+/* Blocks */
+.rb-block{position:relative;background:#0c1c38;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;transition:border-color .12s,box-shadow .12s}
+.rb-block.sel{border-color:#4a76c9;box-shadow:0 0 0 2px rgba(74,118,201,.25)}
+.rb-block.hidden-b{opacity:.5}
+.rb-block.dragging{opacity:.4}
+.rb-block__bar{display:flex;align-items:center;gap:7px;padding:8px 10px;border-bottom:1px solid var(--line);cursor:grab}
+.rb-block__type{font-family:"Barlow Condensed";font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:13px;color:#9fb2cc}
+.rb-block__sp{flex:1}
+.rb-block__body{padding:12px}
+.rb-ce{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:11px 13px;min-height:46px;font-size:16px;line-height:1.55;outline:none}
+.rb-ce:focus{border-color:#4a76c9}
+.rb-ce[data-ph]:empty:before{content:attr(data-ph);color:#5a6f90}
+.rb-rt{display:flex;gap:6px;margin:0 0 8px;flex-wrap:wrap}
+.rb-rt button{width:34px;height:32px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#cdd9ea;border-radius:7px;font-size:14px;font-weight:800}
+.rb-rt button:hover{border-color:var(--red);color:#fff}
+/* spacer block */
+.rb-space-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.rb-space-seg button{background:transparent;color:#cdd9ea;border:0;padding:8px 14px;font-size:13px;font-weight:700}
+.rb-space-seg button.on{background:var(--red);color:#fff}
+/* image block */
+.rb-img-drop{border:1px dashed rgba(140,170,220,.45);border-radius:10px;padding:16px;text-align:center;color:#9fb2cc;background:rgba(255,255,255,.03)}
+.rb-img-prev{max-width:100%;height:auto;display:block;border-radius:8px;margin:0 auto}
+.rb-prog{height:6px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-top:8px}
+.rb-prog i{display:block;height:100%;width:0;background:var(--red);transition:width .15s}
+.rb-err{background:rgba(255,51,77,.14);border:1px solid rgba(255,80,100,.5);color:#ffd0d6;border-radius:8px;padding:9px 11px;font-size:13px;margin-top:8px}
+.rb-capfields{margin-top:10px;background:#0a1730;border:1px solid var(--line);border-radius:9px;padding:11px}
+.rb-capfields .rb-l{margin-top:8px}.rb-capfields .rb-l:first-child{margin-top:0}
+/* add row */
+.rb-add{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0 22px}
+.rb-addbtn{display:inline-flex;align-items:center;gap:8px;min-height:50px;border:1px dashed rgba(140,170,220,.45);background:rgba(255,255,255,.04);color:#dbe6f5;border-radius:11px;padding:0 20px;font-weight:800;font-size:16px}
+.rb-addbtn:hover{border-color:var(--red);color:#fff}
+.rb-addbtn--img{border-style:solid;border-color:var(--line)}
+/* drop indicator (image glisser-déposer) */
+.rb-dropline{height:0;border-top:3px solid var(--red);box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px;display:none}
+.rb-dropline.on{display:block}
+.rb-editor.file-drag{outline:2px dashed rgba(255,51,77,.5);outline-offset:-8px}
+/* Preview */
+.rb-pv-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:#081428}
+.rb-pv-bar .lab{color:var(--muted);font-size:13px;font-weight:600}
+.rb-seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.rb-seg button{background:transparent;color:#cdd9ea;border:0;min-height:38px;padding:0 14px;font-size:13px;font-weight:700}
+.rb-seg button.on{background:var(--red);color:#fff}
+.rb-pv-wrap{flex:1;overflow:auto;display:grid;place-items:start center;padding:18px;background:#050d1a}
+.rb-frame{background:#fff;border-radius:10px;box-shadow:0 20px 50px rgba(0,0,0,.5);transition:width .2s;width:100%;max-width:1180px}
+iframe#pv{width:100%;height:78vh;border:0;border-radius:10px;background:#fff}
+/* Modals */
+.rb-modal{position:fixed;inset:0;background:rgba(4,10,20,.72);display:none;place-items:center;z-index:40;padding:16px}
+.rb-modal.on{display:grid}
+.rb-card{width:min(580px,96vw);max-height:88vh;overflow:auto;background:#0c1c38;border:1px solid var(--line);border-radius:16px;padding:22px}
+.rb-card h3{margin:0 0 16px;font-size:19px}
+.rb-menu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rb-menu button{text-align:left;min-height:52px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--white);border-radius:11px;padding:11px 13px;font-weight:800;font-size:14px}
+.rb-menu button:hover{border-color:var(--red)}
+.rb-menu small{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:2px}
+.rb-recap{font-size:14px;line-height:1.75}.rb-recap b{color:#cdd9ea}
+.rb-modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+input[type=file]{display:none}
+@media(max-width:900px){
+  .rb-main{grid-template-columns:1fr}
+  .rb-tabs{display:flex;gap:10px;padding:10px 12px;background:#081428;border-bottom:1px solid var(--line)}
+  .rb-tabs button{flex:1;min-height:46px;border:1px solid var(--line);background:transparent;color:#cdd9ea;border-radius:10px;font-weight:800;font-size:15px}
+  .rb-tabs button.on{background:var(--red);color:#fff}
+  .rb-editor{border-right:0}
+  .rb-preview{display:none}
+  body.show-preview .rb-editor{display:none}
+  body.show-preview .rb-preview{display:flex}
+  .rb-grid{grid-template-columns:1fr}
+  .rb-menu{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+  <div class="rb-top">
+    <span class="rb-brand">TOMSO<span>FOOT</span></span>
+    <span class="rb-id"><span>Article</span> <b id="edId">TSF-ART-…</b><span class="st" id="edStatus">· Brouillon</span><button class="rb-copy" title="Copier l'identifiant" id="copyId">⧉</button></span>
+    <span class="rb-status"><span class="rb-dot" id="saveDot"></span><span id="saveTxt">Brouillon enregistré</span></span>
+    <span class="rb-spacer"></span>
+    <div class="rb-actions">
+      <input class="rb-i" id="loadId" style="width:190px;min-height:38px" placeholder="Charger : TSF-ART-… ou slug" spellcheck="false" autocapitalize="off" autocomplete="off">
+      <button class="btn" id="btnLoad">Charger</button>
+      <button class="btn" id="btnNew" title="Nouvel article vierge">Nouveau</button>
+      <button class="btn" id="btnCheck">✓ Vérifier l'article</button>
+      <button class="btn" id="btnPreviewReal">Prévisualiser</button>
+      <button class="btn" onclick="TSF.save(true)">Enregistrer le brouillon</button>
+      <button class="btn" onclick="TSF.openSchedule()">Programmer</button>
+      <button class="btn btn--primary" onclick="TSF.openPublish(false)">Publier</button>
+      <button class="btn btn--primary" onclick="TSF.openPublish(true)">Publier &amp; mettre à la une</button>
+    </div>
+  </div>
+
+  <div class="rb-tabs">
+    <button class="on" data-tab="write" onclick="TSF.tab('write')">✍️ Écrire</button>
+    <button data-tab="preview" onclick="TSF.tab('preview')">👁 Aperçu</button>
+  </div>
+
+  <div class="rb-main">
+    <!-- ======================= EDITOR ======================= -->
+    <div class="rb-editor" id="editorPane">
+      <div class="rb-sec">
+        <p class="rb-sec__t">En-tête de l'article</p>
+        <div class="rb-grid">
+          <div class="full"><label class="rb-l">Surtitre</label><input class="rb-i" data-h="kicker" placeholder="Mondial 2026 · Match d'ouverture"></div>
+          <div class="full"><label class="rb-l">Titre principal</label><input class="rb-i" data-h="title" placeholder="Le titre de l'article"></div>
+          <div class="full"><label class="rb-l">Chapô</label><textarea class="rb-i" data-h="deck" placeholder="Le résumé d'accroche en une ou deux phrases."></textarea></div>
+          <div><label class="rb-l">Auteur</label><input class="rb-i" data-h="author" value="Thomas Giroud"></div>
+          <div><label class="rb-l">Date de publication</label><input class="rb-i" type="date" data-h="date"></div>
+          <div class="full"><label class="rb-l">Image principale (déposer ou URL) — affichée à son ratio naturel</label><input class="rb-i" data-h="hero" placeholder="Déposez une image ou collez une URL"></div>
+          <div><label class="rb-l">Texte alternatif</label><input class="rb-i" data-h="hero_alt" placeholder="Décrit l'image (accessibilité/SEO)"></div>
+          <div><label class="rb-l">Crédit photo</label><input class="rb-i" data-h="hero_credit" placeholder="© TomsoFoot"></div>
+          <div class="full"><label class="rb-l">Légende de l'image principale</label><input class="rb-i" data-h="hero_caption" placeholder="Légende de la photo"></div>
+          <div><label class="rb-l">Temps de lecture (min)</label><input class="rb-i" type="number" data-h="reading" value="5" min="1"></div>
+          <div style="display:flex;align-items:flex-end"><label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cdd9ea"><input type="checkbox" data-h="hero_cover"> Mode couverture 16:9 (recadrage volontaire)</label></div>
+        </div>
+      </div>
+
+      <div class="rb-sec">
+        <p class="rb-sec__t">Contenu</p>
+        <div id="blocks"></div>
+        <div class="rb-add">
+          <button class="rb-addbtn" onclick="TSF.openAdd()">+ Ajouter un contenu</button>
+          <button class="rb-addbtn rb-addbtn--img" onclick="TSF.pickImage()">+ Ajouter une image</button>
+        </div>
+        <p class="rb-hint" style="text-align:center">Astuce : <b>Entrée</b> = nouveau paragraphe · <b>Maj+Entrée</b> = retour à la ligne · <b>Entrée</b> sur une ligne vide = espace éditorial · ou glissez-déposez une image entre deux blocs.</p>
+      </div>
+
+      <div class="rb-sec">
+        <p class="rb-sec__t">Classement &amp; réglages</p>
+        <div class="rb-grid">
+          <div><label class="rb-l">Zone</label><select class="rb-i" data-h="zone"><option value="">—</option><option>Angleterre</option><option>France</option><option>Italie</option><option>Espagne</option><option>Allemagne</option><option>Europe</option><option>International</option></select></div>
+          <div><label class="rb-l">Compétition</label><select class="rb-i" data-h="competition"><option value="">—</option><option>Premier League</option><option>Ligue 1</option><option>Serie A</option><option>Liga</option><option>Bundesliga</option><option>Ligue des champions</option><option>Coupe du monde</option></select></div>
+          <div><label class="rb-l">Genre éditorial</label><select class="rb-i" data-h="genre"><option value="">—</option><option>Actualité</option><option>Analyse</option><option>Entretien</option><option>Reportage</option><option>Histoire</option><option>Récit</option><option>Édito</option></select></div>
+          <div><label class="rb-l">Dossier associé</label><select class="rb-i" data-h="dossier"><option value="">Aucun</option><option>Liverpool · Iraola</option></select></div>
+          <div class="full"><label class="rb-l">Journal PDF associé (facultatif)</label><input class="rb-i" data-h="journal" placeholder="n13-liverpool-iraola"></div>
+          <div class="full"><label class="rb-l">Slug (proposé auto, modifiable avant la 1re publication)</label><input class="rb-i" data-h="slug" placeholder="le-titre-de-l-article"></div>
+          <div class="full"><label class="rb-l">Description SEO</label><textarea class="rb-i" data-h="seo" placeholder="Description pour Google et les réseaux (≈150 caractères)"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================= PREVIEW ======================= -->
+    <div class="rb-preview">
+      <div class="rb-pv-bar">
+        <span class="lab">Aperçu en direct — vrai rendu du site</span>
+        <span class="rb-spacer"></span>
+        <div class="rb-seg" id="deviceSeg">
+          <button class="on" data-d="1180">Ordinateur</button>
+          <button data-d="768">Tablette</button>
+          <button data-d="390">Mobile</button>
+        </div>
+      </div>
+      <div class="rb-pv-wrap">
+        <div class="rb-frame" id="frameWrap" style="width:1180px"><iframe id="pv" title="Aperçu de l'article"></iframe></div>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/avif" multiple>
+
+  <!-- Add-block modal -->
+  <div class="rb-modal" id="mAdd">
+    <div class="rb-card">
+      <h3>Ajouter un contenu</h3>
+      <div class="rb-menu" id="addMenu"></div>
+      <div class="row"><button class="btn" onclick="TSF.closeAdd()">Annuler</button></div>
+    </div>
+  </div>
+
+  <!-- Publish recap modal -->
+  <div class="rb-modal" id="mPub">
+    <div class="rb-card">
+      <h3 id="pubTitle">Publier l'article</h3>
+      <div class="rb-recap" id="pubRecap"></div>
+      <div class="row">
+        <button class="btn" onclick="TSF.close('mPub')">Annuler</button>
+        <button class="btn btn--primary" id="pubConfirm">Confirmer la publication</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================================================================
+   TomsoFoot — Régie articles · MAQUETTE v2 (éditeur direct + aperçu réel)
+   Ajouts : espacement paragraphes + bloc espace ; glisser-déposer d'images
+   avec indicateur & progression ; légende/crédit/alt → figcaption ;
+   images au ratio naturel ; identifiant éditorial auto ; boutons agrandis.
+   Prototype non connecté à la base.
+   ========================================================================= */
+const BLOCK_DEFS = {
+  paragraph:{label:'Paragraphe',icon:'¶',ph:'Écrivez votre paragraphe…'},
+  heading:{label:'Grand intertitre',icon:'H',ph:'Grand intertitre'},
+  subheading:{label:'Petit intertitre',icon:'h',ph:'Petit intertitre'},
+  image:{label:'Image',icon:'🖼'},
+  spacer:{label:'Espace',icon:'␣'},
+  quote:{label:'Citation',icon:'❝',ph:'La citation…'},
+  stats:{label:'Statistiques',icon:'📊'},
+  table:{label:'Tableau',icon:'▦'},
+  video:{label:'Vidéo',icon:'▶'},
+  embed:{label:'Intégration',icon:'⧉'},
+  divider:{label:'Séparateur',icon:'—'},
+  related:{label:'Lien vers un article',icon:'🔗'},
+  continue:{label:'Poursuivre le dossier',icon:'📚'}
+};
+const SPACE_PX={petit:14,normal:30,grand:56};
+const state = { header:{ author:'Thomas Giroud', reading:5 }, blocks:[], sel:-1 };
+let uid=1;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* ---------- identifiant éditorial ---------- */
+function makeEditorialId(prefix){
+  const d=new Date();
+  const ymd=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const seq=String(Math.floor(1+Math.random()*9999)).padStart(4,'0'); // simulé (en base : compteur du jour)
+  return 'TSF-'+prefix+'-'+ymd+'-'+seq;
+}
+const ARTICLE_UUID = (crypto.randomUUID?crypto.randomUUID():'uuid-'+Date.now());
+const ARTICLE_ID = makeEditorialId('ART');   // immuable : ne change jamais, même si titre/slug changent
+$('#edId').textContent=ARTICLE_ID;
+$('#copyId').onclick=()=>{ try{navigator.clipboard.writeText(ARTICLE_ID);}catch(e){} $('#copyId').textContent='✓'; setTimeout(()=>$('#copyId').textContent='⧉',1000); };
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function slugify(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);}
+function sanitizeRich(html){
+  const allowed={B:1,I:1,EM:1,STRONG:1,A:1,UL:1,OL:1,LI:1,SUP:1,BR:1,DIV:1};
+  const d=document.createElement('div'); d.innerHTML=html;
+  (function walk(n){[...n.childNodes].forEach(c=>{
+    if(c.nodeType===1){
+      if(!allowed[c.tagName]){ const t=document.createTextNode(c.textContent); c.replaceWith(t); return;}
+      if(c.tagName==='A'){ const href=c.getAttribute('href')||''; [...c.attributes].forEach(a=>{if(a.name!=='href')c.removeAttribute(a.name);}); if(!/^https?:|^\//i.test(href)) c.removeAttribute('href'); }
+      else { [...c.attributes].forEach(a=>c.removeAttribute(a.name)); }
+      walk(c);
+    }
+  });})(d);
+  return d.innerHTML;
+}
+
+/* ---------- block model ---------- */
+function defaultData(t){
+  if(t==='spacer') return {size:'normal'};
+  if(t==='stats') return {rows:[{k:'Possession',v:'61%'},{k:'Tirs',v:'16'},{k:'Buts',v:'2'}]};
+  if(t==='table') return {head:['Équipe','Pts'],rows:[['—','—']]};
+  if(t==='related'||t==='continue') return {title:t==='continue'?'Poursuivre le dossier':'À lire ensuite',items:[{title:"Titre de l'article",slug:'exemple'}]};
+  if(t==='image') return {alt:'',caption:'',credit:'',src:''};
+  return {text:''};
+}
+function addBlock(type,data,at){ const b={id:uid++,type,hidden:false,data:data||defaultData(type)}; if(at==null)state.blocks.push(b); else state.blocks.splice(at,0,b); renderBlocks(); update(); return b; }
+
+/* ---------- render editor blocks ---------- */
+function renderBlocks(){
+  const host=$('#blocks'); host.innerHTML='';
+  state.blocks.forEach((b,i)=>{
+    const def=BLOCK_DEFS[b.type];
+    const el=document.createElement('div');
+    el.className='rb-block'+(b.hidden?' hidden-b':'')+(state.sel===i?' sel':''); el.draggable=true; el.dataset.i=i;
+    el.innerHTML =
+      '<div class="rb-block__bar">'
+      + '<span class="rb-block__type">'+def.icon+' '+def.label+'</span><span class="rb-block__sp"></span>'
+      + '<button class="icon-btn" title="Monter" onclick="TSF.move('+i+',-1)">▲</button>'
+      + '<button class="icon-btn" title="Descendre" onclick="TSF.move('+i+',1)">▼</button>'
+      + '<button class="icon-btn" title="Dupliquer" onclick="TSF.dup('+i+')">⧉</button>'
+      + '<button class="icon-btn" title="Masquer" onclick="TSF.hide('+i+')">'+(b.hidden?'◻':'👁')+'</button>'
+      + '<button class="icon-btn" title="Supprimer" onclick="TSF.del('+i+')">🗑</button>'
+      + '</div><div class="rb-block__body">'+blockEditor(b,i)+'</div>';
+    host.appendChild(el);
+    el.addEventListener('dragstart',e=>{ if(e.target.closest('.rb-ce,input,textarea,button')&&e.target!==el){} el.classList.add('dragging');e.dataTransfer.setData('text/block',i);});
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+  });
+  bindEditors();
+}
+function blockEditor(b,i){
+  const d=b.data;
+  if(b.type==='paragraph'||b.type==='quote'){
+    const rt = b.type==='paragraph' ? '<div class="rb-rt"><button data-cmd="bold" title="Gras"><b>G</b></button><button data-cmd="italic" title="Italique"><i>I</i></button><button data-cmd="insertUnorderedList" title="Liste à puces">•</button><button data-cmd="insertOrderedList" title="Liste numérotée">1.</button><button data-cmd="createLink" title="Lien">🔗</button><button data-cmd="superscript" title="Exposant">x²</button></div>' : '';
+    return rt+'<div class="rb-ce" contenteditable="true" data-ph="'+esc(BLOCK_DEFS[b.type].ph)+'" data-i="'+i+'">'+(d.text||'')+'</div>'
+      + (b.type==='quote'?'<input class="rb-i" style="margin-top:8px" placeholder="Auteur de la citation" data-field="cite" data-i="'+i+'" value="'+esc(d.cite||'')+'">':'');
+  }
+  if(b.type==='heading'||b.type==='subheading') return '<input class="rb-i" placeholder="'+esc(BLOCK_DEFS[b.type].ph)+'" data-field="text" data-i="'+i+'" value="'+esc(d.text||'')+'">';
+  if(b.type==='spacer'){
+    return '<div style="display:flex;align-items:center;gap:12px"><span class="rb-hint" style="margin:0">Taille de l\'espace :</span><div class="rb-space-seg" data-i="'+i+'">'
+      + ['petit','normal','grand'].map(s=>'<button data-size="'+s+'" class="'+(d.size===s?'on':'')+'">'+s.charAt(0).toUpperCase()+s.slice(1)+'</button>').join('')+'</div></div>';
+  }
+  if(b.type==='image'){
+    const img = d.src ? '<img class="rb-img-prev" src="'+esc(d.src)+'" alt="'+esc(d.alt||'')+'">' : '<div class="rb-img-drop" data-i="'+i+'">Glissez une image ici, ou <button class="btn" style="min-height:40px" onclick="TSF.pickImage('+i+')">choisir un fichier</button></div>';
+    const prog = '<div class="rb-prog" id="prog-'+b.id+'" style="display:none"><i></i></div>';
+    const err = d.error ? '<div class="rb-err">'+esc(d.error)+'</div>' : '';
+    const fields = d.src ? '<div class="rb-capfields">'
+        + '<label class="rb-l">Légende photographique</label><input class="rb-i" placeholder="Décrire / contextualiser la photo, personnes, lieu…" data-field="caption" data-i="'+i+'" value="'+esc(d.caption||'')+'">'
+        + '<label class="rb-l">Crédit photographique</label><input class="rb-i" placeholder="Photographe, agence, club, TomsoFoot, Getty…" data-field="credit" data-i="'+i+'" value="'+esc(d.credit||'')+'">'
+        + '<label class="rb-l">Texte alternatif (accessibilité/SEO — distinct de la légende)</label><input class="rb-i" placeholder="Décrit l\'image pour les lecteurs d\'écran" data-field="alt" data-i="'+i+'" value="'+esc(d.alt||'')+'">'
+        + '</div>' : '';
+    return img+prog+err+fields;
+  }
+  if(b.type==='video'||b.type==='embed') return '<input class="rb-i" placeholder="Fournisseur (youtube / twitch / dailymotion)" data-field="provider" data-i="'+i+'" value="'+esc(d.provider||'youtube')+'"><input class="rb-i" style="margin-top:8px" placeholder="ID de la vidéo" data-field="id" data-i="'+i+'" value="'+esc(d.id||'')+'">';
+  if(b.type==='stats') return '<p class="rb-hint">Statistiques (libellé · valeur) — réorganisées verticalement sur mobile.</p>'+(d.rows||[]).map((r,j)=>'<div class="rb-grid" style="margin-top:6px"><input class="rb-i" data-stat="'+i+'-'+j+'-k" value="'+esc(r.k)+'"><input class="rb-i" data-stat="'+i+'-'+j+'-v" value="'+esc(r.v)+'"></div>').join('');
+  if(b.type==='table') return '<p class="rb-hint">Tableau (maquette : structure d\'exemple, édition détaillée à venir).</p>';
+  if(b.type==='divider') return '<p class="rb-hint">Séparateur visuel.</p>';
+  if(b.type==='related'||b.type==='continue') return '<input class="rb-i" placeholder="Titre de la section" data-field="title" data-i="'+i+'" value="'+esc(d.title||'')+'"><input class="rb-i" style="margin-top:8px" placeholder="Titre de l\'article recommandé" data-field="itemtitle" data-i="'+i+'" value="'+esc((d.items&&d.items[0]&&d.items[0].title)||'')+'">';
+  return '';
+}
+function bindEditors(){
+  $$('.rb-ce').forEach(ce=>{
+    ce.oninput=()=>{ const i=+ce.dataset.i; state.blocks[i].data.text=sanitizeRich(ce.innerHTML); update(); autosave(); };
+    ce.onfocus=()=>{ state.sel=+ce.dataset.i; };
+    ce.onpaste=e=>{ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData('text/html')||(e.clipboardData).getData('text/plain'); document.execCommand('insertHTML',false,sanitizeRich(t)); };
+    if(ce.dataset && $$('.rb-ce').indexOf(ce)>-1){
+      const blk=state.blocks[+ce.dataset.i];
+      if(blk.type==='paragraph') ce.onkeydown=e=>paragraphKeys(e,ce);
+    }
+  });
+  $$('.rb-rt button').forEach(btn=>{ btn.onclick=()=>{ const cmd=btn.dataset.cmd; if(cmd==='createLink'){const u=prompt('Lien (https://)');if(u&&/^https?:/.test(u))document.execCommand('createLink',false,u);} else document.execCommand(cmd,false,null); }; });
+  $$('[data-field]').forEach(inp=>{ inp.oninput=()=>{ const i=+inp.dataset.i; const f=inp.dataset.field; if(f==='itemtitle'){ state.blocks[i].data.items=[{title:inp.value,slug:slugify(inp.value)}]; } else state.blocks[i].data[f]=inp.value; update(); autosave(); }; });
+  $$('[data-stat]').forEach(inp=>{ inp.oninput=()=>{ const [i,j,k]=inp.dataset.stat.split('-'); state.blocks[i].data.rows[j][k]=inp.value; update(); autosave(); }; });
+  $$('.rb-space-seg').forEach(seg=>{ seg.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const i=+seg.dataset.i; state.blocks[i].data.size=bt.dataset.size; renderBlocks(); update(); autosave(); }); });
+  // image drop onto an existing empty image zone
+  $$('.rb-img-drop').forEach(z=>{ z.ondragover=e=>{e.preventDefault();z.style.borderColor='#ff334d';}; z.ondragleave=()=>z.style.borderColor=''; z.ondrop=e=>{e.preventDefault();z.style.borderColor='';const f=[...(e.dataTransfer.files||[])][0]; if(f) uploadImageToBlock(+z.dataset.i,f);}; });
+}
+
+/* ---------- clavier : Entrée / Maj+Entrée / double Entrée ---------- */
+function paragraphKeys(e,ce){
+  if(e.key!=='Enter') return;
+  if(e.shiftKey){ return; } // Maj+Entrée = retour à la ligne (comportement natif <br>, conservé)
+  e.preventDefault();
+  const i=+ce.dataset.i;
+  const empty = ce.textContent.trim()==='' && !ce.querySelector('img');
+  if(empty){
+    // 2e Entrée sur une ligne vide -> transforme en ESPACE (normal) + nouveau paragraphe
+    state.blocks[i]={id:state.blocks[i].id,type:'spacer',hidden:false,data:{size:'normal'}};
+    const nb=addBlock('paragraph',{text:''},i+1); focusBlock(i+1);
+  } else {
+    // Entrée -> nouveau paragraphe
+    const nb=addBlock('paragraph',{text:''},i+1); focusBlock(i+1);
+  }
+  update(); autosave();
+}
+function focusBlock(i){ requestAnimationFrame(()=>{ const el=$('#blocks').children[i]; if(!el)return; const ce=el.querySelector('.rb-ce'); if(ce){ce.focus(); state.sel=i;} }); }
+
+/* ---------- actions blocs ---------- */
+const TSF={
+  move(i,dir){const j=i+dir;if(j<0||j>=state.blocks.length)return;[state.blocks[i],state.blocks[j]]=[state.blocks[j],state.blocks[i]];renderBlocks();update();autosave();},
+  dup(i){state.blocks.splice(i+1,0,JSON.parse(JSON.stringify({...state.blocks[i],id:uid++})));renderBlocks();update();autosave();},
+  hide(i){state.blocks[i].hidden=!state.blocks[i].hidden;renderBlocks();update();autosave();},
+  del(i){if(confirm('Supprimer ce bloc ?')){state.blocks.splice(i,1);renderBlocks();update();autosave();}},
+  openAdd(){$('#mAdd').classList.add('on');},closeAdd(){$('#mAdd').classList.remove('on');},
+  close(id){$('#'+id).classList.remove('on');},
+  tab(t){document.body.classList.toggle('show-preview',t==='preview');$$('.rb-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));if(t==='preview')update();},
+  openSchedule(){alert('Programmation : choisir une date/heure futures → statut « programmé » (invisible jusqu\'à l\'heure prévue). Maquette.');},
+  pickImage(atBlock){ pendingImageAt = (atBlock==null?null:atBlock); pendingReplace = (typeof atBlock==='number'); $('#fileInput').click(); },
+  openPublish(featured){
+    const h=state.header; const recap=$('#pubRecap');
+    $('#pubTitle').textContent=featured?'Publier et mettre à la une':'Publier l\'article';
+    recap.innerHTML='<p><b>Identifiant :</b> '+ARTICLE_ID+'</p><p><b>Titre :</b> '+esc(h.title||'—')+'</p><p><b>Slug :</b> /articles/'+esc(h.slug||slugify(h.title||''))+'</p>'
+      +'<p><b>Rubrique :</b> '+esc([h.competition,h.genre].filter(Boolean).join(' · ')||'—')+'</p><p><b>Date :</b> '+esc(h.date||'aujourd\'hui')+'</p>'
+      +'<p><b>Image principale :</b> '+(h.hero?'définie':'—')+'</p>'
+      +'<p><b>À la une :</b> '+(featured?'OUI — l\'ancien « à la une » repasse en article normal (conservé, toujours publié, dans les archives)':'non')+'</p>'
+      +'<p><b>Dossier / journal :</b> '+esc(h.dossier||h.journal||'—')+'</p><p><b>Aperçus vérifiés :</b> ordinateur ✓ · mobile ✓</p>';
+    $('#pubConfirm').onclick=()=>{ this.close('mPub'); $('#edStatus').textContent=featured?'· Publié · à la une':'· Publié'; alert('✅ (Maquette) Publication confirmée'+(featured?' + mise à la une (opération atomique : l\'ancien reste publié)':'')+'. En vrai : écriture transactionnelle des blocs + version archivée.'); };
+    $('#mPub').classList.add('on');
+  },
+  save(manual){ autosave(manual); }
+};
+
+/* ---------- add menu ---------- */
+(function(){const m=$('#addMenu');Object.entries(BLOCK_DEFS).forEach(([k,d])=>{const b=document.createElement('button');b.innerHTML=d.icon+' '+(k==='spacer'?'Ajouter un espace':d.label)+'<small>'+hintFor(k)+'</small>';b.onclick=()=>{ const at = state.sel>=0?state.sel+1:null; if(k==='image'){TSF.closeAdd();TSF.pickImage();return;} addBlock(k,null,at); TSF.closeAdd(); };m.appendChild(b);});})();
+function hintFor(k){return{paragraph:'texte courant',heading:'section',subheading:'sous-section',image:'photo + légende',spacer:'aérer (petit/normal/grand)',quote:'mise en exergue',stats:'chiffres du match',table:'données',video:'YouTube/Twitch',embed:'contenu autorisé',divider:'respiration',related:'recommander un article',continue:'chapitre suivant du dossier'}[k]||'';}
+
+/* ---------- header fields ---------- */
+$$('[data-h]').forEach(inp=>{ const ev = inp.type==='checkbox'?'change':'input'; inp.addEventListener(ev,()=>{ state.header[inp.dataset.h]= inp.type==='checkbox'?inp.checked:inp.value; if(inp.dataset.h==='title' && !slugTouched){ const s=$('[data-h="slug"]'); s.value=slugify(inp.value); state.header.slug=s.value; } update(); autosave(); }); });
+let slugTouched=false; $('[data-h="slug"]').addEventListener('input',()=>slugTouched=true);
+
+/* ---------- autosave ---------- */
+let saveT,lastSaved=false;
+function autosave(manual){ $('#saveDot').classList.add('saving');$('#saveTxt').textContent='Enregistrement…'; clearTimeout(saveT); saveT=setTimeout(()=>{ $('#saveDot').classList.remove('saving'); const t=new Date(); $('#saveTxt').textContent='Brouillon enregistré · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0'); }, manual?200:800); }
+
+/* ---------- device modes ---------- */
+$('#deviceSeg').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;$$('#deviceSeg button').forEach(x=>x.classList.toggle('on',x===b));$('#frameWrap').style.width=b.dataset.d+'px';});
+
+/* ---------- IMAGES : sélection + glisser-déposer + progression + erreurs ---------- */
+let pendingImageAt=null, pendingReplace=false;
+const MAX_MB=25, OKTYPES=['image/jpeg','image/png','image/webp','image/avif'];
+$('#fileInput').addEventListener('change',e=>{ const files=[...e.target.files]; e.target.value=''; if(!files.length)return;
+  if(pendingReplace && typeof pendingImageAt==='number'){ uploadImageToBlock(pendingImageAt, files[0]); }
+  else { let at = state.sel>=0?state.sel+1:state.blocks.length; files.forEach(f=>{ const b=addBlock('image',{alt:'',caption:'',credit:'',src:''},at++); uploadImageToBlock(state.blocks.indexOf(b), f); }); }
+  pendingImageAt=null;pendingReplace=false;
+});
+function validateFile(f){
+  if(!OKTYPES.includes(f.type)) return 'Format refusé : '+(f.type||'inconnu')+'. Acceptés : JPEG, PNG, WebP, AVIF.';
+  if(f.size> MAX_MB*1024*1024) return 'Fichier trop lourd ('+(f.size/1048576).toFixed(1)+' Mo). Maximum '+MAX_MB+' Mo.';
+  return null;
+}
+function uploadImageToBlock(i,f){
+  const blk=state.blocks[i]; if(!blk||blk.type!=='image')return;
+  const err=validateFile(f);
+  if(err){ blk.data.error=err; renderBlocks(); return; }
+  // doublon simple (même nom+taille déjà présent)
+  const sig=f.name+':'+f.size;
+  if(state.blocks.some((b,j)=>j!==i&&b.type==='image'&&b.data._sig===sig)){ blk.data.error='Image déjà présente dans l\'article.'; renderBlocks(); return; }
+  blk.data.error=null; blk.data._sig=sig; blk.data._name=f.name;
+  const reader=new FileReader();
+  reader.onerror=()=>{ blk.data.error='Échec de lecture du fichier (réessayez). L\'article n\'est pas affecté.'; renderBlocks(); };
+  reader.onload=ev=>{
+    // progression simulée (en vrai : upload Storage + génération variantes WebP)
+    const prog=document.getElementById('prog-'+blk.id); if(prog){prog.style.display='block';}
+    let p=0; const bar=prog?prog.querySelector('i'):null;
+    const timer=setInterval(()=>{ p+=12+Math.random()*18; if(bar)bar.style.width=Math.min(100,p)+'%';
+      if(p>=100){ clearInterval(timer); blk.data.src=ev.target.result; blk.data.original=ev.target.result; renderBlocks(); update(); autosave(); }
+    },110);
+  };
+  reader.readAsDataURL(f);
+}
+/* glisser-déposer depuis l'ordinateur, ENTRE deux blocs, avec indicateur */
+const editor=$('#editorPane'); const host=$('#blocks');
+let dropline;
+function ensureDropline(){ if(!dropline){ dropline=document.createElement('div'); dropline.className='rb-dropline'; } return dropline; }
+function insertIndexFromY(y){
+  const kids=[...host.children]; for(let k=0;k<kids.length;k++){ const r=kids[k].getBoundingClientRect(); if(y < r.top+r.height/2) return k; } return kids.length;
+}
+editor.addEventListener('dragover',e=>{ if(![...(e.dataTransfer.types||[])].includes('Files'))return; e.preventDefault(); editor.classList.add('file-drag');
+  const idx=insertIndexFromY(e.clientY); const dl=ensureDropline(); dl.classList.add('on');
+  const kids=[...host.children].filter(c=>c!==dl); if(idx>=kids.length) host.appendChild(dl); else host.insertBefore(dl,kids[idx]); host._dropIdx=idx;
+});
+editor.addEventListener('dragleave',e=>{ if(e.target===editor){ editor.classList.remove('file-drag'); if(dropline)dropline.classList.remove('on'); } });
+editor.addEventListener('drop',e=>{ if(![...(e.dataTransfer.types||[])].includes('Files'))return; e.preventDefault(); editor.classList.remove('file-drag'); if(dropline)dropline.classList.remove('on');
+  const idx = host._dropIdx!=null?host._dropIdx:state.blocks.length;
+  const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
+  let at=idx; files.forEach(f=>{ const b=addBlock('image',{alt:'',caption:'',credit:'',src:''},at++); uploadImageToBlock(state.blocks.indexOf(b),f); });
+});
+
+/* ---------- preview-in-real button ---------- */
+$('#btnPreviewReal').onclick=()=>alert('« Prévisualiser » : ouvre /articles/<slug>?preview=1 — page privée identique au futur article public, accessible uniquement avec ta session admin (noindex, indécouvrable au slug). Maquette.');
+
+/* ---------- LIVE PREVIEW (vrai style du site) ---------- */
+const ARTICLE_CSS = `
+:root{--ink:#0b1a33;--navy:#071426;--red:#ff334d;--paper:#fbfcfe;--muted:#5a6b83;--line:#e6ecf5;--maxread:730px}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,Arial,sans-serif;line-height:1.6}
+img{max-width:100%;height:auto;display:block}
+.t{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;padding:12px 22px;background:var(--navy);color:#fff}
+.b{font-family:"Archivo Black";font-style:italic;font-size:18px}.b span{color:var(--red)}
+.n a{color:#cdd9ea;text-decoration:none;font-weight:600;font-size:14px;margin-left:16px}
+main{max-width:1100px;margin:0 auto;padding:26px 22px 40px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px}
+article{min-width:0;max-width:var(--maxread);margin:0 auto;width:100%}
+.k{color:var(--red);font-family:"Barlow Condensed";font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:15px;margin:0 0 10px}
+h1{font-family:"Archivo Black";font-size:clamp(30px,4.6vw,44px);line-height:1.06;margin:0 0 14px}
+.deck{font-family:"Source Serif 4",Georgia,serif;font-size:20px;line-height:1.5;color:#31435d;margin:0 0 18px}
+.by{display:flex;flex-wrap:wrap;gap:9px;color:var(--muted);font-size:14px;font-weight:500}.by b{color:var(--ink)}
+.act{display:flex;gap:10px;margin:16px 0 4px;flex-wrap:wrap}.act span{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 15px;font:600 13px Inter}
+/* IMAGES : ratio naturel, jamais recadrées */
+figure{margin:26px 0}
+figure img{width:100%;height:auto;border-radius:10px}
+.hero{margin:22px 0 8px}
+.hero img{width:100%;height:auto;border-radius:12px}
+.hero.cover img{aspect-ratio:16/9;object-fit:cover}
+figcaption{background:#f2f5fa;border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--muted);font-size:13.5px;margin-top:8px;line-height:1.45}
+figcaption .cr{display:inline-block;margin-left:6px;color:#8a99ad;font-style:italic;font-size:12.5px}
+.body{font-size:19px}.body p{margin:0 0 20px}
+h2{font-family:"Barlow Condensed";font-weight:800;font-size:27px;margin:34px 0 12px;line-height:1.15}
+h3{font-family:"Barlow Condensed";font-weight:800;font-size:20px;margin:26px 0 10px;color:#26374f}
+blockquote{margin:28px 0;padding:6px 0 6px 22px;border-left:3px solid var(--red)}
+blockquote p{font-family:"Source Serif 4",Georgia,serif;font-size:23px;line-height:1.45;font-style:italic;margin:0 0 8px}
+blockquote cite{color:var(--muted);font-style:normal;font-size:14px;font-weight:600}
+hr{border:0;border-top:1px solid var(--line);margin:30px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:26px 0;padding:18px;background:#f2f6fc;border:1px solid var(--line);border-radius:12px}
+.stat b{display:block;font-family:"Archivo Black";font-size:26px;color:var(--ink)}.stat span{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.embed{position:relative;aspect-ratio:16/9;margin:26px 0;border-radius:10px;overflow:hidden;background:#000}.embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.rel{margin:30px 0;padding:18px 20px;background:#f2f6fc;border:1px solid var(--line);border-radius:12px}
+.rel .rt{font-family:"Barlow Condensed";font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:16px;margin:0 0 10px}
+.rel a{display:block;padding:6px 0;color:var(--ink);text-decoration:none;font-weight:600}
+.side{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.side .st{font-family:"Barlow Condensed";font-weight:800;text-transform:uppercase;color:var(--muted);font-size:14px;margin:0 0 10px}
+.side a{display:block;padding:9px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600}.side a:first-of-type{border-top:0}
+table{border-collapse:collapse;width:100%;font-size:15px;margin:26px 0}th,td{border:1px solid var(--line);padding:9px 12px;text-align:left}thead th{background:#f1f5fb}
+@media(max-width:900px){main{grid-template-columns:1fr;gap:24px}.side{order:2}.n{display:none}.body{font-size:18px}}
+`;
+function figcap(caption,credit){
+  if(!caption && !credit) return '';           // pas de zone grise vide
+  return '<figcaption>'+esc(caption||'')+(credit?'<span class="cr">© '+esc(credit)+'</span>':'')+'</figcaption>';
+}
+function renderPreviewBlock(b){
+  if(b.hidden) return '';
+  const d=b.data;
+  switch(b.type){
+    case 'paragraph': return d.text&&d.text.trim()?'<p>'+d.text+'</p>':'';
+    case 'heading': return '<h2>'+esc(d.text||'Grand intertitre')+'</h2>';
+    case 'subheading': return '<h3>'+esc(d.text||'Petit intertitre')+'</h3>';
+    case 'spacer': return '<div style="height:'+(SPACE_PX[d.size]||30)+'px"></div>';
+    case 'image': return d.src?('<figure><img src="'+esc(d.src)+'" alt="'+esc(d.alt||'')+'">'+figcap(d.caption,d.credit)+'</figure>'):'';
+    case 'quote': return '<blockquote><p>'+esc(d.text||'Citation…')+'</p>'+(d.cite?'<cite>'+esc(d.cite)+'</cite>':'')+'</blockquote>';
+    case 'stats': return '<div class="stats">'+(d.rows||[]).map(r=>'<div class="stat"><b>'+esc(r.v)+'</b><span>'+esc(r.k)+'</span></div>').join('')+'</div>';
+    case 'table': return '<table><thead><tr>'+(d.head||[]).map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+(d.rows||[]).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+    case 'video': case 'embed': { const id=(d.id||'').replace(/[^\w-]/g,''); return id?'<div class="embed"><iframe src="https://www.youtube-nocookie.com/embed/'+id+'" allowfullscreen></iframe></div>':''; }
+    case 'divider': return '<hr>';
+    case 'related': case 'continue': return '<div class="rel"><p class="rt">'+esc(d.title||'À lire ensuite')+'</p>'+(d.items||[]).map(it=>'<a href="#">'+esc(it.title||'Article')+'</a>').join('')+'</div>';
+  }
+  return '';
+}
+function previewHTML(){
+  const h=state.header;
+  const kicker=[h.competition,h.genre].filter(Boolean).join(' · ');
+  const body=state.blocks.map(renderPreviewBlock).join('');
+  const hero = h.hero
+    ? '<figure class="hero'+(h.hero_cover?' cover':'')+'"><img src="'+esc(h.hero)+'" alt="'+esc(h.hero_alt||'')+'">'+figcap(h.hero_caption,h.hero_credit)+'</figure>'
+    : '<figure class="hero"><div style="aspect-ratio:16/9;background:#dbe6f4;border-radius:12px;display:grid;place-items:center;color:#8aa;font-weight:700">Image principale (ratio naturel)</div></figure>';
+  return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+   +'<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">'
+   +'<style>'+ARTICLE_CSS+'</style></head><body>'
+   +'<header class="t"><span class="b">TOMSO<span>FOOT</span></span><nav class="n"><a>Accueil</a><a>Articles</a><a>Le journal</a></nav></header>'
+   +'<main><article>'
+   +(kicker?'<p class="k">'+esc(kicker)+'</p>':'<p class="k" style="opacity:.4">Rubrique · Genre</p>')
+   +'<h1>'+esc(h.title||'Votre titre apparaîtra ici')+'</h1>'
+   +(h.deck?'<p class="deck">'+esc(h.deck)+'</p>':'<p class="deck" style="opacity:.5">Le chapô s\'affichera ici…</p>')
+   +'<div class="by"><b>Par '+esc(h.author||'La rédaction')+'</b>'+(h.date?'<span>· '+esc(h.date)+'</span>':'')+(h.reading?'<span>· '+esc(h.reading)+' min de lecture</span>':'')+'</div>'
+   +'<div class="act"><span>Partager</span><span>Copier le lien</span>'+(h.journal?'<span>Lire le journal</span>':'')+'</div>'
+   +hero+'<div class="body">'+body+'</div></article>'
+   +'<aside class="side"><p class="st">Sur TomsoFoot</p><a>Tous les articles</a><a>Le dernier journal</a><a>Les prochains matchs</a></aside>'
+   +'</main></body></html>';
+}
+let upT; function update(){ clearTimeout(upT); upT=setTimeout(()=>{ $('#pv').srcdoc=previewHTML(); },110); }
+
+/* ---------- seed démo ---------- */
+$('[data-h="title"]').value="L'Azteca a retrouvé sa voix"; state.header.title="L'Azteca a retrouvé sa voix"; state.header.slug=slugify(state.header.title);$('[data-h="slug"]').value=state.header.slug;
+$('[data-h="kicker"]').value="Mondial 2026 · Match d'ouverture"; state.header.kicker="Mondial 2026 · Match d'ouverture";
+$('[data-h="deck"]').value="Plus de quarante ans après, le mythique stade de Mexico a vibré pour une nouvelle ouverture de Coupe du monde."; state.header.deck=$('[data-h="deck"]').value;
+$('[data-h="competition"]').value="Coupe du monde"; state.header.competition="Coupe du monde";$('[data-h="genre"]').value="Reportage"; state.header.genre="Reportage";
+addBlock('paragraph',{text:"Il y a des stades qui appartiennent au présent, et d'autres qui semblent toujours dialoguer avec le passé. L'Azteca fait partie de ceux-là."});
+addBlock('spacer',{size:'normal'});
+addBlock('heading',{text:'Une ouverture précoce'});
+addBlock('paragraph',{text:'Hugo Broos avait choisi la prudence. En face, le Mexique avançait avec la confiance de huit matches sans défaite.'});
+addBlock('stats',{rows:[{k:'Possession',v:'61%'},{k:'Tirs',v:'16'},{k:'Buts',v:'2'},{k:'Exclusion',v:'1'}]});
+addBlock('quote',{text:"Certains moments méritent davantage de reconnaissance que d'exubérance.",cite:'Notre envoyé spécial'});
+autosave(true); update();
+</script>
+
+<!-- ===================== INTÉGRATION SUPABASE + LANGUAGETOOL ===================== -->
+<div id="tsfGate" style="position:fixed;inset:0;background:rgba(4,10,20,.92);display:grid;place-items:center;z-index:60;padding:20px">
+  <div style="max-width:440px;text-align:center;color:#eef4fc;font-family:Inter,sans-serif">
+    <div id="gateSpin" style="width:34px;height:34px;border:3px solid rgba(255,255,255,.2);border-top-color:#ff334d;border-radius:50%;margin:0 auto 16px;animation:tsfspin 1s linear infinite"></div>
+    <p id="gateMsg" style="font-size:15px;line-height:1.5">Vérification de la session…</p>
+    <div id="gateLogin" style="display:none;margin-top:14px">
+      <input id="gateEmail" class="rb-i" style="max-width:280px;margin:0 auto 10px" type="email" placeholder="ton e-mail admin" autocomplete="email">
+      <div><button class="btn btn--primary" id="gateSend">Recevoir un lien de connexion</button></div>
+      <p id="gateNote" style="color:#8ba0be;font-size:12px;margin-top:10px"></p>
+      <button class="btn" id="gatePreview" style="margin-top:8px">Continuer en mode aperçu (essai)</button>
+    </div>
+  </div>
+</div>
+<div id="ltPanel" style="position:fixed;top:0;right:0;bottom:0;width:min(420px,94vw);background:#0c1c38;border-left:1px solid rgba(140,170,220,.25);box-shadow:-12px 0 40px rgba(0,0,0,.4);z-index:55;transform:translateX(100%);transition:transform .22s;display:flex;flex-direction:column;color:#eef4fc;font-family:Inter,sans-serif">
+  <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid rgba(140,170,220,.2)">
+    <b style="font-size:15px">Vérification de l'article</b><span id="ltSummary" style="color:#8ba0be;font-size:12px"></span>
+    <span style="flex:1"></span><button class="icon-btn" id="ltClose" title="Fermer">✕</button>
+  </div>
+  <div id="ltBody" style="overflow:auto;padding:12px 14px;flex:1"></div>
+  <div style="padding:12px 14px;border-top:1px solid rgba(140,170,220,.2);color:#8ba0be;font-size:12px">Corrections proposées, jamais appliquées automatiquement. LanguageTool via le serveur — aucune clé exposée, l'enregistrement n'est jamais bloqué.</div>
+</div>
+<div id="tsfToast" style="position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:70;display:flex;flex-direction:column;gap:8px;align-items:center"></div>
+<style>@keyframes tsfspin{to{transform:rotate(360deg)}}
+.lt-item{background:#0a1730;border:1px solid rgba(140,170,220,.2);border-radius:10px;padding:11px 12px;margin-bottom:10px}
+.lt-item .lt-msg{font-size:13px;color:#dbe6f5}.lt-item .lt-cat{font-size:11px;color:#8ba0be;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.lt-ctx{font-size:13px;background:#0c1730;border-radius:7px;padding:8px 10px;margin:8px 0;line-height:1.5;color:#cdd9ea}
+.lt-ctx mark{background:rgba(255,51,77,.28);color:#fff;border-radius:3px;padding:0 2px}
+.lt-reps{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.lt-rep{background:rgba(63,220,139,.14);border:1px solid rgba(63,220,139,.4);color:#c8f6da;border-radius:7px;padding:5px 9px;font-size:13px;font-weight:700;cursor:pointer}
+.lt-rep:hover{background:rgba(63,220,139,.28)}
+.lt-acts{display:flex;gap:8px;margin-top:6px}
+.lt-acts button{font-size:12px;border:1px solid rgba(140,170,220,.25);background:rgba(255,255,255,.05);color:#cdd9ea;border-radius:7px;padding:6px 10px;font-weight:700}
+.lt-acts button:hover{border-color:#ff334d;color:#fff}
+.tsf-toast{background:#0d1f3d;border:1px solid rgba(140,170,220,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#eef4fc;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:80vw}
+.tsf-toast.ok{border-color:rgba(63,220,139,.5)}.tsf-toast.err{border-color:rgba(255,80,100,.6)}.tsf-toast.warn{border-color:rgba(245,196,81,.6)}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const SB_URL='https://yubndvqmglttlntkugzm.supabase.co';
+  const SB_ANON='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+  const sb = window.supabase && window.supabase.createClient(SB_URL, SB_ANON, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  let token='', admin=false, currentUuid=ARTICLE_UUID, currentEditorialId=ARTICLE_ID, currentStatus='draft', scheduleWhen=null;
+  const gid=id=>document.getElementById(id);
+
+  // ---------- taxonomie label<->id (identiques aux seeds de 0005) ----------
+  const ZMAP={'Angleterre':'angleterre','France':'france','Italie':'italie','Espagne':'espagne','Allemagne':'allemagne','Europe':'europe','International':'international'};
+  const CMAP={'Premier League':'premier-league','Ligue 1':'ligue-1','Serie A':'serie-a','Liga':'liga','Bundesliga':'bundesliga','Ligue des champions':'ligue-des-champions','Coupe du monde':'coupe-du-monde'};
+  const GMAP={'Actualité':'actualite','Analyse':'analyse','Entretien':'entretien','Reportage':'reportage','Histoire':'histoire','Récit':'recit','Édito':'edito'};
+  const invert=o=>{const r={};for(const k in o)r[o[k]]=k;return r;};
+  const ZINV=invert(ZMAP),CINV=invert(CMAP),GINV=invert(GMAP);
+
+  function toast(msg,type){ const t=document.createElement('div'); t.className='tsf-toast '+(type||''); t.textContent=msg; gid('tsfToast').appendChild(t); setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);}, type==='err'?6000:3500); }
+  function statusLabel(s){ return ({draft:'Brouillon',scheduled:'Programmé',published:'Publié',unpublished:'Dépublié',archived:'Archivé'})[s]||s; }
+  function setPill(){ gid('edStatus').textContent='· '+statusLabel(currentStatus); }
+
+  // ---------- payload article + blocs ----------
+  function buildArticle(){
+    const h=state.header;
+    const a={
+      id: currentUuid,
+      slug: (h.slug||slugify(h.title||'')||'article-'+Date.now()),
+      title: h.title||'(sans titre)',
+      deck: h.deck||null,
+      hero_image: h.hero||null, hero_alt: h.hero_alt||null, hero_caption: h.hero_caption||null, hero_credit: h.hero_credit||null, hero_cover: !!h.hero_cover,
+      author: h.author||null,
+      reading_time: h.reading?(parseInt(h.reading,10)||null):null,
+      seo_title: h.title||null, seo_description: h.seo||null, og_image: h.hero||null,
+      zone_id: ZMAP[h.zone]||null, competition_id: CMAP[h.competition]||null, genre_id: GMAP[h.genre]||null,
+      journal_slug: h.journal||null, dossier_id: h._dossier_id||null,
+      status: currentStatus||'draft'
+    };
+    if(scheduleWhen){ a.status='scheduled'; a.scheduled_at=scheduleWhen; a.published_at=scheduleWhen; }
+    return a;
+  }
+  function blockContent(b){ const d=b.data||{}; switch(b.type){
+    case 'paragraph': return {text:d.text||''};
+    case 'heading': case 'subheading': return {text:d.text||''};
+    case 'spacer': return {size:d.size||'normal'};
+    case 'quote': return {text:d.text||'', cite:d.cite||''};
+    case 'image': return {image:{fallback:(d.original||d.src||''), original:(d.original||d.src||''), variants:(d.variants||[]), alt:d.alt||'', caption:d.caption||'', credit:d.credit||'', width:d.width||null, height:d.height||null}};
+    case 'stats': return {rows:(d.rows||[]).filter(r=>r&&(r.k||r.v))};
+    case 'table': return {head:d.head||[], rows:d.rows||[]};
+    case 'video': case 'embed': return {provider:d.provider||'youtube', id:d.id||''};
+    case 'related': case 'continue': return {title:d.title||'', items:d.items||[]};
+    default: return {};
+  }}
+  function buildBlocks(){ return state.blocks.filter(b=>!b.hidden).map(b=>({type:b.type, content:blockContent(b)})); }
+
+  // ---------- enregistrement / publication ----------
+  let dbT=null;
+  function realSave(manual){
+    return new Promise(async (resolve)=>{
+      if(!sb){ toast('Service indisponible.','err'); return resolve(null); }
+      if(!token){ toast('Connecte-toi (compte admin) pour enregistrer. Ici, tu testes seulement le rendu.','warn'); return resolve(null); }
+      gid('saveDot').classList.add('saving'); gid('saveTxt').textContent='Enregistrement…';
+      try{
+        const {data,error}=await sb.rpc('save_article',{p_article:buildArticle(), p_blocks:buildBlocks()});
+        if(error) throw error;
+        const row=Array.isArray(data)?data[0]:data;
+        if(row){ currentUuid=row.id; currentEditorialId=row.editorial_id||currentEditorialId; currentStatus=row.status||currentStatus; gid('edId').textContent=currentEditorialId; setPill(); }
+        gid('saveDot').classList.remove('saving'); const t=new Date(); gid('saveTxt').textContent='Enregistré · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+        resolve(row);
+      }catch(e){ gid('saveDot').classList.remove('saving'); gid('saveTxt').textContent='Non enregistré'; toast('Échec enregistrement : '+(e.message||e.error_description||e),'err'); resolve(null); }
+    });
+  }
+  // remplace l'autosave visuel du prototype par un vrai autosave débouncé (jamais à chaque caractère)
+  autosave=function(manual){ gid('saveDot').classList.add('saving'); gid('saveTxt').textContent='Modifications…'; clearTimeout(dbT); dbT=setTimeout(()=>{ if(token) realSave(false); else { gid('saveDot').classList.remove('saving'); gid('saveTxt').textContent='Brouillon local (non connecté)'; } }, manual?400:1600); };
+  TSF.save=function(manual){ realSave(true); };
+
+  async function realPublish(featured){
+    const row=await realSave(true);
+    if(!currentUuid){ return; }
+    try{
+      const {data,error}=await sb.rpc('publish_article',{p_id:currentUuid, p_featured:!!featured, p_when:new Date().toISOString()});
+      if(error) throw error;
+      currentStatus='published'; scheduleWhen=null; setPill();
+      const slug=buildArticle().slug;
+      toast('Publié ✓ — en ligne sur /articles/'+slug+(featured?' · à la une':''),'ok');
+    }catch(e){ toast('Échec publication : '+(e.message||e),'err'); }
+  }
+  const _openPublish=TSF.openPublish;
+  TSF.openPublish=function(featured){ _openPublish.call(TSF,featured); const c=gid('pubConfirm'); c.textContent = token?'Confirmer la publication':'Connecte-toi pour publier'; c.onclick=()=>{ TSF.close('mPub'); if(!token){toast('Connexion admin requise pour publier.','warn');return;} realPublish(featured); }; };
+  TSF.openSchedule=function(){ const v=prompt('Programmer la publication (AAAA-MM-JJTHH:MM, heure locale). Laisse vide pour annuler.'); if(!v){return;} const d=new Date(v); if(isNaN(d)){toast('Date invalide.','err');return;} scheduleWhen=d.toISOString(); currentStatus='scheduled'; realSave(true).then(()=>toast('Programmé pour le '+d.toLocaleString('fr-FR')+' (invisible jusque-là).','ok')); };
+
+  // ---------- prévisualisation fidèle (aperçu local, sans exposer de jeton) ----------
+  gid('btnPreviewReal').onclick=function(){ const html=previewHTML(); const blob=new Blob([html],{type:'text/html'}); const url=URL.createObjectURL(blob); window.open(url,'_blank','noopener'); setTimeout(()=>URL.revokeObjectURL(url),10000); };
+
+  // ---------- traitement image : dimensions naturelles + variante WebP ----------
+  function processImage(file){
+    return new Promise((resolve,reject)=>{
+      const url=URL.createObjectURL(file); const img=new Image();
+      img.onload=()=>{ const w=img.naturalWidth,h=img.naturalHeight; const maxW=1600; const scale=Math.min(1,maxW/w); const cw=Math.max(1,Math.round(w*scale)),ch=Math.max(1,Math.round(h*scale));
+        let webpBlob=null,webpW=cw;
+        try{ const cv=document.createElement('canvas'); cv.width=cw; cv.height=ch; cv.getContext('2d').drawImage(img,0,0,cw,ch);
+          cv.toBlob(b=>{ webpBlob=b; URL.revokeObjectURL(url); resolve({w,h,webpBlob,webpW}); },'image/webp',0.86);
+          return;
+        }catch(e){ URL.revokeObjectURL(url); resolve({w,h,webpBlob:null,webpW:cw}); }
+      };
+      img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('image illisible')); };
+      img.src=url;
+    });
+  }
+  async function realUpload(i,f){
+    const blk=state.blocks[i]; if(!blk||blk.type!=='image')return;
+    const err=validateFile(f); if(err){ blk.data.error=err; renderBlocks(); return; }
+    if(!token){ blk.data.error='Connecte-toi (admin) pour téléverser. L\'article n\'est pas affecté.'; renderBlocks(); return; }
+    const sig=f.name+':'+f.size;
+    if(state.blocks.some((b,j)=>j!==i&&b.type==='image'&&b.data._sig===sig)){ blk.data.error='Image déjà présente dans l\'article.'; renderBlocks(); return; }
+    blk.data.error=null; blk.data._sig=sig; renderBlocks();
+    const prog=gid('prog-'+blk.id); if(prog)prog.style.display='block'; const bar=prog?prog.querySelector('i'):null; const setBar=p=>{if(bar)bar.style.width=p+'%';}; setBar(12);
+    try{
+      const {w,h,webpBlob,webpW}=await processImage(f); setBar(40);
+      const stamp=Date.now()+'-'+Math.random().toString(36).slice(2,7);
+      const ext=((f.type.split('/')[1]||'jpg').replace('jpeg','jpg')).replace(/[^a-z0-9]/g,'')||'jpg';
+      const origPath='articles/'+stamp+'-orig.'+ext;
+      const up1=await sb.storage.from('articles').upload(origPath,f,{contentType:f.type,upsert:true}); if(up1.error) throw up1.error;
+      const origUrl=sb.storage.from('articles').getPublicUrl(origPath).data.publicUrl; setBar(72);
+      let variants=[], displayUrl=origUrl;
+      if(webpBlob){ const wpath='articles/'+stamp+'-'+webpW+'.webp'; const up2=await sb.storage.from('articles').upload(wpath,webpBlob,{contentType:'image/webp',upsert:true});
+        if(!up2.error){ const wurl=sb.storage.from('articles').getPublicUrl(wpath).data.publicUrl; variants=[{url:wurl,w:webpW,type:'image/webp'}]; displayUrl=wurl; } }
+      setBar(100);
+      blk.data.src=displayUrl; blk.data.original=origUrl; blk.data.variants=variants; blk.data.width=w; blk.data.height=h; blk.data.error=null;
+      renderBlocks(); update(); realSave(true);
+    }catch(e){ blk.data.error='Échec du téléversement : '+(e.message||e)+' — l\'article n\'est pas affecté.'; renderBlocks(); }
+  }
+  uploadImageToBlock=realUpload;
+
+  // Image principale (hero) : glisser-déposer un fichier -> téléversement -> URL remplie.
+  (function(){ const hero=document.querySelector('[data-h="hero"]'); if(!hero)return;
+    hero.addEventListener('dragover',e=>{ if([...(e.dataTransfer.types||[])].includes('Files')){ e.preventDefault(); e.stopPropagation(); hero.style.borderColor='#ff334d'; } });
+    hero.addEventListener('dragleave',()=>hero.style.borderColor='');
+    hero.addEventListener('drop',async e=>{ const f=[...(e.dataTransfer.files||[])][0]; if(!f||!f.type.startsWith('image/'))return; e.preventDefault(); e.stopPropagation(); hero.style.borderColor='';
+      if(!token){ toast('Connecte-toi (admin) pour téléverser l\'image principale.','warn'); return; }
+      const bad=validateFile(f); if(bad){ toast(bad,'err'); return; }
+      toast('Téléversement de l\'image principale…','warn');
+      try{ const {webpBlob,webpW}=await processImage(f); const stamp=Date.now()+'-'+Math.random().toString(36).slice(2,7);
+        let url;
+        if(webpBlob){ const p='articles/hero-'+stamp+'-'+webpW+'.webp'; const up=await sb.storage.from('articles').upload(p,webpBlob,{contentType:'image/webp',upsert:true}); if(up.error)throw up.error; url=sb.storage.from('articles').getPublicUrl(p).data.publicUrl; }
+        else { const ext=((f.type.split('/')[1]||'jpg').replace('jpeg','jpg')); const p='articles/hero-'+stamp+'.'+ext; const up=await sb.storage.from('articles').upload(p,f,{contentType:f.type,upsert:true}); if(up.error)throw up.error; url=sb.storage.from('articles').getPublicUrl(p).data.publicUrl; }
+        hero.value=url; hero.dispatchEvent(new Event('input',{bubbles:true})); toast('Image principale ajoutée ✓','ok');
+      }catch(e){ toast('Échec : '+(e.message||e),'err'); }
+    });
+  })();
+
+  // ---------- chargement d'un article existant (par ID éditorial ou slug) ----------
+  function fillSelect(sel,label){ const el=document.querySelector('[data-h="'+sel+'"]'); if(!el)return; el.value=label||''; state.header[sel]=label||''; }
+  async function loadArticle(key){
+    if(!sb){ toast('Service indisponible.','err'); return; }
+    key=(key||'').trim(); if(!key)return;
+    const col = /^TSF-/i.test(key) ? 'editorial_id' : 'slug';
+    try{
+      const {data,error}=await sb.from('articles').select('*').eq(col,key).limit(1);
+      if(error) throw error;
+      const a=data&&data[0]; if(!a){ toast('Introuvable : '+key,'warn'); return; }
+      const {data:blocks}=await sb.from('article_blocks').select('type,content,position').eq('article_id',a.id).order('position',{ascending:true});
+      // reconstruire l'état
+      currentUuid=a.id; currentEditorialId=a.editorial_id||key; currentStatus=a.status||'draft'; scheduleWhen=null;
+      gid('edId').textContent=currentEditorialId; setPill();
+      const h=state.header;
+      const map={title:a.title,deck:a.deck,author:a.author,hero:a.hero_image,hero_alt:a.hero_alt,hero_caption:a.hero_caption,hero_credit:a.hero_credit,reading:a.reading_time,seo:a.seo_description,journal:a.journal_slug,slug:a.slug,kicker:''};
+      Object.keys(map).forEach(k=>{ const el=document.querySelector('[data-h="'+k+'"]'); if(el){ el.value=map[k]==null?'':map[k]; } state.header[k]=map[k]==null?'':map[k]; });
+      const hc=document.querySelector('[data-h="hero_cover"]'); if(hc){ hc.checked=!!a.hero_cover; state.header.hero_cover=!!a.hero_cover; }
+      fillSelect('zone', ZINV[a.zone_id]); fillSelect('competition', CINV[a.competition_id]); fillSelect('genre', GINV[a.genre_id]);
+      state.header._dossier_id=a.dossier_id||null;
+      state.blocks=(blocks||[]).map(bl=>{ const c=bl.content||{}; let d={};
+        if(bl.type==='paragraph'||bl.type==='heading'||bl.type==='subheading') d={text:c.text||''};
+        else if(bl.type==='quote') d={text:c.text||'',cite:c.cite||''};
+        else if(bl.type==='spacer') d={size:c.size||'normal'};
+        else if(bl.type==='image'){ const im=c.image||{}; d={src:(im.variants&&im.variants[0]&&im.variants[0].url)||im.fallback||im.original||'',original:im.original||im.fallback||'',variants:im.variants||[],alt:im.alt||'',caption:im.caption||'',credit:im.credit||'',width:im.width,height:im.height}; }
+        else if(bl.type==='stats') d={rows:c.rows||[]};
+        else if(bl.type==='table') d={head:c.head||[],rows:c.rows||[]};
+        else if(bl.type==='video'||bl.type==='embed') d={provider:c.provider||'youtube',id:c.id||''};
+        else if(bl.type==='related'||bl.type==='continue') d={title:c.title||'',items:c.items||[]};
+        return {id:uid++,type:bl.type,hidden:false,data:d};
+      });
+      renderBlocks(); update();
+      toast('Article chargé : '+currentEditorialId+' ('+statusLabel(currentStatus)+')','ok');
+    }catch(e){ toast('Échec du chargement : '+(e.message||e),'err'); }
+  }
+  gid('btnLoad').onclick=()=>loadArticle(gid('loadId').value);
+  gid('loadId').addEventListener('keydown',e=>{ if(e.key==='Enter')loadArticle(gid('loadId').value); });
+  gid('btnNew').onclick=()=>{ if(!confirm('Créer un nouvel article vierge ? (le brouillon en cours doit déjà être enregistré)'))return; location.reload(); };
+
+  // ---------- dossiers (remplir le sélecteur avec de vrais ids) ----------
+  (async function(){ if(!sb)return; try{ const {data}=await sb.from('dossiers').select('id,title,slug').order('created_at',{ascending:false}).limit(50);
+    const sel=document.querySelector('[data-h="dossier"]'); if(sel&&data){ sel.innerHTML='<option value="">Aucun</option>'+data.map(d=>'<option value="'+d.id+'">'+ (d.title||d.slug) +'</option>').join('');
+      sel.addEventListener('change',()=>{ state.header._dossier_id=sel.value||null; }); } }catch(e){} })();
+
+  // ---------- orthographe native ----------
+  function applySpell(){ document.querySelectorAll('.rb-ce,[data-h="title"],[data-h="deck"],[data-field="text"],[data-field="cite"]').forEach(el=>{ el.setAttribute('spellcheck','true'); el.setAttribute('lang','fr'); }); }
+  const _renderBlocks=renderBlocks; renderBlocks=function(){ _renderBlocks(); applySpell(); };
+  applySpell();
+
+  // ---------- LanguageTool : vérification à la demande, non destructive ----------
+  const ignoreWords=new Set();
+  function plainFromHtml(html){ const d=document.createElement('div'); d.innerHTML=html||''; return d.textContent||''; }
+  function collectUnits(){
+    const units=[];
+    const title=document.querySelector('[data-h="title"]'); if(title) units.push({label:'Titre', kind:'input', el:title});
+    const deck=document.querySelector('[data-h="deck"]'); if(deck) units.push({label:'Chapô', kind:'input', el:deck});
+    state.blocks.forEach((b,i)=>{ if(b.hidden)return;
+      if(b.type==='paragraph') units.push({label:'Paragraphe '+(i+1), kind:'html', bi:i});
+      else if(b.type==='heading') units.push({label:'Intertitre', kind:'blocktext', bi:i});
+      else if(b.type==='subheading') units.push({label:'Sous-titre', kind:'blocktext', bi:i});
+      else if(b.type==='quote') units.push({label:'Citation', kind:'blocktext', bi:i});
+    });
+    return units;
+  }
+  function unitPlain(u){ if(u.kind==='input')return u.el.value||''; if(u.kind==='html')return plainFromHtml(state.blocks[u.bi].data.text||''); if(u.kind==='blocktext')return state.blocks[u.bi].data.text||''; return ''; }
+  function replaceInHtmlByOffset(html,offset,length,rep){
+    const d=document.createElement('div'); d.innerHTML=html; let pos=0, done=false;
+    (function walk(node){ for(let n=node.firstChild;n&&!done;n=n.nextSibling){ if(n.nodeType===3){ const len=n.nodeValue.length; if(offset>=pos&&offset<pos+len){ const start=offset-pos; const avail=Math.min(length,len-start); n.nodeValue=n.nodeValue.slice(0,start)+rep+n.nodeValue.slice(start+avail); done=true; return; } pos+=len; } else if(n.nodeType===1){ walk(n); } } })(d);
+    return d.innerHTML;
+  }
+  function applyRep(u,m,rep){
+    if(u.kind==='input'){ const v=u.el.value; u.el.value=v.slice(0,m.offset)+rep+v.slice(m.offset+m.length); u.el.dispatchEvent(new Event('input',{bubbles:true})); }
+    else if(u.kind==='blocktext'){ const b=state.blocks[u.bi]; const v=b.data.text||''; b.data.text=v.slice(0,m.offset)+rep+v.slice(m.offset+m.length); renderBlocks(); update(); realSave(true); }
+    else if(u.kind==='html'){ const b=state.blocks[u.bi]; b.data.text=replaceInHtmlByOffset(b.data.text||'',m.offset,m.length,rep); renderBlocks(); update(); realSave(true); }
+  }
+  async function ltFetch(text){
+    try{ const r=await fetch('/.netlify/functions/lt-check',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+token},body:JSON.stringify({text,language:'fr'})}); return await r.json(); }
+    catch(e){ return {available:false,matches:[]}; }
+  }
+  function openLt(){ gid('ltPanel').style.transform='translateX(0)'; }
+  function closeLt(){ gid('ltPanel').style.transform='translateX(100%)'; }
+  gid('ltClose').onclick=closeLt;
+  gid('btnCheck').onclick=async function(){
+    if(!token){ toast('Connecte-toi (compte admin) pour la vérification LanguageTool.','warn'); return; }
+    openLt(); gid('ltBody').innerHTML='<p style="color:#8ba0be">Analyse en cours…</p>'; gid('ltSummary').textContent='';
+    const units=collectUnits(); const found=[]; let unavailable=false;
+    for(const u of units){ const plain=unitPlain(u); if(!plain.trim())continue; const res=await ltFetch(plain);
+      if(res&&res.available===false){ unavailable=true; }
+      (res&&res.matches||[]).forEach(m=>{ const word=plain.substr(m.offset,m.length); if(ignoreWords.has((word||'').toLowerCase()))return; found.push({u,m,word,plain}); });
+    }
+    renderLt(found,unavailable);
+  };
+  function renderLt(found,unavailable){
+    const body=gid('ltBody'); gid('ltSummary').textContent=found.length+' suggestion'+(found.length>1?'s':'');
+    if(unavailable && !found.length){ body.innerHTML='<div class="lt-item"><div class="lt-msg">Le correcteur est momentanément indisponible — ce n\'est pas bloquant, tu peux enregistrer et publier normalement. Réessaie plus tard.</div></div>'; return; }
+    if(!found.length){ body.innerHTML='<div class="lt-item"><div class="lt-msg">Aucune erreur détectée. La correction native du navigateur reste active pendant la frappe. ✓</div></div>'; return; }
+    body.innerHTML='';
+    found.forEach((f,idx)=>{
+      const m=f.m; const ctx=m.context||{text:f.plain,offset:m.offset,length:m.length};
+      const before=ctx.text.slice(0,ctx.offset), mid=ctx.text.slice(ctx.offset,ctx.offset+ctx.length), after=ctx.text.slice(ctx.offset+ctx.length);
+      const card=document.createElement('div'); card.className='lt-item';
+      card.innerHTML='<div class="lt-cat">'+esc(f.u.label)+' · '+esc(m.category||m.issueType||'Langue')+'</div>'
+        +'<div class="lt-msg">'+esc(m.message||'')+'</div>'
+        +'<div class="lt-ctx">'+esc(before)+'<mark>'+esc(mid)+'</mark>'+esc(after)+'</div>'
+        +(m.replacements&&m.replacements.length?'<div class="lt-reps">'+m.replacements.map((r,k)=>'<button class="lt-rep" data-k="'+k+'">'+esc(r)+'</button>').join('')+'</div>':'')
+        +'<div class="lt-acts"><button data-act="ignore">Ignorer</button><button data-act="dict">Ajouter au dictionnaire</button></div>';
+      card.querySelectorAll('.lt-rep').forEach(btn=>btn.onclick=()=>{ applyRep(f.u,m,m.replacements[+btn.dataset.k]); card.style.opacity='.4'; card.querySelectorAll('button').forEach(b=>b.disabled=true); toast('Correction appliquée ✓','ok'); });
+      card.querySelector('[data-act="ignore"]').onclick=()=>{ card.remove(); };
+      card.querySelector('[data-act="dict"]').onclick=()=>{ ignoreWords.add((f.word||'').toLowerCase()); card.remove(); toast('« '+f.word+' » ajouté au dictionnaire (session).','ok'); };
+      body.appendChild(card);
+    });
+  }
+
+  // ---------- authentification (même logique que les autres régies) ----------
+  function gate(msg,showLogin){ gid('gateMsg').textContent=msg; gid('gateSpin').style.display=showLogin?'none':''; gid('gateLogin').style.display=showLogin?'':'none'; }
+  async function boot(){
+    if(!sb){ gate('Service de connexion indisponible. Recharge la page.',true); return; }
+    const host=location.hostname; const isProd=(host==='tomsofoot.fr'||host==='www.tomsofoot.fr');
+    const session=(await sb.auth.getSession()).data.session;
+    if(session){ token=session.access_token; try{ admin=(await sb.rpc('is_current_user_admin')).data===true; }catch(e){} }
+    if(isProd){
+      if(!session){ gate('Connecte-toi à ta régie (compte admin) pour écrire des articles.',true); return; }
+      if(!admin){ gate('Ce compte n\'est pas administrateur.',true); return; }
+    }
+    gid('tsfGate').style.display='none';
+    if(session) toast((admin?'Connecté ✓ ':'Session ')+(session.user.email||''), 'ok');
+    else toast('Mode aperçu — l\'enregistrement nécessite une connexion admin.','warn');
+  }
+  gid('gateSend').onclick=async function(){ const email=(gid('gateEmail').value||'').trim(); if(!/.+@.+\..+/.test(email)){ gid('gateNote').textContent='Entre un e-mail valide.'; return; }
+    try{ const {error}=await sb.auth.signInWithOtp({email, options:{emailRedirectTo:location.href}}); if(error)throw error; gid('gateNote').textContent='Lien envoyé ✓ — ouvre l\'e-mail sur cet appareil puis reviens ici.'; }
+    catch(e){ gid('gateNote').textContent='Échec : '+(e.message||e); } };
+  gid('gatePreview').onclick=function(){ gid('tsfGate').style.display='none'; toast('Mode aperçu — enregistrement/publication désactivés (connexion admin requise).','warn'); };
+  sb && sb.auth.onAuthStateChange((_e,session)=>{ if(session){ token=session.access_token; sb.rpc('is_current_user_admin').then(r=>{admin=r.data===true;}); gid('tsfGate').style.display='none'; } });
+  boot();
+})();
+</script>
+</body>
+</html>
