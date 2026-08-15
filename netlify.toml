@@ -9,3 +9,33 @@
   for = "/.netlify/functions/youtube-latest"
   [headers.values]
     Access-Control-Allow-Origin = "*"
+
+# =====================================================================
+# Système d'ARTICLES HTML + DOSSIERS (ADDITIF — n'affecte aucune route existante)
+# Rendu serveur : texte en vrai HTML, SEO, RLS public. Brouillons invisibles.
+# =====================================================================
+[[redirects]]
+  from = "/sitemap-articles.xml"
+  to = "/.netlify/functions/sitemap-articles"
+  status = 200
+
+[[redirects]]
+  from = "/articles"
+  to = "/.netlify/functions/articles-index"
+  status = 200
+
+[[redirects]]
+  from = "/articles/"
+  to = "/.netlify/functions/articles-index"
+  status = 200
+
+# Dossiers AVANT articles/:slug (chemins distincts, ordre sans ambiguïté)
+[[redirects]]
+  from = "/dossiers/:slug"
+  to = "/.netlify/functions/dossier?slug=:slug"
+  status = 200
+
+[[redirects]]
+  from = "/articles/:slug"
+  to = "/.netlify/functions/article?slug=:slug"
+  status = 200
