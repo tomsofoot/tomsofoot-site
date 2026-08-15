@@ -1,0 +1,8 @@
+{
+  "name": "tomsofoot-site",
+  "private": true,
+  "description": "Dépendances des fonctions Netlify (compteurs + matchs). Le site reste statique.",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

@@ -29,7 +29,7 @@
     .hero{min-height:760px;position:relative;overflow:hidden;background:var(--navy);color:white;isolation:isolate}.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,11,23,.97) 0%,rgba(4,11,23,.74) 44%,rgba(4,11,23,.2) 78%),linear-gradient(0deg,rgba(4,11,23,.9),transparent 55%),var(--hero-img) center/cover;z-index:-2}.hero:after{content:"";position:absolute;width:60vw;height:60vw;border:1px solid rgba(255,255,255,.12);border-radius:50%;right:-24vw;top:-22vw;box-shadow:0 0 0 80px rgba(255,255,255,.025),0 0 0 160px rgba(255,255,255,.018);z-index:-1}
     .hero-inner{max-width:var(--max);min-height:760px;margin:auto;padding:90px var(--pad) 70px;display:flex;flex-direction:column;justify-content:flex-end}.eyebrow{display:flex;align-items:center;gap:12px;text-transform:uppercase;font-size:11px;font-weight:700;letter-spacing:.18em}.eyebrow:before{content:"";width:34px;height:2px;background:var(--red)}
     .hero h1{max-width:970px;margin:22px 0 20px;font-family:"Archivo Black";font-size:clamp(54px,7.3vw,118px);font-weight:400;line-height:.88;letter-spacing:-.075em;text-transform:uppercase}.hero h1 .stroke{display:block;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.72)}.hero-copy{max-width:580px;margin:0 0 32px;font-family:"Source Serif 4",Georgia,serif;font-size:clamp(18px,2vw,25px);line-height:1.4;color:#e9edf3}.cta-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 24px;border:1px solid rgba(255,255,255,.35);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:.25s}.btn.primary{background:white;color:var(--ink);border-color:white}.btn:hover{transform:translateY(-2px);background:var(--blue);border-color:var(--blue);color:white}.hero-meta{margin:18px 0 0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#93a1b3}
-    .match-bar{background:white;border-bottom:1px solid #d7d9dd}.match-inner{max-width:var(--max);margin:auto;padding:20px var(--pad);display:grid;grid-template-columns:auto 1fr auto;gap:32px;align-items:center}.live-tag{background:var(--red);color:white;padding:7px 9px;font-size:10px;font-weight:800;letter-spacing:.14em}.score{display:flex;align-items:center;justify-content:center;gap:18px;font-family:"Archivo Black";text-transform:uppercase}.score strong{font-size:24px}.score small{font-family:Inter;font-weight:700;color:#707684}.match-link{font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;border-bottom:1px solid}
+    .match-bar{background:white;border-bottom:1px solid #d7d9dd}.match-inner{max-width:var(--max);margin:auto;padding:20px var(--pad);display:grid;grid-template-columns:auto 1fr auto;gap:32px;align-items:center}.live-tag{background:var(--red);color:white;padding:7px 9px;font-size:10px;font-weight:800;letter-spacing:.14em}.score{display:flex;align-items:center;justify-content:center;gap:18px;font-family:"Archivo Black";text-transform:uppercase}.score strong{font-size:24px}.score small{font-family:Inter;font-weight:700;color:#707684}.mc{background:#071426;color:#fff;width:100%}.mc-inner{max-width:var(--max);margin:auto;padding:26px var(--pad) 30px}.mc-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px 24px;flex-wrap:wrap;margin-bottom:16px}.mc-title{display:flex;flex-direction:column;gap:8px}.mc-eyebrow{align-self:flex-start;background:#FF334D;color:#fff;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:5px 9px;border-radius:5px}.mc-title h2{font-family:"Archivo Black",sans-serif;font-weight:400;font-size:clamp(17px,2.1vw,25px);letter-spacing:-.02em;text-transform:uppercase;margin:0;line-height:1;color:#fff}.mc-ctrl{display:flex;align-items:center;gap:12px}.mc-count{font-family:"Archivo Black",sans-serif;font-size:12px;letter-spacing:.05em;color:#cdd9ea}.mc-dots{display:flex;gap:6px}.mc-dot{position:relative;width:26px;height:3px;border-radius:2px;background:rgba(159,178,204,.28);overflow:hidden;border:0;padding:0;cursor:pointer}.mc-dot .mc-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:#FF334D}.mc-arw{width:28px;height:28px;border:1px solid rgba(159,178,204,.34);background:rgba(255,255,255,.04);border-radius:50%;color:#cdd9ea;font-size:16px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:.15s}.mc-arw:hover,.mc-arw:focus-visible{border-color:#FF334D;color:#fff;outline:none}.mc-rot{font-size:11px;color:#7f93ad;letter-spacing:.02em;white-space:nowrap}.mc-stage{position:relative;overflow:hidden;min-height:104px}.mc-page{position:absolute;inset:0;display:grid;gap:16px;grid-template-columns:repeat(var(--mc-per,3),minmax(0,1fr));align-items:stretch;opacity:0;transform:translateY(24px);pointer-events:none}.mc-page.is-active{opacity:1;transform:none;pointer-events:auto}.mc-page.is-leave{opacity:0;transform:translateY(-24px);pointer-events:none}.mc-anim .mc-page{transition:transform 650ms cubic-bezier(.22,1,.36,1),opacity 420ms ease}.mc-card{position:relative;display:flex;flex-direction:column;gap:12px;min-height:104px;background:linear-gradient(160deg,#0C203A,#102946);border:1px solid rgba(120,160,214,.20);border-radius:16px;padding:16px 18px;box-shadow:0 10px 26px rgba(0,0,0,.28);transition:border-color .18s ease}.mc-card:hover{border-color:rgba(255,51,77,.5)}.mc-card--next::before{content:"";position:absolute;left:16px;right:16px;top:0;height:2px;background:#FF334D;border-radius:0 0 2px 2px}.mc-meta{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8ba0be;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(74px,auto) minmax(0,1fr);align-items:center;column-gap:18px}.match-team{min-width:0;display:flex;align-items:center;gap:10px}.match-team--home{justify-content:flex-end;text-align:right}.match-team--away{justify-content:flex-start;text-align:left}.match-team__logo{width:30px;height:30px;object-fit:contain;flex:none}.match-team__name{min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.15;font-weight:700;font-size:14px;color:#fff}.match-time{min-width:74px;flex:none;white-space:nowrap;text-align:center;position:static;z-index:auto;display:flex;flex-direction:column;align-items:center;gap:4px}.mc-cap{display:inline-block;background:#eaf1fb;color:#0b1a33;font-family:"Archivo Black",sans-serif;font-size:15px;letter-spacing:-.01em;padding:6px 12px;border-radius:9px;white-space:nowrap}.mc-cap.live{background:#FF334D;color:#fff}.mc-live-badge{font-size:9px;font-weight:800;letter-spacing:.08em;color:#FF334D;text-transform:uppercase;white-space:nowrap}.mc-min{font-size:10px;color:#9fb2cc}.mc-state{font-size:9.5px;color:#9fb2cc;text-transform:uppercase;letter-spacing:.06em}.mc-empty{position:relative;grid-column:1/-1;display:flex;align-items:center;justify-content:center;min-height:104px;color:#8ba0be;font-weight:600;font-size:14px;border:1px dashed rgba(120,160,214,.24);border-radius:16px}.mc-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);border:0}@media(max-width:1023px){.mc-page{grid-template-columns:repeat(var(--mc-per,2),minmax(0,1fr))}}@media(max-width:560px){.mc-inner{padding:22px 16px 26px}.mc-head{align-items:flex-start}.match-main{grid-template-columns:1fr;row-gap:10px;column-gap:0}.match-team,.match-team--home,.match-team--away{justify-content:flex-start;text-align:left}.match-team--away .match-team__logo{order:-1}.match-time{align-self:center;min-width:0;flex-direction:row;gap:8px}}@media(prefers-reduced-motion:reduce){.mc-anim .mc-page{transition:opacity .001s}}.match-link{font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;border-bottom:1px solid}
     .rubrics{background:var(--ink);color:white;border-bottom:1px solid rgba(255,255,255,.1)}.rubrics-inner{max-width:var(--max);margin:auto;padding:16px var(--pad);display:flex;flex-wrap:wrap;gap:10px 34px;align-items:center}.rgroup{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.rgroup>span:first-child{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#6d7c8f}.rgroup a{font-size:12px;font-weight:600;color:#c9d2de;padding-bottom:2px;border-bottom:1px solid transparent;transition:.2s}.rgroup a:hover{color:white;border-color:var(--red)}
     .section{max-width:var(--max);margin:auto;padding:100px var(--pad)}.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:38px;border-bottom:1px solid #b8bec7;padding-bottom:16px}.kicker{color:var(--red);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.section h2{margin:7px 0 0;font-family:"Archivo Black";font-weight:400;font-size:clamp(34px,4vw,64px);line-height:.95;letter-spacing:-.055em;text-transform:uppercase}.see-all{font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}
     .story-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:18px}.story{position:relative;min-height:430px;overflow:hidden;background:#111;color:white;display:block}.story:first-child{min-height:610px}.story img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.85);transition:transform .6s}.story:hover img{transform:scale(1.035)}.story:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(2,7,15,.96),rgba(2,7,15,.03) 72%)}.story-content{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:28px}.label{display:inline-block;margin-bottom:12px;color:#fff;font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.label:after{content:"";display:block;width:25px;height:2px;background:var(--red);margin-top:7px}.story h3{font-family:"Archivo Black";font-size:clamp(24px,2.3vw,42px);font-weight:400;letter-spacing:-.045em;line-height:1;margin:0 0 12px;text-transform:uppercase}.story:not(:first-child) h3{font-size:clamp(21px,1.8vw,29px)}.meta{font-size:11px;color:#c7ced8}
@@ -38,7 +38,7 @@
     .manifesto{background:var(--navy);color:white;position:relative;overflow:hidden}.manifesto:before{content:"90+";position:absolute;right:-2vw;top:-5vw;font-family:"Archivo Black";font-size:25vw;color:rgba(255,255,255,.025);letter-spacing:-.12em}.manifesto-inner{max-width:var(--max);margin:auto;padding:120px var(--pad);display:grid;grid-template-columns:.75fr 1.25fr;gap:10vw;position:relative}.manifesto-number{font-family:"Source Serif 4";font-size:18px;color:var(--gold);font-style:italic}.quote{font-family:"Source Serif 4";font-size:clamp(34px,4.7vw,72px);line-height:1.04;letter-spacing:-.045em;margin:0}.quote em{color:var(--gold);font-style:italic}.manifesto p{max-width:620px;color:#aeb8c7;line-height:1.8;margin-top:32px}
     .formats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.format-card{min-height:390px;padding:32px;border:1px solid #bcc2ca;display:flex;flex-direction:column;justify-content:space-between;transition:.3s;background:rgba(255,255,255,.25)}.format-card:hover{background:white;transform:translateY(-5px);box-shadow:0 20px 45px rgba(7,16,31,.1)}.format-card .num{font-family:"Source Serif 4";color:#7a8088;font-style:italic}.format-card h3{font-family:"Archivo Black";font-weight:400;font-size:34px;letter-spacing:-.045em;text-transform:uppercase;margin:0 0 12px}.format-card p{color:#626a76;line-height:1.6}.format-card .arrow{font-size:28px}
     .newsletter{margin:0 var(--pad) 70px;background:var(--blue);color:white}.newsletter-inner{max-width:calc(var(--max) - var(--pad)*2);margin:auto;padding:68px clamp(24px,5vw,72px);display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:50px}.newsletter h2{font-family:"Archivo Black";font-size:clamp(38px,5vw,72px);letter-spacing:-.06em;line-height:.95;text-transform:uppercase;margin:8px 0 0}.form{display:flex;border-bottom:2px solid white;padding-bottom:10px}.form input{flex:1;border:0;background:transparent;color:white;font-size:18px;outline:none}.form input::placeholder{color:rgba(255,255,255,.65)}.form button{border:0;background:white;color:var(--ink);padding:16px 20px;font-weight:800;cursor:pointer}
-    footer{background:#040b16;color:white;padding:60px var(--pad) 35px}.footer-inner{max-width:var(--max);margin:auto}.footer-top{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;border-bottom:1px solid #263141;padding-bottom:50px}.footer-logo{font-family:"Archivo Black";font-size:clamp(38px,6vw,90px);letter-spacing:-.075em}.footer-links{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 50px;font-size:12px}.footer-links a:hover{color:var(--red)}.copyright{display:flex;justify-content:space-between;padding-top:24px;color:#748096;font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+    footer{background:#040b16;color:white;padding:60px var(--pad) 35px}.footer-inner{max-width:var(--max);margin:auto}.footer-top{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;border-bottom:1px solid #263141;padding-bottom:50px}.footer-logo{font-family:"Archivo Black";font-size:clamp(38px,6vw,90px);letter-spacing:-.075em}.footer-links{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 50px;font-size:12px}.footer-links a:hover{color:var(--red)}.copyright{display:flex;justify-content:space-between;padding-top:24px;color:#748096;font-size:10px;text-transform:uppercase;letter-spacing:.1em}.rub-stats{text-align:center;padding-top:22px;color:#8995a5;font-size:11px;letter-spacing:.04em}.rub-stats b{color:#c9d3e0;font-weight:700}
     @media(max-width:1120px){.nav{gap:18px}.nav-actions{gap:14px}.reading-picker{padding-left:10px}.nav-links,.nav-actions{gap:14px}.nav-links a,.nav-actions>a{font-size:10px}.issue-inner{grid-template-columns:1fr 340px}}
     @media(max-width:900px){.nav{grid-template-columns:1fr auto}.nav-links,.nav-actions>a{display:none}.menu-btn{display:block}.reading-picker{border-left:0;padding-left:0}.hero,.hero-inner{min-height:680px}.story-grid{grid-template-columns:1fr 1fr}.story:first-child{grid-column:1/-1}.manifesto-inner{grid-template-columns:1fr;gap:30px}.formats{grid-template-columns:1fr}.newsletter-inner{grid-template-columns:1fr}.footer-top{flex-direction:column;gap:40px}.issue-inner{grid-template-columns:1fr;gap:44px}.issue-cover{max-width:320px}}
     @media(max-width:600px){.announcement{font-size:9px}.nav{height:66px}.hero h1{font-size:52px}.hero-copy{font-size:18px}.match-inner{grid-template-columns:auto 1fr;gap:12px}.match-link{display:none}.score{gap:9px}.score strong{font-size:16px}.story-grid{grid-template-columns:1fr}.story:first-child{min-height:520px}.story{min-height:400px}.section{padding-top:72px;padding-bottom:72px}.section-head{align-items:flex-start}.see-all{display:none}.newsletter{margin-left:0;margin-right:0}.footer-links{grid-template-columns:1fr}.copyright{gap:20px;flex-direction:column}.rubrics-inner{gap:12px 20px}}
@@ -75,8 +75,21 @@
       </div>
     </nav>
 
-    <section class="match-bar" aria-label="Prochain rendez-vous">
-      <div class="match-inner"><span class="live-tag" data-cms="match.etiquette">À suivre</span><div class="score"><span data-cms="match.equipe1">Argentine</span><strong data-cms="match.centre">20:30</strong><span data-cms="match.equipe2">Angleterre</span><small data-cms="match.competition">Demi-finale</small></div><a class="match-link" data-cms-href="match.lien" href="#">Accéder au live →</a></div>
+    <section class="mc" id="match-center" aria-label="Match Center — prochains matchs">
+      <div class="mc-inner">
+        <header class="mc-head">
+          <div class="mc-title"><span class="mc-eyebrow">À suivre</span><h2>Les prochains rendez-vous football</h2></div>
+          <div class="mc-ctrl" id="mc-ctrl" hidden>
+            <span class="mc-count" id="mc-count">01 / 01</span>
+            <div class="mc-dots" id="mc-dots"></div>
+            <button type="button" class="mc-arw" data-mb="prev" aria-label="Groupe de matchs précédent">‹</button>
+            <button type="button" class="mc-arw" data-mb="next" aria-label="Groupe de matchs suivant">›</button>
+            <span class="mc-rot">Rotation dans 45 s</span>
+          </div>
+        </header>
+        <div class="mc-stage" id="mc-stage"></div>
+        <p class="mc-sr" id="mc-status" aria-live="polite"></p>
+      </div>
     </section>
 
     <section class="section tsf-menu" id="formats" aria-label="TomsoFoot — choisissez votre terrain">
@@ -499,7 +512,7 @@
     <section class="newsletter" id="newsletter"><div class="newsletter-inner"><div><span class="kicker" style="color:white">Le vestiaire TomsoFoot</span><h2>Une longueur d'avance.</h2></div><form class="form" onsubmit="event.preventDefault();this.querySelector('button').textContent='INSCRIT ✓'"><input type="email" aria-label="Votre adresse e-mail" placeholder="Votre adresse e-mail" required><button type="submit">S'inscrire</button></form></div></section>
   </main>
 
-  <footer><div class="footer-inner"><div class="footer-top"><div><div class="footer-logo">TOMSOFOOT</div><p style="color:#8995a5">Le football, notre passion.</p></div><div class="footer-links"><a href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">YouTube ↗</a><a href="https://www.instagram.com/tomso_foot/" target="_blank" rel="noopener">Instagram ↗</a><a href="https://x.com/tomsofoot" target="_blank" rel="noopener">X / Twitter ↗</a><a href="https://www.tiktok.com/@tomsofoot" target="_blank" rel="noopener">TikTok ↗</a><a href="mailto:tomsofoot@gmail.com">Contact ↗</a><a href="#magazine">Le magazine</a><a href="/jeu">Jogadle (le jeu)</a><a href="/mentions-legales">Mentions légales</a><a href="/confidentialite">Confidentialité</a></div></div><div class="copyright"><span>© 2026 TomsoFoot</span><span>Information · Culture · Passion</span></div></div></footer>
+  <footer><div class="footer-inner"><div class="footer-top"><div><div class="footer-logo">TOMSOFOOT</div><p style="color:#8995a5">Le football, notre passion.</p></div><div class="footer-links"><a href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">YouTube ↗</a><a href="https://www.instagram.com/tomso_foot/" target="_blank" rel="noopener">Instagram ↗</a><a href="https://x.com/tomsofoot" target="_blank" rel="noopener">X / Twitter ↗</a><a href="https://www.tiktok.com/@tomsofoot" target="_blank" rel="noopener">TikTok ↗</a><a href="mailto:tomsofoot@gmail.com">Contact ↗</a><a href="#magazine">Le magazine</a><a href="/jeu">Jogadle (le jeu)</a><a href="/mentions-legales">Mentions légales</a><a href="/confidentialite">Confidentialité</a><a href="/regie">Régie</a></div></div><div class="rub-stats" aria-label="Consultations">Consultations du jour · YouTube <b data-count="youtube">–</b> · Magazine <b data-count="magazine">–</b> · Jeux <b data-count="jeux">–</b></div><div class="copyright"><span>© 2026 TomsoFoot</span><span>Information · Culture · Passion</span></div></div></footer>
 
   <script>
     (() => {
@@ -667,7 +680,9 @@
         </div>
 
         <div class="tsf-game-choice__progress" aria-live="polite">
-          <span class="tsf-game-choice__progress-dot"></span>
+          <svg class="tsf-game-choice__progress-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 4h12v2h3v2a4 4 0 0 1-4 4h-.4A6 6 0 0 1 13 17.7V20h3v2H8v-2h3v-2.3A6 6 0 0 1 7.4 12H7a4 4 0 0 1-4-4V6h3V4Zm0 4H5a2 2 0 0 0 1 1.7V8Zm12 0v1.7A2 2 0 0 0 19 8h-1Z"></path>
+          </svg>
           <span>DÉFIS DU JOUR · <strong data-completed-count>0/2</strong> TERMINÉS</span>
         </div>
 
@@ -685,27 +700,32 @@
           data-state="available"
           role="listitem"
         >
-          <div class="tsf-game-card__art" aria-hidden="true">
-            <div class="tsf-game-card__stadium-lines"></div>
-            <img class="tsf-game-card__player" src="/assets/jeux/player-silhouette.svg" alt="">
-          </div>
+          <div class="tsf-game-card__art tsf-game-card__art--stadium" aria-hidden="true"></div>
           <div class="tsf-game-card__shade"></div>
 
           <div class="tsf-game-card__content">
             <div class="tsf-game-card__topline">
               <span class="tsf-game-card__status" data-game-status>À JOUER</span>
-              <span class="tsf-game-card__number">01</span>
             </div>
             <div class="tsf-game-card__copy">
-              <p class="tsf-game-card__kicker">LE DÉFI QUOTIDIEN</p>
-              <h2>LE JOUEUR<br>DU JOUR</h2>
-              <p>Devine le footballeur mystère<br>et grimpe au championnat.</p>
+              <h2>LE JOUEUR DU JOUR</h2>
+              <p>Devinez le footballeur mystère.</p>
             </div>
 
-            <div class="tsf-game-card__meta">
-              <span>CHAMPIONNAT EN DIRECT</span>
-              <strong>100 PTS EN JEU</strong>
-            </div>
+            <ul class="tsf-game-card__meta">
+              <li>
+                <span class="tsf-game-card__meta-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.2"></circle><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M6 6a9 9 0 0 0 0 12M18 6a9 9 0 0 1 0 12"></path></svg>
+                </span>
+                CHAMPIONNAT EN DIRECT
+              </li>
+              <li>
+                <span class="tsf-game-card__meta-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9L6.7 19.6l1.1-6L3.4 9.4l6-.8L12 3Z"></path></svg>
+                </span>
+                100 PTS EN JEU
+              </li>
+            </ul>
 
             <button class="tsf-game-card__cta" type="button" data-game-select="daily-player">
               <span>JOUER MAINTENANT</span>
@@ -730,18 +750,20 @@
           <div class="tsf-game-card__content">
             <div class="tsf-game-card__topline">
               <span class="tsf-game-card__status" data-game-status>À JOUER</span>
-              <span class="tsf-game-card__number">02</span>
             </div>
             <div class="tsf-game-card__copy">
-              <p class="tsf-game-card__kicker">LE PARCOURS DU COACH</p>
               <h2>MODE<br>CARRIÈRE</h2>
-              <p>Retrouve le joueur d’après<br>son parcours en clubs.</p>
+              <p>Retrouvez le joueur grâce à son parcours.</p>
             </div>
 
-            <div class="tsf-game-card__meta">
-              <span>3 NIVEAUX</span>
-              <strong>SANS CLASSEMENT</strong>
-            </div>
+            <ul class="tsf-game-card__meta">
+              <li>
+                <span class="tsf-game-card__meta-icon tsf-game-card__meta-icon--bare" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="13" width="4" height="8" rx="1"></rect><rect x="10" y="8" width="4" height="13" rx="1"></rect><rect x="17" y="3" width="4" height="18" rx="1"></rect></svg>
+                </span>
+                3 NIVEAUX · SANS CLASSEMENT
+              </li>
+            </ul>
 
             <button class="tsf-game-card__cta" type="button" data-game-select="career-mode">
               <span>COMMENCER LE PARCOURS</span>
@@ -756,11 +778,99 @@
           <span><b class="is-confirm">A</b> SÉLECTIONNER</span>
           <span><b class="is-back">B</b> RETOUR</span>
         </div>
+        <span class="tsf-game-choice__rule" aria-hidden="true"></span>
         <p data-game-choice-message>DEUX DÉFIS VOUS ATTENDENT AUJOURD’HUI</p>
       </footer>
     </section>
   </div>
   <script src="/assets/js/jeux/tomsofoot-game-modal.js"></script>
   <script src="/assets/js/jeux/jeux-init.js"></script>
+<script>
+/* TomsoFoot — compteurs de consultation (visiteurs uniques/jour/rubrique). Back-end : fonction Netlify. */
+(function(){
+  var API='/.netlify/functions/views';
+  function vid(){ try{ var k='tf.vid', v=localStorage.getItem(k); if(!v){ v=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(String(Date.now())+Math.random().toString(36).slice(2)); localStorage.setItem(k,v);} return v; }catch(e){ return 'anon'; } }
+  function today(){ try{ return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris'}).format(new Date()); }catch(e){ return new Date().toISOString().slice(0,10);} }
+  function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' '); }
+  function paint(c){ if(!c)return; ['youtube','magazine','jeux'].forEach(function(r){ if(typeof c[r]==='number'){ var els=document.querySelectorAll('[data-count="'+r+'"]'); [].forEach.call(els,function(el){ el.textContent=fmt(c[r]); }); } }); }
+  function load(){ fetch(API).then(function(r){return r.json();}).then(paint).catch(function(){}); }
+  function rubricOf(a){ if(!a)return null; var h=((a.getAttribute&&a.getAttribute('href'))||'')+' '+((a.getAttribute&&a.getAttribute('aria-label'))||''); if(a.hasAttribute&&a.hasAttribute('data-open-game-choice'))return 'jeux'; if(/youtube\.com|@?tomso-?foot\/?$/i.test(h)&&/youtube/i.test(h))return 'youtube'; if(/youtube\.com/i.test(h))return 'youtube'; if(/heyzine|lecteur\.html|#magazine|magazine/i.test(h))return 'magazine'; if(/\/jeu(\b|\/|$)|mode-carriere|jogadle/i.test(h))return 'jeux'; return null; }
+  function seen(r){ try{ return localStorage.getItem('tf.seen.'+r)===today(); }catch(e){ return false; } }
+  function mark(r){ try{ localStorage.setItem('tf.seen.'+r,today()); }catch(e){} }
+  function bump(r){ if(!r||seen(r))return; mark(r); try{ fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rubric:r,visitor:vid()}),keepalive:true}).then(function(x){return x.json();}).then(paint).catch(function(){}); }catch(e){} }
+  document.addEventListener('click',function(e){ var a=e.target&&e.target.closest&&e.target.closest('a,[data-open-game-choice]'); if(!a)return; bump(rubricOf(a)); }, true);
+  if(document.readyState!=='loading')load(); else document.addEventListener('DOMContentLoaded',load);
+})();
+</script>
+<script>
+/* TomsoFoot — Match Center « À suivre ». 1 seul appel API (mis en cache 20 min côté serveur) ;
+   la rotation 45 s est purement visuelle : aucun rappel API. */
+(function(){
+  var API='/.netlify/functions/matches', T=45000;
+  var LIVE={'1H':1,'2H':1,'ET':1,'BT':1,'P':1,'LIVE':1,'INT':1,'HT':1};
+  var FIN={'FT':1,'AET':1,'PEN':1};
+  var STATES={'PST':'Reporté','CANC':'Annulé','ABD':'Abandonné','SUSP':'Suspendu','TBD':'Horaire à venir','WO':'Forfait','AWD':'Décision','NPP':'Non joué'};
+  var COMP={'Friendlies Clubs':'Match amical','Friendlies':'Match amical','Club Friendlies':'Match amical','Premier League':'Premier League','Ligue 1':'Ligue 1','Bundesliga':'Bundesliga','La Liga':'Liga','Primera Division':'Liga','UEFA Champions League':'Ligue des champions','UEFA Europa League':'Europa League','UEFA Europa Conference League':'Conference League'};
+  var stage=document.getElementById('mc-stage'), ctrl=document.getElementById('mc-ctrl'), dotsEl=document.getElementById('mc-dots'), countEl=document.getElementById('mc-count'), statusEl=document.getElementById('mc-status'), section=document.getElementById('match-center');
+  if(!stage) return;
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function comp(n){ return (COMP[n]||n||'').toUpperCase(); }
+  function pad(n){ return (n<10?'0':'')+n; }
+  function sc(m){ return (m.gh==null?0:m.gh)+'–'+(m.ga==null?0:m.ga); }
+  function centre(m){
+    if(LIVE[m.status]){ var min = m.status==='HT' ? 'Mi-temps' : (m.elapsed!=null ? m.elapsed+"'" : ''); return '<span class="mc-live-badge">● En direct</span><span class="mc-cap live">'+sc(m)+'</span>'+(min?'<span class="mc-min">'+min+'</span>':''); }
+    if(FIN[m.status]) return '<span class="mc-cap">'+sc(m)+'</span><span class="mc-state">Terminé</span>';
+    if(STATES[m.status]) return '<span class="mc-cap">–</span><span class="mc-state">'+STATES[m.status]+'</span>';
+    if(m.time) return '<span class="mc-cap">'+esc(m.time)+'</span>';
+    return '<span class="mc-cap">––:––</span><span class="mc-state">Horaire à venir</span>';
+  }
+  function team(name,logo,home){ var img=logo?'<img class="match-team__logo" src="'+esc(logo)+'" alt="" loading="lazy">':''; var nm='<span class="match-team__name">'+esc(name)+'</span>'; return '<div class="match-team match-team--'+(home?'home':'away')+'">'+(home?(img+nm):(nm+img))+'</div>'; }
+  function card(m){ return '<article class="mc-card'+(m._next?' mc-card--next':'')+'"><div class="mc-meta">'+esc(comp(m.league))+' · AUJOURD’HUI</div><div class="match-main">'+team(m.home,m.homeLogo,true)+'<div class="match-time">'+centre(m)+'</div>'+team(m.away,m.awayLogo,false)+'</div></article>'; }
+  var all=[], pages=[], idx=0, per=3, hold=false, acc=0, lastTs=0, raf=0, hadData=false, busy=false;
+  function perFor(){ try{ if(window.matchMedia('(max-width:560px)').matches) return 1; if(window.matchMedia('(max-width:1023px)').matches) return 2; }catch(e){} return 3; }
+  function chunk(){ pages=[]; for(var i=0;i<all.length;i+=per) pages.push(all.slice(i,i+per)); if(!pages.length) pages=[[]]; if(idx>=pages.length) idx=0; }
+  function renderPages(){
+    stage.classList.remove('mc-anim');
+    stage.innerHTML = pages.map(function(pg,i){ var inner = pg.length ? pg.map(card).join('') : '<div class="mc-empty">Aucun match programmé prochainement</div>'; return '<div class="mc-page'+(i===idx?' is-active':'')+'" style="--mc-per:'+per+'" data-p="'+i+'">'+inner+'</div>'; }).join('');
+    measure();
+    requestAnimationFrame(function(){ stage.classList.add('mc-anim'); });
+  }
+  function measure(){
+    var pgs=stage.querySelectorAll('.mc-page'), max=0;
+    [].forEach.call(pgs,function(p){ p.style.position='static'; p.style.opacity='0'; p.style.transform='none'; });
+    [].forEach.call(pgs,function(p){ if(p.offsetHeight>max) max=p.offsetHeight; });
+    [].forEach.call(pgs,function(p){ p.style.position=''; p.style.opacity=''; p.style.transform=''; });
+    stage.style.height = max ? (max+'px') : '';
+  }
+  function renderCtrl(){
+    if(!ctrl) return;
+    if(pages.length<=1){ ctrl.hidden=true; if(dotsEl)dotsEl.innerHTML=''; return; }
+    ctrl.hidden=false;
+    if(dotsEl) dotsEl.innerHTML = pages.map(function(_,i){ return '<button type="button" class="mc-dot'+(i===idx?' is-active':'')+'" data-p="'+i+'" aria-label="Groupe '+(i+1)+' sur '+pages.length+'"><span class="mc-fill"></span></button>'; }).join('');
+    updCount();
+  }
+  function updCount(){ if(countEl) countEl.textContent = pad(idx+1)+' / '+pad(pages.length); }
+  function fillEl(){ return dotsEl && dotsEl.querySelector('.mc-dot.is-active .mc-fill'); }
+  function setFill(f){ var e=fillEl(); if(e) e.style.width=(Math.max(0,Math.min(1,f))*100)+'%'; }
+  function syncDots(){ if(dotsEl)[].forEach.call(dotsEl.querySelectorAll('.mc-dot'),function(b){ b.classList.toggle('is-active',+b.getAttribute('data-p')===idx); }); }
+  function announce(){ if(statusEl && pages.length>1) statusEl.textContent='Groupe '+(idx+1)+' sur '+pages.length; }
+  function show(i){
+    if(!pages.length||busy) return;
+    i=((i%pages.length)+pages.length)%pages.length;
+    var cur=stage.querySelector('.mc-page.is-active'), nxt=stage.querySelector('.mc-page[data-p="'+i+'"]');
+    acc=0; setFill(0);
+    if(cur!==nxt){ busy=true; if(cur){ cur.classList.remove('is-active'); cur.classList.add('is-leave'); (function(c){ setTimeout(function(){ c.classList.remove('is-leave'); busy=false; },680); })(cur); } else { busy=false; } if(nxt) nxt.classList.add('is-active'); }
+    idx=i; syncDots(); updCount(); announce();
+  }
+  function next(){ show(idx+1); } function prev(){ show(idx-1); }
+  function tick(ts){ raf=requestAnimationFrame(tick); if(!lastTs)lastTs=ts; var dt=ts-lastTs; lastTs=ts; if(hold||document.hidden||pages.length<=1||busy) return; acc+=dt; setFill(acc/T); if(acc>=T) next(); }
+  function rebuild(){ per=perFor(); chunk(); renderPages(); renderCtrl(); acc=0; setFill(0); announce(); if(!raf) raf=requestAnimationFrame(tick); }
+  if(ctrl){ ctrl.addEventListener('click',function(e){ var b=e.target.closest('[data-mb],[data-p]'); if(!b)return; var a=b.getAttribute('data-mb'); if(a==='next')next(); else if(a==='prev')prev(); else if(b.hasAttribute('data-p'))show(+b.getAttribute('data-p')); }); }
+  if(section){ section.addEventListener('mouseenter',function(){hold=true;}); section.addEventListener('mouseleave',function(){hold=false;}); section.addEventListener('focusin',function(){hold=true;}); section.addEventListener('focusout',function(){hold=false;});
+    var x0=null; section.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; },{passive:true}); section.addEventListener('touchend',function(e){ if(x0==null)return; var dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>40){ dx<0?next():prev(); } x0=null; },{passive:true}); }
+  var reT; window.addEventListener('resize',function(){ clearTimeout(reT); reT=setTimeout(function(){ if(hadData){ if(perFor()!==per) rebuild(); else measure(); } },200); });
+  try{ fetch(API).then(function(r){return r.json();}).then(function(d){ var list=(d&&d.matches)||[]; all=list.filter(function(m){ return !FIN[m.status]; }); var nx=null; for(var i=0;i<all.length;i++){ if(!LIVE[all[i].status]){ nx=all[i]; break; } } if(!nx&&all.length) nx=all[0]; if(nx) nx._next=true; hadData=true; rebuild(); }).catch(function(){ all=[]; hadData=true; rebuild(); }); }catch(e){}
+})();
+</script>
 </body>
 </html>
