@@ -680,7 +680,9 @@
         </div>
 
         <div class="tsf-game-choice__progress" aria-live="polite">
-          <span class="tsf-game-choice__progress-dot"></span>
+          <svg class="tsf-game-choice__progress-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 4h12v2h3v2a4 4 0 0 1-4 4h-.4A6 6 0 0 1 13 17.7V20h3v2H8v-2h3v-2.3A6 6 0 0 1 7.4 12H7a4 4 0 0 1-4-4V6h3V4Zm0 4H5a2 2 0 0 0 1 1.7V8Zm12 0v1.7A2 2 0 0 0 19 8h-1Z"></path>
+          </svg>
           <span>DÉFIS DU JOUR · <strong data-completed-count>0/2</strong> TERMINÉS</span>
         </div>
 
@@ -698,27 +700,32 @@
           data-state="available"
           role="listitem"
         >
-          <div class="tsf-game-card__art" aria-hidden="true">
-            <div class="tsf-game-card__stadium-lines"></div>
-            <img class="tsf-game-card__player" src="/assets/jeux/player-silhouette.svg" alt="">
-          </div>
+          <div class="tsf-game-card__art tsf-game-card__art--stadium" aria-hidden="true"></div>
           <div class="tsf-game-card__shade"></div>
 
           <div class="tsf-game-card__content">
             <div class="tsf-game-card__topline">
               <span class="tsf-game-card__status" data-game-status>À JOUER</span>
-              <span class="tsf-game-card__number">01</span>
             </div>
             <div class="tsf-game-card__copy">
-              <p class="tsf-game-card__kicker">LE DÉFI QUOTIDIEN</p>
-              <h2>LE JOUEUR<br>DU JOUR</h2>
-              <p>Devine le footballeur mystère<br>et grimpe au championnat.</p>
+              <h2>LE JOUEUR DU JOUR</h2>
+              <p>Devinez le footballeur mystère.</p>
             </div>
 
-            <div class="tsf-game-card__meta">
-              <span>CHAMPIONNAT EN DIRECT</span>
-              <strong>100 PTS EN JEU</strong>
-            </div>
+            <ul class="tsf-game-card__meta">
+              <li>
+                <span class="tsf-game-card__meta-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.2"></circle><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M6 6a9 9 0 0 0 0 12M18 6a9 9 0 0 1 0 12"></path></svg>
+                </span>
+                CHAMPIONNAT EN DIRECT
+              </li>
+              <li>
+                <span class="tsf-game-card__meta-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9L6.7 19.6l1.1-6L3.4 9.4l6-.8L12 3Z"></path></svg>
+                </span>
+                100 PTS EN JEU
+              </li>
+            </ul>
 
             <button class="tsf-game-card__cta" type="button" data-game-select="daily-player">
               <span>JOUER MAINTENANT</span>
@@ -743,18 +750,20 @@
           <div class="tsf-game-card__content">
             <div class="tsf-game-card__topline">
               <span class="tsf-game-card__status" data-game-status>À JOUER</span>
-              <span class="tsf-game-card__number">02</span>
             </div>
             <div class="tsf-game-card__copy">
-              <p class="tsf-game-card__kicker">LE PARCOURS DU COACH</p>
               <h2>MODE<br>CARRIÈRE</h2>
-              <p>Retrouve le joueur d’après<br>son parcours en clubs.</p>
+              <p>Retrouvez le joueur grâce à son parcours.</p>
             </div>
 
-            <div class="tsf-game-card__meta">
-              <span>3 NIVEAUX</span>
-              <strong>SANS CLASSEMENT</strong>
-            </div>
+            <ul class="tsf-game-card__meta">
+              <li>
+                <span class="tsf-game-card__meta-icon tsf-game-card__meta-icon--bare" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="13" width="4" height="8" rx="1"></rect><rect x="10" y="8" width="4" height="13" rx="1"></rect><rect x="17" y="3" width="4" height="18" rx="1"></rect></svg>
+                </span>
+                3 NIVEAUX · SANS CLASSEMENT
+              </li>
+            </ul>
 
             <button class="tsf-game-card__cta" type="button" data-game-select="career-mode">
               <span>COMMENCER LE PARCOURS</span>
@@ -769,6 +778,7 @@
           <span><b class="is-confirm">A</b> SÉLECTIONNER</span>
           <span><b class="is-back">B</b> RETOUR</span>
         </div>
+        <span class="tsf-game-choice__rule" aria-hidden="true"></span>
         <p data-game-choice-message>DEUX DÉFIS VOUS ATTENDENT AUJOURD’HUI</p>
       </footer>
     </section>
