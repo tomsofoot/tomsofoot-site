@@ -399,8 +399,24 @@ function extractColorFromStyle(styleStr){
   return m?normalizeHex(m[1]):null;
 }
 function sanitizeRich(html){
-  const allowed={B:1,I:1,EM:1,STRONG:1,U:1,A:1,UL:1,OL:1,LI:1,SUP:1,SUB:1,BR:1,DIV:1,SPAN:1};
+  const allowed={B:1,I:1,EM:1,STRONG:1,U:1,A:1,UL:1,OL:1,LI:1,SUP:1,SUB:1,BR:1,SPAN:1};
   const d=document.createElement('div'); d.innerHTML=html;
+  // Les éditeurs (Word / Google Docs / contenteditable) enrobent le texte dans des
+  // <div>/<p>. On ne les stocke plus tels quels (ils s'affichaient en texte littéral
+  // « <div> » sur la page article) : on les « déballe » en conservant leur contenu
+  // (gras, liens, couleurs…) et en insérant un <br> entre les blocs successifs.
+  (function flattenBlocks(root){
+    let el;
+    while((el = root.querySelector('div,p'))){
+      const frag = document.createDocumentFragment();
+      const pv = el.previousSibling;
+      const prevIsBr = pv && pv.nodeType===1 && pv.tagName==='BR';
+      const prevBlank = pv && pv.nodeType===3 && !pv.textContent.trim();
+      if(pv && !prevIsBr && !prevBlank) frag.appendChild(document.createElement('br'));
+      while(el.firstChild) frag.appendChild(el.firstChild);
+      el.replaceWith(frag);
+    }
+  })(d);
   (function walk(n){[...n.childNodes].forEach(c=>{
     if(c.nodeType===1){
       if(!allowed[c.tagName]){ const t=document.createTextNode(c.textContent); c.replaceWith(t); return;}
@@ -415,7 +431,12 @@ function sanitizeRich(html){
       walk(c);
     }
   });})(d);
-  return d.innerHTML;
+  // Nettoyage : fusionne les <br> multiples et supprime ceux en tête / en queue.
+  let out = d.innerHTML
+    .replace(/(?:\s*<br\s*\/?>\s*){2,}/gi, '<br>')
+    .replace(/^(?:\s*<br\s*\/?>\s*)+/i, '')
+    .replace(/(?:\s*<br\s*\/?>\s*)+$/i, '');
+  return out;
 }
 
 /* ---------- block model ---------- */
