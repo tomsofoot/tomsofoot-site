@@ -57,15 +57,45 @@
   <div class="reading-toast" role="status" aria-live="polite"></div>
 
   <main>
-    <section class="hero">
+    <!-- Hero « à la une » : alimenté en direct par l'article mis à la une (ou le dernier publié). -->
+    <section class="hero" id="hero-une">
       <div class="hero-inner">
-        <div class="eyebrow" data-cms="une.rubrique">Article du jour · Coupe du monde 2026</div>
-        <h1><span data-cms="une.titre1">Le match</span> <span class="stroke" data-cms="une.titre2">qui n'a jamais pris fin.</span></h1>
-        <p class="hero-copy" data-cms="une.chapo">Argentine–Angleterre à Atlanta. De Wembley aux Malouines jusqu'à la main de Maradona : soixante ans de mémoire tiennent dans une demi-finale.</p>
-        <div class="cta-row"><a class="btn primary" data-cms="une.bouton" data-cms-href="une.lien" href="lecteur.html?pdf=numeros/n12.pdf">Lire le journal</a><a class="btn" href="#actu">Toutes les publications</a></div>
-        <p class="hero-meta" data-cms="une.meta">N°12 · 15 juillet 2026 · 28 pages · Par la rédaction</p>
+        <div class="eyebrow" id="hero-kicker">À la une</div>
+        <h1 id="hero-title">Le football, raconté autrement.</h1>
+        <p class="hero-copy" id="hero-deck">Analyses, récits et grands entretiens — le meilleur du football, sur TomsoFoot.</p>
+        <div class="cta-row"><a class="btn primary" id="hero-cta" href="/articles/">Lire l'article</a><a class="btn" href="/articles/">Toutes les publications</a></div>
+        <p class="hero-meta" id="hero-meta"></p>
       </div>
     </section>
+    <script>
+    /* Hero « à la une » — priorité à l'article featured (bouton « Publier & mettre à la une »),
+       repli sur le dernier article publié. Mise à jour automatique, sans redéploiement. */
+    (function(){
+      var SB='https://yubndvqmglttlntkugzm.supabase.co', KEY='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+      var hero=document.getElementById('hero-une'); if(!hero) return;
+      function sb(p){ return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}); }
+      var SEL='select=slug,title,deck,hero_image,hero_alt,reading_time,published_at,competition_id,genre_id&status=eq.published';
+      sb('articles_public?'+SEL+'&featured=is.true&order=published_at.desc.nullslast&limit=1').then(function(f){
+        return (f&&f.length)?f:sb('articles_public?'+SEL+'&order=published_at.desc.nullslast&limit=1');
+      }).then(function(arr){
+        if(!arr||!arr.length) return;                    // aucun article -> on garde le fallback statique
+        var a=arr[0];
+        return Promise.all([sb('competitions?select=id,label_fr'), sb('editorial_genres?select=id,label_fr')]).then(function(res){
+          var comp={},genre={};
+          (res[0]||[]).forEach(function(c){comp[c.id]=c.label_fr;});
+          (res[1]||[]).forEach(function(g){genre[g.id]=g.label_fr;});
+          var cat=[comp[a.competition_id],genre[a.genre_id]].filter(Boolean).join(' · ')||'À la une';
+          var meta='';
+          try{ if(a.published_at) meta=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long',year:'numeric'}).format(new Date(a.published_at)); }catch(e){}
+          if(a.reading_time) meta+=(meta?' · ':'')+a.reading_time+' min de lecture';
+          function set(id,txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+          set('hero-kicker',cat); set('hero-title',a.title||''); set('hero-deck',a.deck||''); set('hero-meta',meta);
+          var cta=document.getElementById('hero-cta'); if(cta){ cta.textContent='Lire l\'article'; cta.setAttribute('href','/articles/'+a.slug); }
+          if(a.hero_image) hero.style.setProperty('--hero-img','url("'+a.hero_image+'")');  // prioritaire sur le CMS
+        });
+      });
+    })();
+    </script>
 
     <nav class="rubrics" aria-label="Compétitions">
       <div class="rubrics-inner">
