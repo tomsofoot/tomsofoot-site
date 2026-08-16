@@ -254,7 +254,7 @@
       function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
       function sb(p){ return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}); }
       Promise.all([
-        sb('articles_public?select=slug,title,hero_image,hero_alt,reading_time,published_at,competition_id,genre_id&status=eq.published&order=published_at.desc.nullslast&limit=6'),
+        sb('articles_public?select=slug,title,hero_image,hero_alt,reading_time,published_at,competition_id,genre_id&status=eq.published&order=published_at.desc.nullslast&limit=3'),
         sb('competitions?select=id,label_fr'),
         sb('editorial_genres?select=id,label_fr')
       ]).then(function(res){
