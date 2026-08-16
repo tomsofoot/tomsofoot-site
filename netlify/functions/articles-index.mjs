@@ -27,7 +27,7 @@ function card(a, labelMap, feat){
 
 function page(feature, list, labelMap, tax, active){
   const title = 'Articles — TomsoFoot';
-  const chip = (id,lab,cur)=> '<a class="x-chip'+(cur?' x-chip--on':'')+'" href="'+esc(id?('/articles/?zone='+id):'/articles/')+'">'+esc(lab)+'</a>';
+  const chip = (id,lab,cur)=> '<a class="x-chip'+(cur?' x-chip--on':'')+'" href="'+esc(id?('/articles/?competition='+id):'/articles/')+'">'+esc(lab)+'</a>';
   return '<!doctype html><html lang="fr"><head>'
   + '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
   + '<title>'+title+'</title><meta name="description" content="Tous les articles TomsoFoot : analyses, récits, entretiens et dossiers football.">'
@@ -39,7 +39,7 @@ function page(feature, list, labelMap, tax, active){
   + '<header class="x-topbar"><a class="x-brand" href="/">TOMSO<span>FOOT</span></a><nav class="x-nav"><a href="/">Accueil</a><a href="/articles/" aria-current="page">Articles</a><a href="/magazine/lecteur.html">Le journal</a></nav></header>'
   + '<main class="x-main">'
   + '<div class="x-head"><h1 class="x-h1">Les articles</h1><p class="x-sub">Analyses, récits et entretiens — le football raconté par TomsoFoot.</p></div>'
-  + '<nav class="x-chips">'+ chip('', 'Tout', !active) + tax.zones.map(z=>chip(z.id,z.label_fr,active===z.id)).join('') + '</nav>'
+  + '<nav class="x-chips">'+ chip('', 'Tout', !active) + tax.comps.map(c=>chip(c.id,c.label_fr,active===c.id)).join('') + '</nav>'
   + (feature?'<section class="x-feature">'+card(feature,labelMap,true)+'</section>':'')
   + (list.length?'<section class="x-grid">'+list.map(a=>card(a,labelMap,false)).join('')+'</section>':'<p class="x-empty">Aucun article pour l\'instant. Reviens bientôt !</p>')
   + '</main>'
@@ -101,9 +101,16 @@ export default async (req) => {
   (genres||[]).forEach(g=>labelMap.genre[g.id]=g.label_fr);
   (zones||[]).forEach(z=>labelMap.zone[z.id]=z.label_fr);
 
+  // Filtres par compétition : on n'affiche QUE les compétitions réellement présentes
+  // dans les articles (publiés/archivés), pour éviter des filtres qui mènent au vide.
+  const present = await sb('articles_public?select=competition_id');
+  const compChips = [...new Set((present||[]).map(a=>a.competition_id).filter(Boolean))]
+    .map(id => ({ id, label_fr: labelMap.comp[id] || id }))
+    .sort((a,b) => a.label_fr.localeCompare(b.label_fr, 'fr'));
+
   const all = (await sb('articles_public?select=slug,title,deck,hero_image,hero_alt,published_at,reading_time,featured,competition_id,genre_id,zone_id'+filter+'&order=featured.desc,published_at.desc.nullslast&limit=60')) || [];
   let feature = all.find(a=>a.featured) || null;
   const list = all.filter(a=>a!==feature);
 
-  return html(200, page(feature, list, labelMap, { zones: zones||[] }, zone||''));
+  return html(200, page(feature, list, labelMap, { comps: compChips }, comp||''));
 };
