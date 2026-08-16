@@ -89,6 +89,27 @@ textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
 .rb-dropline{height:0;border-top:3px solid var(--red);box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px;display:none}
 .rb-dropline.on{display:block}
 .rb-editor.file-drag{outline:2px dashed rgba(255,51,77,.5);outline-offset:-8px}
+/* poignée de déplacement (SEULE zone qui initie le glisser d'un bloc) */
+.rb-block__bar{cursor:default}
+.rb-drag{cursor:grab;user-select:none;color:#7f93b3;font-size:15px;line-height:1;padding:2px 4px;border-radius:5px}
+.rb-drag:hover{color:#fff;background:rgba(255,255,255,.08)}
+.rb-drag:active{cursor:grabbing}
+/* points d'insertion discrets (avant / entre / après les blocs) */
+.rb-ins{display:flex;align-items:center;gap:8px;height:14px;margin:-3px 0;position:relative;opacity:0;transition:opacity .12s}
+.rb-ins:hover,.rb-ins.open{opacity:1}
+.rb-ins__line{flex:1;height:1px;background:rgba(140,170,220,.28)}
+.rb-ins__btn{width:24px;height:24px;flex:none;border-radius:50%;border:1px solid rgba(140,170,220,.5);background:#0c1c38;color:#cdd9ea;font-size:15px;line-height:22px;cursor:pointer;padding:0}
+.rb-ins__btn:hover{border-color:var(--red);color:#fff}
+.rb-ins__menu{display:none;position:absolute;left:50%;top:22px;transform:translateX(-50%);z-index:20;background:#0e1f3d;border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.5);white-space:nowrap}
+.rb-ins.open .rb-ins__menu{display:block}
+.rb-ins__menu button{display:block;width:100%;text-align:left;background:none;border:0;color:#dbe6f5;font-weight:700;font-size:14px;padding:8px 16px;border-radius:7px;cursor:pointer}
+.rb-ins__menu button:hover{background:rgba(255,255,255,.07)}
+/* contrôles directs sur un bloc image */
+.rb-imgctl{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.rb-imgctl button{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#dbe6f5;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer}
+.rb-imgctl button:hover{border-color:var(--red);color:#fff}
+.rb-imgctl button.danger:hover{border-color:#ff5064;color:#ffd0d6}
+.rb-rt button.on{border-color:var(--red);color:#fff;background:rgba(255,51,77,.18)}
 /* Preview */
 .rb-pv-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:#081428}
 .rb-pv-bar .lab{color:var(--muted);font-size:13px;font-weight:600}
@@ -451,32 +472,62 @@ function defaultData(t){
 function addBlock(type,data,at){ const b={id:uid++,type,hidden:false,data:data||defaultData(type)}; if(at==null)state.blocks.push(b); else state.blocks.splice(at,0,b); renderBlocks(); update(); return b; }
 
 /* ---------- render editor blocks ---------- */
+// Point d'insertion discret (position = index où insérer dans state.blocks).
+function insHTML(pos){
+  return '<div class="rb-ins" data-pos="'+pos+'"><span class="rb-ins__line"></span>'
+    + '<button class="rb-ins__btn" type="button" title="Insérer ici">+</button><span class="rb-ins__line"></span>'
+    + '<div class="rb-ins__menu"><button type="button" data-ins="paragraph">¶ Ajouter un paragraphe</button>'
+    + '<button type="button" data-ins="image">🖼 Ajouter une image</button></div></div>';
+}
 function renderBlocks(){
   const host=$('#blocks'); host.innerHTML='';
+  host.insertAdjacentHTML('beforeend', insHTML(0));           // point d'insertion AVANT le 1er bloc
   state.blocks.forEach((b,i)=>{
     const def=BLOCK_DEFS[b.type];
     const el=document.createElement('div');
-    el.className='rb-block'+(b.hidden?' hidden-b':'')+(state.sel===i?' sel':''); el.draggable=true; el.dataset.i=i;
+    // Le bloc n'est PAS déplaçable en entier : seule la poignée .rb-drag initie le glisser.
+    el.className='rb-block'+(b.hidden?' hidden-b':'')+(state.sel===i?' sel':'');
+    el.dataset.i=i; el.dataset.blockId=b.id;
     el.innerHTML =
       '<div class="rb-block__bar">'
+      + '<span class="rb-drag" draggable="true" title="Déplacer le bloc (glisser)">⠿</span>'
       + '<span class="rb-block__type">'+def.icon+' '+def.label+'</span><span class="rb-block__sp"></span>'
-      + '<button class="icon-btn" title="Monter" onclick="TSF.move('+i+',-1)">▲</button>'
-      + '<button class="icon-btn" title="Descendre" onclick="TSF.move('+i+',1)">▼</button>'
-      + '<button class="icon-btn" title="Dupliquer" onclick="TSF.dup('+i+')">⧉</button>'
-      + '<button class="icon-btn" title="Masquer" onclick="TSF.hide('+i+')">'+(b.hidden?'◻':'👁')+'</button>'
-      + '<button class="icon-btn" title="Supprimer" onclick="TSF.del('+i+')">🗑</button>'
+      + '<button class="icon-btn" title="Monter" onclick="TSF.moveId('+b.id+',-1)">▲</button>'
+      + '<button class="icon-btn" title="Descendre" onclick="TSF.moveId('+b.id+',1)">▼</button>'
+      + '<button class="icon-btn" title="Dupliquer" onclick="TSF.dupId('+b.id+')">⧉</button>'
+      + '<button class="icon-btn" title="Masquer" onclick="TSF.hideId('+b.id+')">'+(b.hidden?'◻':'👁')+'</button>'
+      + '<button class="icon-btn" title="Supprimer" onclick="TSF.delId('+b.id+')">🗑</button>'
       + '</div><div class="rb-block__body">'+blockEditor(b,i)+'</div>';
     host.appendChild(el);
-    el.addEventListener('dragstart',e=>{ if(e.target.closest('.rb-ce,input,textarea,button')&&e.target!==el){} el.classList.add('dragging');e.dataTransfer.setData('text/block',i);});
-    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    const handle=el.querySelector('.rb-drag');
+    handle.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/block-id',String(b.id)); e.dataTransfer.effectAllowed='move'; el.classList.add('dragging'); });
+    handle.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    // Garde-fou RÉEL : tout dragstart qui ne part pas de la poignée (donc depuis .rb-ce,
+    // input, textarea, légende, crédit, alt, bouton…) est annulé → sélection de texte préservée.
+    el.addEventListener('dragstart',e=>{ if(e.target!==handle){ e.preventDefault(); e.stopPropagation(); } });
+    host.insertAdjacentHTML('beforeend', insHTML(i+1));       // point d'insertion APRÈS ce bloc
   });
-  bindEditors();
+  bindEditors(); bindInserters();
 }
+// Retrouve un bloc et son index courant à partir de son identifiant STABLE.
+function indexOfId(id){ id=+id; return state.blocks.findIndex(b=>b.id===id); }
+function bindInserters(){
+  $$('#blocks .rb-ins').forEach(ins=>{
+    const btn=ins.querySelector('.rb-ins__btn');
+    btn.onclick=e=>{ e.stopPropagation(); const open=ins.classList.contains('open'); $$('#blocks .rb-ins.open').forEach(x=>x.classList.remove('open')); if(!open)ins.classList.add('open'); };
+    ins.querySelectorAll('[data-ins]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); const pos=+ins.dataset.pos; ins.classList.remove('open');
+      if(b.dataset.ins==='image'){ insertImageAt(pos); }
+      else { addBlock('paragraph',{text:''},pos); focusBlock(pos); }
+    }; });
+  });
+}
+// Ferme les menus d'insertion si on clique ailleurs.
+document.addEventListener('click',e=>{ if(!e.target.closest('.rb-ins')) $$('#blocks .rb-ins.open').forEach(x=>x.classList.remove('open')); });
 function blockEditor(b,i){
   const d=b.data;
   if(b.type==='paragraph'||b.type==='quote'){
     const rt = b.type==='paragraph' ? '<div class="rb-rt"><button data-cmd="bold" title="Gras"><b>G</b></button><button data-cmd="italic" title="Italique"><i>I</i></button><button data-cmd="insertUnorderedList" title="Liste à puces">•</button><button data-cmd="insertOrderedList" title="Liste numérotée">1.</button><button data-cmd="createLink" title="Lien">🔗</button><button data-cmd="superscript" title="Exposant">x²</button></div>' : '';
-    return rt+'<div class="rb-ce" contenteditable="true" data-ph="'+esc(BLOCK_DEFS[b.type].ph)+'" data-i="'+i+'">'+(d.text||'')+'</div>'
+    return rt+'<div class="rb-ce" contenteditable="true" data-ph="'+esc(BLOCK_DEFS[b.type].ph)+'" data-i="'+i+'" data-block-id="'+b.id+'">'+(d.text||'')+'</div>'
       + (b.type==='quote'?'<input class="rb-i" style="margin-top:8px" placeholder="Auteur de la citation" data-field="cite" data-i="'+i+'" value="'+esc(d.cite||'')+'">':'');
   }
   if(b.type==='heading'||b.type==='subheading') return '<input class="rb-i" placeholder="'+esc(BLOCK_DEFS[b.type].ph)+'" data-field="text" data-i="'+i+'" value="'+esc(d.text||'')+'">';
@@ -488,12 +539,13 @@ function blockEditor(b,i){
     const img = d.src ? '<img class="rb-img-prev" src="'+esc(d.src)+'" alt="'+esc(d.alt||'')+'">' : '<div class="rb-img-drop" data-i="'+i+'">Glissez une image ici, ou <button class="btn" style="min-height:40px" onclick="TSF.pickImage('+i+')">choisir un fichier</button></div>';
     const prog = '<div class="rb-prog" id="prog-'+b.id+'" style="display:none"><i></i></div>';
     const err = d.error ? '<div class="rb-err">'+esc(d.error)+'</div>' : '';
+    const ctl = d.src ? '<div class="rb-imgctl"><button type="button" data-imgctl="replace" title="Remplacer l\'image">↺ Remplacer</button><button type="button" class="danger" data-imgctl="remove" title="Retirer l\'image (confirmation)">🗑 Retirer</button><span style="align-self:center;color:#7f93b3;font-size:12px">Déplacer : poignée ⠿ ou ▲ ▼</span></div>' : '';
     const fields = d.src ? '<div class="rb-capfields">'
         + '<label class="rb-l">Légende photographique</label><input class="rb-i" placeholder="Décrire / contextualiser la photo, personnes, lieu…" data-field="caption" data-i="'+i+'" value="'+esc(d.caption||'')+'">'
         + '<label class="rb-l">Crédit photographique</label><input class="rb-i" placeholder="Photographe, agence, club, TomsoFoot, Getty…" data-field="credit" data-i="'+i+'" value="'+esc(d.credit||'')+'">'
         + '<label class="rb-l">Texte alternatif (accessibilité/SEO — distinct de la légende)</label><input class="rb-i" placeholder="Décrit l\'image pour les lecteurs d\'écran" data-field="alt" data-i="'+i+'" value="'+esc(d.alt||'')+'">'
         + '</div>' : '';
-    return img+prog+err+fields;
+    return img+prog+err+ctl+fields;
   }
   if(b.type==='video'||b.type==='embed') return '<input class="rb-i" placeholder="Fournisseur (youtube / twitch / dailymotion)" data-field="provider" data-i="'+i+'" value="'+esc(d.provider||'youtube')+'"><input class="rb-i" style="margin-top:8px" placeholder="ID de la vidéo" data-field="id" data-i="'+i+'" value="'+esc(d.id||'')+'">';
   if(b.type==='stats') return '<p class="rb-hint">Statistiques (libellé · valeur) — réorganisées verticalement sur mobile.</p>'+(d.rows||[]).map((r,j)=>'<div class="rb-grid" style="margin-top:6px"><input class="rb-i" data-stat="'+i+'-'+j+'-k" value="'+esc(r.k)+'"><input class="rb-i" data-stat="'+i+'-'+j+'-v" value="'+esc(r.v)+'"></div>').join('');
@@ -502,22 +554,51 @@ function blockEditor(b,i){
   if(b.type==='related'||b.type==='continue') return '<input class="rb-i" placeholder="Titre de la section" data-field="title" data-i="'+i+'" value="'+esc(d.title||'')+'"><input class="rb-i" style="margin-top:8px" placeholder="Titre de l\'article recommandé" data-field="itemtitle" data-i="'+i+'" value="'+esc((d.items&&d.items[0]&&d.items[0].title)||'')+'">';
   return '';
 }
+/* ---------- gras / italique : préservation du Range (correction #2) ---------- */
+let savedRange=null;
+function ceOf(node){ if(!node)return null; node=node.nodeType===1?node:node.parentNode; return node&&node.closest?node.closest('.rb-ce'):null; }
+function saveRange(){ const s=window.getSelection&&window.getSelection(); if(s&&s.rangeCount){ const r=s.getRangeAt(0); if(ceOf(r.commonAncestorContainer)) savedRange=r.cloneRange(); } }
+function restoreRange(){ if(!savedRange)return false; try{ const s=window.getSelection(); s.removeAllRanges(); s.addRange(savedRange); return true; }catch(e){ return false; } }
+function syncBlockFromCe(ce){ const bi=indexOfId(+ce.dataset.blockId); if(bi>=0) state.blocks[bi].data.text=sanitizeRich(ce.innerHTML); }
+function activeCe(){ const s=window.getSelection(); let ce=s&&s.rangeCount?ceOf(s.getRangeAt(0).commonAncestorContainer):null; if(!ce&&savedRange)ce=ceOf(savedRange.commonAncestorContainer); return ce; }
+// Utilisation ISOLÉE de execCommand, toujours APRÈS restauration du Range (souris/tactile/stylet).
+function applyInlineFormat(cmd){
+  // Capture immédiate de la sélection AVANT tout focus (qui pourrait la réduire).
+  const sel0=window.getSelection&&window.getSelection();
+  if(sel0&&sel0.rangeCount){ const r0=sel0.getRangeAt(0); if(ceOf(r0.commonAncestorContainer)) savedRange=r0.cloneRange(); }
+  const ce=activeCe(); if(!ce)return;
+  ce.focus(); restoreRange();
+  // Force les balises SÉMANTIQUES (<b>/<i>) plutôt que des <span style> (sinon retirés par sanitizeRich).
+  try{ document.execCommand('styleWithCSS',false,false); }catch(e){}
+  try{ document.execCommand(cmd,false,null); }catch(e){}
+  syncBlockFromCe(ce); saveRange(); update(); autosave(); refreshFmtButtons(ce);
+}
+function refreshFmtButtons(ce){ const rt=ce.parentNode&&ce.parentNode.querySelector('.rb-rt'); if(!rt)return; rt.querySelectorAll('button[data-cmd]').forEach(btn=>{ const c=btn.dataset.cmd; if(c==='bold'||c==='italic'){ let on=false; try{on=document.queryCommandState(c);}catch(e){} btn.classList.toggle('on',on); } }); }
+
 function bindEditors(){
   $$('.rb-ce').forEach(ce=>{
-    ce.oninput=()=>{ const i=+ce.dataset.i; state.blocks[i].data.text=sanitizeRich(ce.innerHTML); update(); autosave(); };
-    ce.onfocus=()=>{ state.sel=+ce.dataset.i; };
-    ce.onpaste=e=>{ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData('text/html')||(e.clipboardData).getData('text/plain'); document.execCommand('insertHTML',false,sanitizeRich(t)); };
-    if(ce.dataset && $$('.rb-ce').indexOf(ce)>-1){
-      const blk=state.blocks[+ce.dataset.i];
-      if(blk.type==='paragraph') ce.onkeydown=e=>paragraphKeys(e,ce);
-    }
+    ce.oninput=()=>{ syncBlockFromCe(ce); saveRange(); update(); autosave(); refreshFmtButtons(ce); };
+    ce.onfocus=()=>{ const bi=indexOfId(+ce.dataset.blockId); if(bi>=0)state.sel=bi; saveRange(); };
+    ['keyup','mouseup','pointerup'].forEach(ev=>ce.addEventListener(ev,saveRange));
+    ce.onpaste=e=>{ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData('text/html')||(e.clipboardData).getData('text/plain'); restoreRange(); document.execCommand('insertHTML',false,sanitizeRich(t)); syncBlockFromCe(ce); saveRange(); update(); autosave(); };
+    ce.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&!e.altKey){ const k=e.key.toLowerCase(); if(k==='b'){e.preventDefault();applyInlineFormat('bold');return;} if(k==='i'){e.preventDefault();applyInlineFormat('italic');return;} } });
+    const blk=state.blocks[indexOfId(+ce.dataset.blockId)];
+    if(blk && blk.type==='paragraph') ce.addEventListener('keydown',e=>paragraphKeys(e,ce));
   });
-  $$('.rb-rt button').forEach(btn=>{ btn.onclick=()=>{ const cmd=btn.dataset.cmd; if(cmd==='createLink'){const u=prompt('Lien (https://)');if(u&&/^https?:/.test(u))document.execCommand('createLink',false,u);} else document.execCommand(cmd,false,null); }; });
-  $$('[data-field]').forEach(inp=>{ inp.oninput=()=>{ const i=+inp.dataset.i; const f=inp.dataset.field; if(f==='itemtitle'){ state.blocks[i].data.items=[{title:inp.value,slug:slugify(inp.value)}]; } else state.blocks[i].data[f]=inp.value; update(); autosave(); }; });
-  $$('[data-stat]').forEach(inp=>{ inp.oninput=()=>{ const [i,j,k]=inp.dataset.stat.split('-'); state.blocks[i].data.rows[j][k]=inp.value; update(); autosave(); }; });
-  $$('.rb-space-seg').forEach(seg=>{ seg.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const i=+seg.dataset.i; state.blocks[i].data.size=bt.dataset.size; renderBlocks(); update(); autosave(); }); });
-  // image drop onto an existing empty image zone
-  $$('.rb-img-drop').forEach(z=>{ z.ondragover=e=>{e.preventDefault();z.style.borderColor='#ff334d';}; z.ondragleave=()=>z.style.borderColor=''; z.ondrop=e=>{e.preventDefault();z.style.borderColor='';const f=[...(e.dataTransfer.files||[])][0]; if(f) uploadImageToBlock(+z.dataset.i,f);}; });
+  // Barre de mise en forme : pointerdown + preventDefault => la sélection du .rb-ce n'est PAS perdue.
+  $$('.rb-rt button').forEach(btn=>{
+    btn.addEventListener('pointerdown',e=>{ e.preventDefault(); });   // empêche le vol de focus/sélection
+    btn.addEventListener('mousedown',e=>{ e.preventDefault(); });     // repli navigateurs sans PointerEvent
+    btn.addEventListener('click',e=>{ e.preventDefault(); const cmd=btn.dataset.cmd;
+      if(cmd==='createLink'){ const ce=activeCe(); const u=prompt('Lien (https://)'); if(ce&&u&&/^https?:/.test(u)){ ce.focus(); restoreRange(); document.execCommand('createLink',false,u); syncBlockFromCe(ce); saveRange(); update(); autosave(); } return; }
+      applyInlineFormat(cmd);
+    });
+  });
+  $$('[data-field]').forEach(inp=>{ inp.oninput=()=>{ const card=inp.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; if(i<0)return; const f=inp.dataset.field; if(f==='itemtitle'){ state.blocks[i].data.items=[{title:inp.value,slug:slugify(inp.value)}]; } else state.blocks[i].data[f]=inp.value; update(); autosave(); }; });
+  $$('[data-stat]').forEach(inp=>{ inp.oninput=()=>{ const card=inp.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; const p=inp.dataset.stat.split('-'); const j=p[1],k=p[2]; if(i>=0){ state.blocks[i].data.rows[j][k]=inp.value; update(); autosave(); } }; });
+  $$('.rb-space-seg').forEach(seg=>{ seg.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const card=seg.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; if(i>=0){ state.blocks[i].data.size=bt.dataset.size; renderBlocks(); update(); autosave(); } }); });
+  $$('.rb-img-drop').forEach(z=>{ z.ondragover=e=>{e.preventDefault();z.style.borderColor='#ff334d';}; z.ondragleave=()=>z.style.borderColor=''; z.ondrop=e=>{e.preventDefault();z.style.borderColor='';const f=[...(e.dataTransfer.files||[])][0]; if(f){ const card=z.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; if(i>=0) uploadImageToBlock(i,f);} }; });
+  bindImageControls();
 }
 
 /* ---------- clavier : Entrée / Maj+Entrée / double Entrée ---------- */
@@ -525,19 +606,27 @@ function paragraphKeys(e,ce){
   if(e.key!=='Enter') return;
   if(e.shiftKey){ return; } // Maj+Entrée = retour à la ligne (comportement natif <br>, conservé)
   e.preventDefault();
-  const i=+ce.dataset.i;
+  const i=indexOfId(+ce.dataset.blockId); if(i<0)return;
   const empty = ce.textContent.trim()==='' && !ce.querySelector('img');
   if(empty){
     // 2e Entrée sur une ligne vide -> transforme en ESPACE (normal) + nouveau paragraphe
     state.blocks[i]={id:state.blocks[i].id,type:'spacer',hidden:false,data:{size:'normal'}};
-    const nb=addBlock('paragraph',{text:''},i+1); focusBlock(i+1);
+    addBlock('paragraph',{text:''},i+1); focusBlock(i+1);
   } else {
-    // Entrée -> nouveau paragraphe
-    const nb=addBlock('paragraph',{text:''},i+1); focusBlock(i+1);
+    addBlock('paragraph',{text:''},i+1); focusBlock(i+1);
   }
   update(); autosave();
 }
-function focusBlock(i){ requestAnimationFrame(()=>{ const el=$('#blocks').children[i]; if(!el)return; const ce=el.querySelector('.rb-ce'); if(ce){ce.focus(); state.sel=i;} }); }
+// Place le curseur à la FIN du i-ème bloc éditable (les inséreurs ne sont pas comptés).
+function focusBlock(i){ requestAnimationFrame(()=>{ const cards=$('#blocks').querySelectorAll('.rb-block'); const el=cards[i]; if(!el)return; const ce=el.querySelector('.rb-ce'); if(ce){ ce.focus(); try{ const r=document.createRange(); r.selectNodeContents(ce); r.collapse(false); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r); saveRange(); }catch(_){} state.sel=i; } }); }
+// Insère une image à la position pos, garantit un paragraphe dessous, puis ouvre le choix de fichier.
+function insertImageAt(pos){ const b=addBlock('image',{alt:'',caption:'',credit:'',src:''},pos); const i=indexOfId(b.id); ensureParagraphAfter(i); TSF.pickImage(i); }
+// Garantit qu'un paragraphe suit le bloc d'index i. Retourne l'index du paragraphe.
+function ensureParagraphAfter(i){ const nx=state.blocks[i+1]; if(nx&&nx.type==='paragraph')return i+1; addBlock('paragraph',{text:''},i+1); return i+1; }
+// Après qu'une image est prête (src posée) : place le curseur dans le paragraphe qui la suit.
+function afterImageReady(id){ const i=indexOfId(id); if(i<0)return; const pi=ensureParagraphAfter(i); focusBlock(pi); }
+// Contrôles directs Remplacer / Retirer sur un bloc image.
+function bindImageControls(){ $$('.rb-imgctl [data-imgctl]').forEach(btn=>{ btn.onclick=()=>{ const card=btn.closest('.rb-block'); if(!card)return; const id=+card.dataset.blockId; const act=btn.dataset.imgctl; if(act==='replace'){ TSF.replaceImage(indexOfId(id)); } else if(act==='remove'){ TSF.delId(id); } }; }); }
 
 /* ---------- actions blocs ---------- */
 const TSF={
@@ -545,6 +634,12 @@ const TSF={
   dup(i){state.blocks.splice(i+1,0,JSON.parse(JSON.stringify({...state.blocks[i],id:uid++})));renderBlocks();update();autosave();},
   hide(i){state.blocks[i].hidden=!state.blocks[i].hidden;renderBlocks();update();autosave();},
   del(i){if(confirm('Supprimer ce bloc ?')){state.blocks.splice(i,1);renderBlocks();update();autosave();}},
+  // Actions par IDENTIFIANT STABLE (l'index ne sert qu'à l'ordre visuel).
+  moveId(id,dir){const i=indexOfId(id); if(i>=0)this.move(i,dir);},
+  dupId(id){const i=indexOfId(id); if(i>=0)this.dup(i);},
+  hideId(id){const i=indexOfId(id); if(i>=0)this.hide(i);},
+  delId(id){const i=indexOfId(id); if(i<0)return; if(confirm('Supprimer ce bloc ? Les blocs voisins (avant/après) sont conservés.')){ state.blocks.splice(i,1); renderBlocks(); update(); autosave(); }},
+  replaceImage(i){ if(i<0)return; pendingImageAt=i; pendingReplace=true; $('#fileInput').click(); },
   openAdd(){$('#mAdd').classList.add('on');},closeAdd(){$('#mAdd').classList.remove('on');},
   close(id){$('#'+id).classList.remove('on');},
   tab(t){document.body.classList.toggle('show-preview',t==='preview');$$('.rb-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));if(t==='preview')update();},
@@ -607,7 +702,7 @@ function uploadImageToBlock(i,f){
     const prog=document.getElementById('prog-'+blk.id); if(prog){prog.style.display='block';}
     let p=0; const bar=prog?prog.querySelector('i'):null;
     const timer=setInterval(()=>{ p+=12+Math.random()*18; if(bar)bar.style.width=Math.min(100,p)+'%';
-      if(p>=100){ clearInterval(timer); blk.data.src=ev.target.result; blk.data.original=ev.target.result; renderBlocks(); update(); autosave(); }
+      if(p>=100){ clearInterval(timer); blk.data.src=ev.target.result; blk.data.original=ev.target.result; renderBlocks(); update(); autosave(); afterImageReady(blk.id); }
     },110);
   };
   reader.readAsDataURL(f);
@@ -617,17 +712,27 @@ const editor=$('#editorPane'); const host=$('#blocks');
 let dropline;
 function ensureDropline(){ if(!dropline){ dropline=document.createElement('div'); dropline.className='rb-dropline'; } return dropline; }
 function insertIndexFromY(y){
-  const kids=[...host.children]; for(let k=0;k<kids.length;k++){ const r=kids[k].getBoundingClientRect(); if(y < r.top+r.height/2) return k; } return kids.length;
+  const cards=[...host.querySelectorAll('.rb-block')]; for(let k=0;k<cards.length;k++){ const r=cards[k].getBoundingClientRect(); if(y < r.top+r.height/2) return k; } return cards.length;
 }
 editor.addEventListener('dragover',e=>{ if(![...(e.dataTransfer.types||[])].includes('Files'))return; e.preventDefault(); editor.classList.add('file-drag');
   const idx=insertIndexFromY(e.clientY); const dl=ensureDropline(); dl.classList.add('on');
-  const kids=[...host.children].filter(c=>c!==dl); if(idx>=kids.length) host.appendChild(dl); else host.insertBefore(dl,kids[idx]); host._dropIdx=idx;
+  const cards=[...host.querySelectorAll('.rb-block')]; if(idx>=cards.length) host.appendChild(dl); else host.insertBefore(dl,cards[idx]); host._dropIdx=idx;
 });
 editor.addEventListener('dragleave',e=>{ if(e.target===editor){ editor.classList.remove('file-drag'); if(dropline)dropline.classList.remove('on'); } });
 editor.addEventListener('drop',e=>{ if(![...(e.dataTransfer.types||[])].includes('Files'))return; e.preventDefault(); editor.classList.remove('file-drag'); if(dropline)dropline.classList.remove('on');
   const idx = host._dropIdx!=null?host._dropIdx:state.blocks.length;
   const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
   let at=idx; files.forEach(f=>{ const b=addBlock('image',{alt:'',caption:'',credit:'',src:''},at++); uploadImageToBlock(state.blocks.indexOf(b),f); });
+});
+// Réordonnancement des blocs par glisser de la POIGNÉE uniquement (dataTransfer 'text/block-id').
+editor.addEventListener('dragover',e=>{ const t=e.dataTransfer&&e.dataTransfer.types; if(!t||[].indexOf.call(t,'text/block-id')<0)return; e.preventDefault();
+  const idx=insertIndexFromY(e.clientY); const dl=ensureDropline(); dl.classList.add('on');
+  const cards=[...host.querySelectorAll('.rb-block')]; if(idx>=cards.length) host.appendChild(dl); else host.insertBefore(dl,cards[idx]); host._dropIdx=idx;
+});
+editor.addEventListener('drop',e=>{ const id=(e.dataTransfer&&e.dataTransfer.getData('text/block-id'))||''; if(!id)return; e.preventDefault(); if(dropline)dropline.classList.remove('on');
+  const from=indexOfId(+id); let to=host._dropIdx!=null?host._dropIdx:state.blocks.length; if(from<0)return;
+  const blk=state.blocks.splice(from,1)[0]; if(to>from)to--; to=Math.max(0,Math.min(to,state.blocks.length)); state.blocks.splice(to,0,blk);
+  renderBlocks(); update(); autosave();
 });
 
 /* ---------- preview-in-real button ---------- */
@@ -718,7 +823,60 @@ function previewHTML(){
    +'<aside class="side"><p class="st">Sur TomsoFoot</p><a>Tous les articles</a><a>Le dernier journal</a><a>Les prochains matchs</a></aside>'
    +'</main></body></html>';
 }
-let upT; function update(){ clearTimeout(upT); upT=setTimeout(()=>{ $('#pv').srcdoc=previewHTML(); },110); }
+/* ---------- aperçu STABLE : iframe initialisé une fois, puis patch ciblé (correction #3) ---------- */
+let upT, pvReady=false;
+function update(force){ clearTimeout(upT); upT=setTimeout(()=>doUpdate(force),90); }
+function doUpdate(force){
+  const pv=$('#pv'); const doc=pv.contentDocument;
+  if(force || !pvReady || !doc || !doc.querySelector('.body')){
+    const anchor = doc ? captureAnchor(doc,pv) : null;   // ancre avant un éventuel reload structurel
+    pv.onload=()=>{ pvReady=true; const d=pv.contentDocument; if(anchor) restoreAnchor(d,pv,anchor); };
+    pv.srcdoc=previewHTML();
+    return;
+  }
+  const anchor=captureAnchor(doc,pv);
+  patchPreview(doc);                                       // modification contrôlée du contentDocument (même origine)
+  restoreAnchor(doc,pv,anchor);                            // le bloc lu reste au même endroit
+}
+// Reconstruit UNIQUEMENT ce qui change : en-tête (texte) + blocs (par identifiant stable).
+function patchPreview(doc){
+  const h=state.header;
+  const h1=doc.querySelector('article h1'); if(h1) h1.textContent=h.title||'Votre titre apparaîtra ici';
+  const deck=doc.querySelector('article .deck'); if(deck){ if(h.deck){deck.textContent=h.deck; deck.style.opacity='';} else {deck.textContent='Le chapô s\'affichera ici…'; deck.style.opacity='.5';} }
+  const k=doc.querySelector('article .k'); if(k){ const kk=[h.competition,h.genre].filter(Boolean).join(' · '); if(kk){k.textContent=kk;k.style.opacity='';} else {k.textContent='Rubrique · Genre';k.style.opacity='.4';} }
+  const st=doc.getElementById('rb-hcol'); if(st && typeof headerColorCSS==='function') st.textContent=headerColorCSS();
+  const body=doc.querySelector('.body'); if(body) reconcileBody(body);
+}
+// Diff par clé (data-blk = block.id) : n'update que les blocs réellement modifiés.
+function reconcileBody(body){
+  const desired=state.blocks.filter(b=>!b.hidden);
+  const existing={}; [...body.children].forEach(el=>{ if(el.dataset&&el.dataset.blk) existing[el.dataset.blk]=el; });
+  let prev=null;
+  desired.forEach(b=>{
+    const html=renderPreviewBlock(b);
+    if(!html){ const ex=existing[b.id]; if(ex){ex.remove(); delete existing[b.id];} return; }
+    const tmp=doc0().createElement('div'); tmp.innerHTML=html; const fresh=tmp.firstElementChild; if(!fresh)return;
+    let el=existing[b.id];
+    if(el){ if(el.outerHTML!==fresh.outerHTML){ el.replaceWith(fresh); el=fresh; } delete existing[b.id]; }
+    else { el=fresh; }
+    if(prev){ if(prev.nextSibling!==el) prev.after(el); } else if(body.firstChild!==el){ body.insertBefore(el, body.firstChild); }
+    prev=el;
+  });
+  Object.keys(existing).forEach(id=>existing[id].remove());
+}
+function doc0(){ const pv=$('#pv'); return pv.contentDocument||document; }
+// Ancrage : mémorise le bloc visible en haut + son décalage, puis le remet à la même place.
+function captureAnchor(doc,pv){
+  try{ const els=[...doc.querySelectorAll('.body [data-blk]')];
+    for(const el of els){ const r=el.getBoundingClientRect(); if(r.bottom>4){ return {id:el.getAttribute('data-blk'), top:r.top}; } }
+  }catch(e){}
+  try{ return {scroll:pv.contentWindow.scrollY}; }catch(e){ return null; }
+}
+function restoreAnchor(doc,pv,a){ if(!a)return;
+  try{ if(a.id!=null){ const el=doc.querySelector('.body [data-blk="'+a.id+'"]'); if(el){ const r=el.getBoundingClientRect(); pv.contentWindow.scrollBy(0, r.top-a.top); return; } }
+    if(a.scroll!=null) pv.contentWindow.scrollTo(0,a.scroll);
+  }catch(e){}
+}
 
 /* ---------- seed démo ---------- */
 $('[data-h="title"]').value="L'Azteca a retrouvé sa voix"; state.header.title="L'Azteca a retrouvé sa voix"; state.header.slug=slugify(state.header.title);$('[data-h="slug"]').value=state.header.slug;
@@ -899,7 +1057,7 @@ autosave(true); update();
         if(!up2.error){ const wurl=sb.storage.from('articles').getPublicUrl(wpath).data.publicUrl; variants=[{url:wurl,w:webpW,type:'image/webp'}]; displayUrl=wurl; } }
       setBar(100);
       blk.data.src=displayUrl; blk.data.original=origUrl; blk.data.variants=variants; blk.data.width=w; blk.data.height=h; blk.data.error=null;
-      renderBlocks(); update(); realSave(true);
+      renderBlocks(); update(); realSave(true); afterImageReady(blk.id);
     }catch(e){ blk.data.error='Échec du téléversement : '+(e.message||e)+' — l\'article n\'est pas affecté.'; renderBlocks(); }
   }
   uploadImageToBlock=realUpload;
@@ -1209,26 +1367,29 @@ autosave(true); update();
   /* ---------- aperçu : couleurs de bloc + légendes + en-tête ---------- */
   function figcapC(caption,credit,capC,credC){ if(!caption && !credit) return ''; return '<figcaption>'+(caption?'<span'+(capC?' style="color:'+capC+'"':'')+'>'+esc(caption)+'</span>':'')+(credit?'<span class="cr"'+(credC?' style="color:'+credC+'"':'')+'>© '+esc(credit)+'</span>':'')+'</figcaption>'; }
   renderPreviewBlock=function(b){
-    if(b.hidden) return ''; const d=b.data||{}; const cs=d.textColor?(' style="color:'+d.textColor+'"'):'';
+    if(b.hidden) return ''; const d=b.data||{}; const cs=d.textColor?(' style="color:'+d.textColor+'"'):''; const K=' data-blk="'+b.id+'"';
     switch(b.type){
-      case 'paragraph': return d.text&&d.text.trim()?'<p'+cs+'>'+d.text+'</p>':'';
-      case 'heading': return '<h2'+cs+'>'+esc(d.text||'Grand intertitre')+'</h2>';
-      case 'subheading': return '<h3'+cs+'>'+esc(d.text||'Petit intertitre')+'</h3>';
-      case 'spacer': return '<div style="height:'+(SPACE_PX[d.size]||30)+'px"></div>';
-      case 'image': return d.src?('<figure><img src="'+esc(d.src)+'" alt="'+esc(d.alt||'')+'">'+figcapC(d.caption,d.credit,d.captionColor,d.creditColor)+'</figure>'):'';
-      case 'quote': return '<blockquote'+cs+'><p>'+(d.text||'Citation…')+'</p>'+(d.cite?'<cite>'+esc(d.cite)+'</cite>':'')+'</blockquote>';
-      case 'stats': return '<div class="stats"'+cs+'>'+(d.rows||[]).map(r=>'<div class="stat"><b>'+esc(r.v)+'</b><span>'+esc(r.k)+'</span></div>').join('')+'</div>';
-      case 'table': return '<table'+cs+'><thead><tr>'+(d.head||[]).map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+(d.rows||[]).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
-      case 'video': case 'embed': { const id=(d.id||'').replace(/[^\w-]/g,''); return id?'<div class="embed"><iframe src="https://www.youtube-nocookie.com/embed/'+id+'" allowfullscreen></iframe></div>':''; }
-      case 'divider': return '<hr>';
-      case 'related': case 'continue': return '<div class="rel"><p class="rt">'+esc(d.title||'À lire ensuite')+'</p>'+(d.items||[]).map(it=>'<a href="#">'+esc(it.title||'Article')+'</a>').join('')+'</div>';
+      case 'paragraph': return d.text&&d.text.trim()?'<p'+cs+K+'>'+d.text+'</p>':'';
+      case 'heading': return '<h2'+cs+K+'>'+esc(d.text||'Grand intertitre')+'</h2>';
+      case 'subheading': return '<h3'+cs+K+'>'+esc(d.text||'Petit intertitre')+'</h3>';
+      case 'spacer': return '<div'+K+' style="height:'+(SPACE_PX[d.size]||30)+'px"></div>';
+      case 'image': return d.src?('<figure'+K+'><img src="'+esc(d.src)+'" alt="'+esc(d.alt||'')+'">'+figcapC(d.caption,d.credit,d.captionColor,d.creditColor)+'</figure>'):'';
+      case 'quote': return '<blockquote'+cs+K+'><p>'+(d.text||'Citation…')+'</p>'+(d.cite?'<cite>'+esc(d.cite)+'</cite>':'')+'</blockquote>';
+      case 'stats': return '<div class="stats"'+cs+K+'>'+(d.rows||[]).map(r=>'<div class="stat"><b>'+esc(r.v)+'</b><span>'+esc(r.k)+'</span></div>').join('')+'</div>';
+      case 'table': return '<table'+cs+K+'><thead><tr>'+(d.head||[]).map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+(d.rows||[]).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+      case 'video': case 'embed': { const id=(d.id||'').replace(/[^\w-]/g,''); return id?'<div class="embed"'+K+'><iframe src="https://www.youtube-nocookie.com/embed/'+id+'" allowfullscreen></iframe></div>':''; }
+      case 'divider': return '<hr'+K+'>';
+      case 'related': case 'continue': return '<div class="rel"'+K+'><p class="rt">'+esc(d.title||'À lire ensuite')+'</p>'+(d.items||[]).map(it=>'<a href="#">'+esc(it.title||'Article')+'</a>').join('')+'</div>';
     }
     return '';
   };
-  const _previewHTML2=previewHTML;
-  previewHTML=function(){ let html=_previewHTML2(); const c=state.header.colors||{}; let css='';
+  // CSS des couleurs d'en-tête, isolée et patchable en direct (id « rb-hcol »).
+  window.headerColorCSS=function(){ const c=state.header.colors||{}; let css='';
     if(c.title) css+='h1{color:'+c.title+' !important}'; if(c.deck) css+='.deck{color:'+c.deck+' !important}'; if(c.kicker) css+='.k{color:'+c.kicker+' !important}';
     if(c.hero_caption) css+='.hero figcaption{color:'+c.hero_caption+' !important}'; if(c.hero_credit) css+='.hero figcaption .cr{color:'+c.hero_credit+' !important}';
+    return css; };
+  const _previewHTML2=previewHTML;
+  previewHTML=function(){ let html=_previewHTML2(); const css=window.headerColorCSS();
     // script de cibles de dépôt (aperçu) — même origine (srcdoc), appels directs au parent
     const drop='<style>.tsf-ins{height:0;border-top:3px solid #ff334d;box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px}.tsf-hot{outline:2px dashed rgba(255,51,77,.55);outline-offset:-4px}</style>'
       +'<script>(function(){var P=window.parent;function body(){return document.querySelector(".body");}var line=null;function clear(){if(line&&line.parentNode)line.parentNode.removeChild(line);line=null;document.querySelectorAll(".tsf-hot").forEach(function(e){e.classList.remove("tsf-hot")});}'
@@ -1236,7 +1397,7 @@ autosave(true); update();
       +'document.addEventListener("dragover",function(e){if(!(e.dataTransfer&&([].indexOf.call(e.dataTransfer.types||[],"Files")>=0||[].indexOf.call(e.dataTransfer.types||[],"application/x-tsf-media")>=0)))return;e.preventDefault();var hero=e.target.closest&&e.target.closest(".hero");clear();if(hero){hero.classList.add("tsf-hot");return;}var o=idx(e.clientY);if(!o.b)return;line=document.createElement("div");line.className="tsf-ins";if(o.i>=o.b.children.length)o.b.appendChild(line);else o.b.insertBefore(line,o.b.children[o.i]);},true);'
       +'document.addEventListener("dragleave",function(e){if(e.target===document||e.relatedTarget===null)clear();},true);'
       +'document.addEventListener("drop",function(e){var dt=e.dataTransfer;if(!dt)return;var hero=e.target.closest&&e.target.closest(".hero");e.preventDefault();var o=idx(e.clientY);var index=hero?"hero":o.i;clear();var mid=dt.getData("application/x-tsf-media");if(mid){if(P.TSFM)P.TSFM.previewDropMedia(mid,index);return;}if(dt.files&&dt.files.length){if(P.TSFM)P.TSFM.previewDropFile(dt.files[0],index);}},true);})();<\/script>';
-    html=html.replace('</head>', (css?'<style>'+css+'</style>':'')+'</head>').replace('</body>', drop+'</body>');
+    html=html.replace('</head>', '<style id="rb-hcol">'+css+'</style></head>').replace('</body>', drop+'</body>');
     return html;
   };
 
@@ -1391,9 +1552,9 @@ autosave(true); update();
   editorPane.addEventListener('drop',e=>{ const id=e.dataTransfer.getData('application/x-tsf-media'); if(!id)return; e.preventDefault(); editorPane.classList.remove('file-drag');
     const m=ensureMedia().find(x=>x.id===id); if(!m)return;
     // index d'insertion : au-dessus/dessous du bloc le plus proche
-    const kids=[...blocksHost.children]; let idx=kids.length; for(let k=0;k<kids.length;k++){ const r=kids[k].getBoundingClientRect(); if(e.clientY<r.top+r.height/2){ idx=k; break; } }
+    const cards=[...blocksHost.querySelectorAll('.rb-block')]; let idx=cards.length; for(let k=0;k<cards.length;k++){ const r=cards[k].getBoundingClientRect(); if(e.clientY<r.top+r.height/2){ idx=k; break; } }
     // si on lâche sur un bloc image, on remplace ; sinon on insère
-    const overImg=e.target.closest&&e.target.closest('.rb-block'); const bi=overImg?+overImg.dataset.i:-1;
+    const overImg=e.target.closest&&e.target.closest('.rb-block'); const bi=overImg?indexOfId(+overImg.dataset.blockId):-1;
     if(bi>=0 && state.blocks[bi] && state.blocks[bi].type==='image' && e.target.closest('.rb-block__body')) replaceImageBlock(bi,m); else insertMediaBlock(m,idx);
   });
 
