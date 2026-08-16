@@ -1224,6 +1224,12 @@ js=r'''
     window.addEventListener('resize',updateEaCarousels);
   })();
 
+  // ===== Pop-up « Prolongez l'expérience » (composant partagé, purement éditorial) =====
+  // Balise du jour + bouton de réouverture (à chaque écran de résultat, y compris reprise).
+  // Ouverture AUTO : uniquement à la fin du parcours (Expert) ou dès qu'une réponse est révélée.
+  function cxSelfMark(){ if(window.TomsoFootContinue){ try{ window.TomsoFootContinue.setSelf('career-mode'); window.TomsoFootContinue.markCompleted('career-mode','completed'); }catch(e){} } }
+  function cxReopen(){ if(window.TomsoFootContinue){ try{ var c=document.getElementById('resultActions')||document.getElementById('gameResult'); if(c) window.TomsoFootContinue.mountReopenButton(c,'career-mode'); }catch(e){} } }
+  function cxAutoOpen(state){ if(window.TomsoFootContinue){ try{ window.TomsoFootContinue.setSelf('career-mode'); window.TomsoFootContinue.notifyFinished('career-mode',{state:state||'completed'}); }catch(e){} } }
   function showResult(kicker,name,scroll){
     var did=false; function go(){if(did)return;did=true;setTimeout(function(){try{resultEl.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){scrollBottom();}},50);}
     var gc=document.querySelector('.game-controls');
@@ -1254,7 +1260,7 @@ js=r'''
       loadPhotoInto(resultPhoto,name,function(){ if(scroll)go(); });
       if(scroll)setTimeout(go,1200);
     }
-    resultEl.classList.add('show');}
+    resultEl.classList.add('show'); cxSelfMark(); cxReopen();}
   function hideResult(){resultEl.classList.remove('show');if(resultPhoto){resultPhoto.hidden=true;}if(jdjPanel){jdjPanel.hidden=true;}if(eaExpert){eaExpert.hidden=true;}if(simpleResult){simpleResult.hidden=false;}var _nc=$('nextLevelCta');if(_nc)_nc.hidden=true;var _gc=document.querySelector('.game-controls');if(_gc)_gc.style.display='';}
   // Bouton « Niveau suivant » (Amateur/Pro) : visible une fois le joueur trouvé OU la réponse révélée
   function updateNextCta(){
@@ -1332,6 +1338,7 @@ js=r'''
     showResult('Bravo ! Tu as trouvé, c’était…', player().name, true);
     renderValidate(); renderLevelLocks();            // déverrouille le niveau suivant
     maybeUnlockDailyCard();                           // obtention de la carte si le défi est complet
+    if(level==='expert') cxAutoOpen('completed');    // fin du parcours : pop-up « Prolongez l'expérience »
   }
   function markUsed(v){var cv=compact(v);for(var i=0;i<POOL.length;i++){var e=POOL[i];if(compact(e.full)===cv||compact(e.nom)===cv){S[level].used[compact(e.full)]=true;return;}}}
   // Nom canonique « Prénom Nom » d'une proposition (pour l'historique des joueurs déjà utilisés).
@@ -1403,6 +1410,7 @@ js=r'''
     showResult('La réponse était…', player().name, true);
     renderValidate(); renderLevelLocks();            // déverrouille le niveau suivant
     maybeUnlockDailyCard();                           // obtention de la carte si le défi est complet
+    cxAutoOpen('revealed');                          // réponse révélée : pop-up « Prolongez l'expérience »
   }
 
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -3390,6 +3398,7 @@ html=f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/continue-popup.css">
 <style>
 {css}
 {anim_css}
@@ -3731,6 +3740,7 @@ html=f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
   <div class="share-toast" id="shareToast"></div>
 </div>
 {testreset_html}
+<script defer src="/assets/js/jeux/continue-popup.js"></script>
 <script defer src="game.js"></script>
 </body></html>'''
 _out={"test":"/tmp/Jogadle2-Mode-Carriere-TEST.html","prod":"/tmp/Jogadle2-Mode-Carriere-PROD.html"}[BUILD_MODE]
