@@ -89,12 +89,18 @@ function safeInline(htmlStr){
   const allowed = new Set(['b','i','em','strong','u','a','ul','ol','li','sup','sub','br','span']);
   let s = String(htmlStr == null ? '' : htmlStr);
   // Les contenus collés (Word / Google Docs / contenteditable) enveloppent souvent
-  // le texte dans des <div>/<p> imbriqués. Historiquement ces balises n'étaient pas
-  // dans la liste blanche ci-dessus : elles étaient donc échappées en TEXTE LITTÉRAL,
-  // ce qui affichait « <div><div>… » à l'écran. On les « déballe » désormais en
-  // sauts de ligne au lieu de les échapper.
-  s = s.replace(/<\s*(?:div|p)\b[^>]*>/gi, '');       // ouvertures  <div ...> -> rien
-  s = s.replace(/<\s*\/\s*(?:div|p)\s*>/gi, '<br>');   // fermetures  </div>    -> saut de ligne
+  // le texte dans des <div>/<p> imbriqués (+ commentaires <!--StartFragment-->).
+  // Historiquement ces balises n'étaient pas dans la liste blanche : elles étaient
+  // échappées en TEXTE LITTÉRAL, ce qui affichait « <div><div>… » à l'écran.
+  // On les « déballe » désormais. Point clé : on distingue les sauts PARASITES
+  // (générés par des <div> imbriqués au collage) des <br><br> saisis VOLONTAIREMENT
+  // par l'auteur (les écarts entre paragraphes) — seuls les premiers sont fusionnés.
+  s = s.replace(/<!--[\s\S]*?-->/g, '');                 // commentaires de collage -> supprimés
+  s = s.replace(/<\s*(?:div|p)\b[^>]*>/gi, '');           // ouvertures  <div ...> -> rien
+  s = s.replace(/<\s*\/\s*(?:div|p)\s*>/gi, '\n');         // fermetures  </div>    -> saut placeholder \n
+  s = s.replace(/[ \t]*\n(?:[ \t]*\n)+[ \t]*/g, '\n');     // \n multiples (imbrication) -> 1 seul
+  s = s.replace(/^\s*\n+/, '').replace(/\n+\s*$/, '');     // \n en tête / queue -> supprimés
+  s = s.replace(/\n/g, '<br>');                            // placeholder -> <br>
   s = s.replace(/<\/?([a-zA-Z0-9]+)([^>]*)>/g, (m, tag, attrs) => {
     const t = tag.toLowerCase();
     if(!allowed.has(t)) return esc(m);
@@ -113,8 +119,8 @@ function safeInline(htmlStr){
     }
     return close ? '</'+t+'>' : '<'+t+'>';
   });
-  // Nettoyage des <br> parasites générés par le déballage des <div>/<p>.
-  s = s.replace(/(?:\s*<br\s*\/?>\s*){2,}/gi, '<br>');  // suites de <br> -> un seul
+  // On NE fusionne PAS les <br> : les <br><br> voulus par l'auteur (écarts entre
+  // paragraphes) doivent être conservés. On retire seulement ceux en tête / queue.
   s = s.replace(/^(?:\s*<br\s*\/?>\s*)+/i, '');          // <br> en tête   -> supprimés
   s = s.replace(/(?:\s*<br\s*\/?>\s*)+$/i, '');          // <br> en queue  -> supprimés
   return s;
