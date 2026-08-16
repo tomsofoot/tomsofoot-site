@@ -49,7 +49,7 @@
 
   <header class="site-header">
     <nav class="nav">
-      <div class="nav-links"><a href="#actu">Actualités</a><a href="/articles/">Articles</a><a href="#magazine">Magazine</a><a href="#videos">Vidéos</a><a href="/jeu">Jeu</a></div>
+      <div class="nav-links"><a href="#derniers-articles">Actualités</a><a href="/articles/">Articles</a><a href="#magazine">Magazine</a><a href="#videos">Vidéos</a><a href="/jeu">Jeu</a></div>
       <a class="logo" href="#">TOMSO<i>FOOT</i></a>
       <div class="nav-actions"><a href="#newsletter">Newsletter</a><a href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">YouTube ↗</a><div class="reading-picker" role="group" aria-label="Choisissez votre mode de lecture"><span class="reading-picker-label">Mode de lecture</span><button class="reading-mode" type="button" data-mode="smartphone" aria-label="Lecture smartphone" aria-pressed="false" title="Smartphone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M10 5h4M11 19h2"/></svg></button><button class="reading-mode" type="button" data-mode="tablet" aria-label="Lecture tablette" aria-pressed="false" title="Tablette"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path d="M11 18.5h2"/></svg></button><button class="reading-mode" type="button" data-mode="desktop" aria-label="Lecture ordinateur" aria-pressed="true" title="Ordinateur"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button></div><button class="icon-btn menu-btn" aria-label="Ouvrir le menu">☰</button></div>
     </nav>
@@ -135,7 +135,7 @@
           <a href="/jeu">Le jeu</a>
           <a href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener">Le magazine</a>
           <a href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener">Live</a>
-          <a href="#actu">Actualités</a>
+          <a href="#derniers-articles">Actualités</a>
           <a href="/articles/">Articles</a>
           <a href="#videos">Vidéos</a>
         </nav>
@@ -277,10 +277,37 @@
     })();
     </script>
 
-    <section class="section" id="actu">
-      <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#">Toutes les publications →</a></div>
-      <div class="story-grid" id="cms-articles"></div>
+    <!-- Archives : navigation par compétition vers l'archive /articles/. Boutons dynamiques (uniquement les compétitions ayant des articles). -->
+    <section class="section" id="archives">
+      <div class="section-head"><div><span class="kicker">Les archives</span><h2>Parcourir par compétition</h2></div><a class="see-all" href="/articles/">Voir toutes les archives →</a></div>
+      <div class="arch-chips" id="arch-chips"></div>
     </section>
+    <style>
+      .arch-chips{display:flex;flex-wrap:wrap;gap:12px}
+      .arch-chip{display:inline-flex;align-items:center;text-decoration:none;font-family:Inter,system-ui,sans-serif;font-weight:700;font-size:14px;letter-spacing:.01em;color:var(--ink);background:var(--white);border:1px solid #b8bec7;border-radius:999px;padding:13px 22px;transition:transform .2s,border-color .2s,color .2s,background .2s}
+      .arch-chip:hover{border-color:var(--red);color:var(--red);transform:translateY(-2px)}
+      .arch-chip--all{background:var(--ink);color:var(--white);border-color:var(--ink)}
+      .arch-chip--all:hover{background:var(--red);border-color:var(--red);color:var(--white);transform:translateY(-2px)}
+    </style>
+    <script>
+    /* Archives — boutons par compétition (uniquement celles ayant des articles), + lien vers l'archive complète. */
+    (function(){
+      var SB='https://yubndvqmglttlntkugzm.supabase.co', KEY='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+      var host=document.getElementById('arch-chips'); if(!host) return;
+      function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+      function sb(p){ return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}); }
+      Promise.all([ sb('articles_public?select=competition_id'), sb('competitions?select=id,label_fr') ]).then(function(res){
+        var present=res[0]||[], comps=res[1]||[], label={};
+        comps.forEach(function(c){ label[c.id]=c.label_fr; });
+        var ids=[...new Set(present.map(function(a){return a.competition_id;}).filter(Boolean))]
+          .map(function(id){ return {id:id, label:label[id]||id}; })
+          .sort(function(a,b){ return a.label.localeCompare(b.label,'fr'); });
+        var out = ids.map(function(c){ return '<a class="arch-chip" href="/articles/?competition='+esc(c.id)+'">'+esc(c.label)+'</a>'; }).join('');
+        out += '<a class="arch-chip arch-chip--all" href="/articles/">Toutes les compétitions →</a>';
+        host.innerHTML = out;
+      });
+    })();
+    </script>
 
     <section class="section" id="videos">
       <div class="section-head"><div><span class="kicker">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne →</a></div>
