@@ -102,6 +102,10 @@
         <div id="arts"></div>
         <button class="mini addrow" id="add-art">+ Ajouter une carte</button>
 
+        <h2>Vidéo mise en avant (secours)</h2>
+        <p class="hint dim">Utilisée dans le pop-up « Prolongez l'expérience » <b>uniquement si</b> la récupération automatique de la dernière vidéo YouTube échoue. Laisse vide pour t'appuyer entièrement sur l'automatique.</p>
+        <div><label>Lien YouTube de secours</label><input id="u-fv" data-fv="url" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="https://www.youtube.com/watch?v=…"></div>
+
         <div class="msg" id="msg2"></div>
       </div>
       <div class="preview">
@@ -164,6 +168,8 @@
       var el = document.querySelector('[data-u="' + k + '"]'); if (el) el.value = u[k] || '';
     });
     arts = Array.isArray(base.articles) ? base.articles.map(function (a) { return Object.assign({}, a); }) : [];
+    var fvEl = document.querySelector('[data-fv="url"]');
+    if (fvEl) fvEl.value = (base.featuredVideo && base.featuredVideo.url) || '';
     renderArts();
     if (window.__refreshThumbs) window.__refreshThumbs();
   }
@@ -197,7 +203,12 @@
   function collect() {
     var u = Object.assign({}, base.une || {});
     document.querySelectorAll('[data-u]').forEach(function (el) { u[el.dataset.u] = el.value; });
-    return Object.assign({}, base, { une: u, articles: arts.map(function (a) { return Object.assign({}, a); }) });
+    var out = Object.assign({}, base, { une: u, articles: arts.map(function (a) { return Object.assign({}, a); }) });
+    // Vidéo mise en avant (secours) : lue par /.netlify/functions/next-up si l'auto YouTube échoue.
+    var fvEl = document.querySelector('[data-fv="url"]');
+    var fvUrl = fvEl ? String(fvEl.value || '').trim() : '';
+    out.featuredVideo = fvUrl ? { url: fvUrl } : null;
+    return out;
   }
 
   function post() {
