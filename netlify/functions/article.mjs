@@ -88,6 +88,13 @@ function colorSpan(text, v){ const c = normColor(v); return c ? '<span style="co
 function safeInline(htmlStr){
   const allowed = new Set(['b','i','em','strong','u','a','ul','ol','li','sup','sub','br','span']);
   let s = String(htmlStr == null ? '' : htmlStr);
+  // Les contenus collés (Word / Google Docs / contenteditable) enveloppent souvent
+  // le texte dans des <div>/<p> imbriqués. Historiquement ces balises n'étaient pas
+  // dans la liste blanche ci-dessus : elles étaient donc échappées en TEXTE LITTÉRAL,
+  // ce qui affichait « <div><div>… » à l'écran. On les « déballe » désormais en
+  // sauts de ligne au lieu de les échapper.
+  s = s.replace(/<\s*(?:div|p)\b[^>]*>/gi, '');       // ouvertures  <div ...> -> rien
+  s = s.replace(/<\s*\/\s*(?:div|p)\s*>/gi, '<br>');   // fermetures  </div>    -> saut de ligne
   s = s.replace(/<\/?([a-zA-Z0-9]+)([^>]*)>/g, (m, tag, attrs) => {
     const t = tag.toLowerCase();
     if(!allowed.has(t)) return esc(m);
@@ -106,6 +113,10 @@ function safeInline(htmlStr){
     }
     return close ? '</'+t+'>' : '<'+t+'>';
   });
+  // Nettoyage des <br> parasites générés par le déballage des <div>/<p>.
+  s = s.replace(/(?:\s*<br\s*\/?>\s*){2,}/gi, '<br>');  // suites de <br> -> un seul
+  s = s.replace(/^(?:\s*<br\s*\/?>\s*)+/i, '');          // <br> en tête   -> supprimés
+  s = s.replace(/(?:\s*<br\s*\/?>\s*)+$/i, '');          // <br> en queue  -> supprimés
   return s;
 }
 
