@@ -1,6 +1,14 @@
 [build]
   publish = "."
   functions = "netlify/functions"
+  # Mode Carrière : build depuis la source (dossier mc-src/) pour TOUS les contextes
+  # (production + deploy-preview). Régénère mode-carriere/index.html + game.js + assets.
+  # Additif : ne touche à aucune autre route/fichier du site. Si le build échoue,
+  # Netlify conserve automatiquement le dernier déploiement en ligne (la prod ne casse pas).
+  command = "python3 -m pip install --quiet Pillow && cp mc-src/* /tmp/ && mkdir -p mode-carriere/assets && JOGADLE_ASSETS_OUT=\"$PWD/mode-carriere/assets\" JOGADLE_MODE=prod python3 mc-src/build_full.py && cp /tmp/Jogadle2-Mode-Carriere-PROD.html mode-carriere/index.html && cp /tmp/game.js mode-carriere/game.js"
+
+[build.environment]
+  PYTHON_VERSION = "3.11"
 
 [functions]
   node_bundler = "esbuild"
@@ -39,14 +47,3 @@
   from = "/articles/:slug"
   to = "/.netlify/functions/article?slug=:slug"
   status = 200
-
-# =====================================================================
-# APERÇU MODE CARRIÈRE — build depuis la source (dossier mc-src/), DEPLOY PREVIEW UNIQUEMENT.
-# La production (main) reste servie statiquement : aucune commande hors preview.
-# =====================================================================
-[context.deploy-preview]
-  command = "python3 -m pip install --quiet Pillow && cp mc-src/* /tmp/ && mkdir -p mode-carriere/assets && JOGADLE_ASSETS_OUT=\"$PWD/mode-carriere/assets\" JOGADLE_MODE=prod python3 mc-src/build_full.py && cp /tmp/Jogadle2-Mode-Carriere-PROD.html mode-carriere/index.html && cp /tmp/game.js mode-carriere/game.js"
-  publish = "."
-
-[context.deploy-preview.environment]
-  PYTHON_VERSION = "3.11"
