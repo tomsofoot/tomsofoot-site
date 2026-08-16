@@ -223,26 +223,27 @@
   }
   function doOpen(states) {
     if (!root) build();
-    fetchData().then(function (data) {
-      render(states, data);
-      root.setAttribute('aria-hidden', 'false');
-      root.classList.add('is-open');
-      doc.body.classList.add('tsf-cx-lock');
-      lastFocus = doc.activeElement;
-      keydownHandler = onKeydown; doc.addEventListener('keydown', keydownHandler, true);
-      setTimeout(function () { try { (root.querySelector('.tsf-cx__close') || dialog).focus(); } catch (e) {} }, 30);
-      // Confirmation serveur silencieuse (connecté) : re-rendu si l'état diffère.
-      if (serverResolver) {
-        try {
-          Promise.resolve(serverResolver()).then(function (srv) {
-            if (srv && (srv.player !== states.player || srv.career !== states.career)) {
-              if (srv.player) markCompleted('daily-player'); if (srv.career) markCompleted('career-mode');
-              if (root.classList.contains('is-open')) render(srv, _data || data);
-            }
-          }).catch(function () {});
-        } catch (e) {}
-      }
-    });
+    // Ouverture IMMÉDIATE : la grande carte ne dépend d'aucune donnée réseau.
+    render(states, _data || fallbackData());
+    root.setAttribute('aria-hidden', 'false');
+    root.classList.add('is-open');
+    doc.body.classList.add('tsf-cx-lock');
+    lastFocus = doc.activeElement;
+    keydownHandler = onKeydown; doc.addEventListener('keydown', keydownHandler, true);
+    setTimeout(function () { try { (root.querySelector('.tsf-cx__close') || dialog).focus(); } catch (e) {} }, 30);
+    // Contenus éditoriaux (vidéo + article) : remplis/rafraîchis dès que next-up répond.
+    fetchData().then(function (data) { if (root.classList.contains('is-open')) render(states, data); });
+    // Confirmation serveur silencieuse (connecté) : re-rendu si l'état diffère.
+    if (serverResolver) {
+      try {
+        Promise.resolve(serverResolver()).then(function (srv) {
+          if (srv && (srv.player !== states.player || srv.career !== states.career)) {
+            if (srv.player) markCompleted('daily-player'); if (srv.career) markCompleted('career-mode');
+            if (root.classList.contains('is-open')) render(srv, _data || fallbackData());
+          }
+        }).catch(function () {});
+      } catch (e) {}
+    }
   }
   function close() {
     if (!root) return;
@@ -293,4 +294,8 @@
     }
   };
   global.TomsoFootContinue = API;
+
+  // Préchauffage : on récupère les contenus éditoriaux dès le chargement (CDN-caché),
+  // pour que le pop-up soit instantané au moment où une partie se termine.
+  try { if (doc.readyState === 'complete') fetchData(); else global.addEventListener('load', function () { setTimeout(fetchData, 300); }); } catch (e) {}
 })(window);
