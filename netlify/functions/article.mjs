@@ -176,7 +176,7 @@ function page(a, blocks, labels, isPreview, hc){
     articleSection: labels.genre || labels.competition || undefined
   };
   const heroFig = a.hero_image
-    ? '<figure class="a-hero"><picture><img src="'+escAttr(a.hero_image)+'" alt="'+escAttr(a.hero_alt||a.title)+'" width="1600" height="900" fetchpriority="high" decoding="async"></picture>'
+    ? '<figure class="a-hero"><picture><img src="'+escAttr(a.hero_image)+'" alt="'+escAttr(a.hero_alt||a.title)+'" fetchpriority="high" decoding="async"></picture>'
       + ((a.hero_caption||a.hero_credit)?'<figcaption'+colorStyle(hc.hero_caption)+'>'+esc(a.hero_caption||'')+(a.hero_credit?' <span class="a-credit"'+colorStyle(hc.hero_credit)+'>© '+esc(a.hero_credit)+'</span>':'')+'</figcaption>':'')
       + '</figure>' : '';
   const journalCta = a.journal_slug

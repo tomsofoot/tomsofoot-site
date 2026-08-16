@@ -147,6 +147,8 @@ body:not(.media-open) .rb-media{display:none}
 .rb-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;padding:2px 5px;border-radius:4px}
 .rb-badge.ok{background:rgba(63,220,139,.16);color:#8fe8b6}
 .rb-badge.no{background:rgba(245,196,81,.16);color:#f3d38a}
+.rb-mtile.ishero{border-color:var(--red);box-shadow:0 0 0 2px rgba(255,51,77,.35)}
+.rb-hero-ribbon{position:absolute;top:6px;left:6px;background:var(--red);color:#fff;font-size:9px;font-weight:800;letter-spacing:.04em;padding:3px 6px;border-radius:5px;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 .rb-mprog{height:5px;background:rgba(255,255,255,.1);margin:0}.rb-mprog i{display:block;height:100%;width:0;background:var(--red);transition:width .15s}
 .rb-mtile.err{border-color:rgba(255,80,100,.6)}
 .rb-mtile__err{font-size:10px;color:#ffd0d6;padding:4px 8px;background:rgba(255,51,77,.12)}
@@ -630,9 +632,27 @@ h1{font-family:"Archivo Black";font-size:clamp(30px,4.6vw,44px);line-height:1.06
 /* IMAGES : ratio naturel, jamais recadrées */
 figure{margin:26px 0}
 figure img{width:100%;height:auto;border-radius:10px}
-.hero{margin:22px 0 8px}
-.hero img{width:100%;height:auto;border-radius:12px}
-.hero.cover img{aspect-ratio:16/9;object-fit:cover}
+.hero{margin:22px 0 8px;position:relative}
+.hero img,.article-hero-image{display:block;width:100%;height:auto;object-fit:contain;border-radius:12px}
+.hero.cover img,.hero.cover .article-hero-image{aspect-ratio:16/9;object-fit:cover}
+/* zone vide = cible de dépôt de l'image principale */
+.hero-empty{aspect-ratio:16/9;background:#dbe6f4;border:2px dashed #9db4d0;border-radius:12px;display:grid;place-items:center;color:#5b7291;font-weight:700;text-align:center;padding:16px;cursor:pointer;transition:background .15s,border-color .15s}
+.hero-empty:hover{background:#d2e0f1;border-color:#6f8fb5}
+.hero-empty:focus-visible{outline:3px solid #ff334d;outline-offset:3px}
+.hero-empty__icon{font-size:26px;margin-bottom:6px}
+.hero-empty__title{font-size:16px}
+.hero-empty__hint{font-weight:600;font-size:12.5px;color:#7488a3;margin-top:6px;line-height:1.4}
+/* barre de commandes discrète sur l'image */
+.tsf-herobar{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:8}
+.tsf-herobar button{font:600 12px/1 Inter,system-ui,sans-serif;color:#12233a;background:rgba(255,255,255,.94);border:1px solid rgba(18,35,58,.18);border-radius:8px;padding:7px 10px;cursor:pointer;box-shadow:0 2px 8px rgba(9,20,40,.18)}
+.tsf-herobar button:hover{background:#fff}
+.tsf-herobar button:focus-visible{outline:2px solid #ff334d;outline-offset:2px}
+.tsf-herobar button.danger{color:#a5001a}
+/* progression d'envoi de l'image principale */
+.tsf-heroup{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(15,30,55,.55);border-radius:12px;z-index:9}
+.tsf-heroup__bar{width:min(70%,320px);height:8px;background:rgba(255,255,255,.35);border-radius:99px;overflow:hidden}
+.tsf-heroup__bar i{display:block;height:100%;width:0;background:#ff334d;transition:width .2s}
+.tsf-heroup__txt{color:#fff;font:700 13px Inter,system-ui,sans-serif}
 figcaption{background:#f2f5fa;border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--muted);font-size:13.5px;margin-top:8px;line-height:1.45}
 figcaption .cr{display:inline-block;margin-left:6px;color:#8a99ad;font-style:italic;font-size:12.5px}
 .body{font-size:19px}.body p{margin:0 0 20px}
@@ -680,9 +700,21 @@ function previewHTML(){
   const h=state.header;
   const kicker=[h.competition,h.genre].filter(Boolean).join(' · ');
   const body=state.blocks.map(renderPreviewBlock).join('');
-  const hero = h.hero
-    ? '<figure class="hero'+(h.hero_cover?' cover':'')+'"><img src="'+esc(h.hero)+'" alt="'+esc(h.hero_alt||'')+'">'+figcap(h.hero_caption,h.hero_credit)+'</figure>'
-    : '<figure class="hero"><div style="aspect-ratio:16/9;background:#dbe6f4;border-radius:12px;display:grid;place-items:center;color:#8aa;font-weight:700">Image principale (ratio naturel)</div></figure>';
+  const heroInner = h.hero
+    ? '<img class="article-hero-image" src="'+esc(h.hero)+'" alt="'+esc(h.hero_alt||'')+'">'
+      +'<div class="tsf-herobar" role="toolbar" aria-label="Actions de l\'image principale">'
+        +'<button type="button" data-hero="replace" aria-label="Remplacer l\'image principale">↺ Remplacer</button>'
+        +'<button type="button" data-hero="info" aria-label="Modifier les informations de l\'image principale">✎ Infos</button>'
+        +'<button type="button" data-hero="remove" class="danger" aria-label="Retirer l\'image principale">🗑 Retirer</button>'
+      +'</div>'
+      +figcap(h.hero_caption,h.hero_credit)
+    : '<div class="hero-empty" id="tsfHeroZone" tabindex="0" role="button" aria-label="Zone de l\'image principale. Déposez une image, ou activez pour en choisir une. Formats JPEG, PNG, WebP, AVIF, 25 mégaoctets maximum.">'
+        +'<div><div class="hero-empty__icon" aria-hidden="true">🖼️</div>'
+        +'<div class="hero-empty__title">Image principale (ratio naturel)</div>'
+        +'<div class="hero-empty__hint">Glissez une image ici, ou cliquez pour la choisir<br>JPEG · PNG · WebP · AVIF — 25 Mo max</div></div>'
+      +'</div>';
+  const heroUp = h._heroUp ? '<div class="tsf-heroup" role="status" aria-live="polite"><div class="tsf-heroup__bar"><i style="width:'+(h._heroUp.p||0)+'%"></i></div><div class="tsf-heroup__txt">Envoi de l\'image principale… '+(h._heroUp.p||0)+'%</div></div>' : '';
+  const hero = '<figure class="hero'+(h.hero_cover?' cover':'')+'">'+heroInner+heroUp+'</figure>';
   return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
    +'<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">'
    +'<style>'+ARTICLE_CSS+'</style></head><body>'
@@ -1209,12 +1241,18 @@ autosave(true); update();
     if(c.title) css+='h1{color:'+c.title+' !important}'; if(c.deck) css+='.deck{color:'+c.deck+' !important}'; if(c.kicker) css+='.k{color:'+c.kicker+' !important}';
     if(c.hero_caption) css+='.hero figcaption{color:'+c.hero_caption+' !important}'; if(c.hero_credit) css+='.hero figcaption .cr{color:'+c.hero_credit+' !important}';
     // script de cibles de dépôt (aperçu) — même origine (srcdoc), appels directs au parent
-    const drop='<style>.tsf-ins{height:0;border-top:3px solid #ff334d;box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px}.tsf-hot{outline:2px dashed rgba(255,51,77,.55);outline-offset:-4px}</style>'
-      +'<script>(function(){var P=window.parent;function body(){return document.querySelector(".body");}var line=null;function clear(){if(line&&line.parentNode)line.parentNode.removeChild(line);line=null;document.querySelectorAll(".tsf-hot").forEach(function(e){e.classList.remove("tsf-hot")});}'
+    const drop='<style>.tsf-ins{height:0;border-top:3px solid #ff334d;box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px}'
+      +'.tsf-hot{position:relative;outline:3px solid #ff334d;outline-offset:-4px;border-radius:12px}'
+      +'.tsf-herolabel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,51,77,.20);color:#a5001a;font-weight:800;font-size:16px;text-align:center;pointer-events:none;z-index:9;border-radius:12px}</style>'
+      +'<script>(function(){var P=window.parent;function body(){return document.querySelector(".body");}var line=null;'
+      +'function clear(){if(line&&line.parentNode)line.parentNode.removeChild(line);line=null;document.querySelectorAll(".tsf-hot").forEach(function(e){e.classList.remove("tsf-hot")});document.querySelectorAll(".tsf-herolabel").forEach(function(e){e.remove()});}'
       +'function idx(y){var b=body();if(!b)return{i:0,b:b};var k=b.children,i=k.length;for(var j=0;j<k.length;j++){var r=k[j].getBoundingClientRect();if(y<r.top+r.height/2){i=j;break;}}return{i:i,b:b};}'
-      +'document.addEventListener("dragover",function(e){if(!(e.dataTransfer&&([].indexOf.call(e.dataTransfer.types||[],"Files")>=0||[].indexOf.call(e.dataTransfer.types||[],"application/x-tsf-media")>=0)))return;e.preventDefault();var hero=e.target.closest&&e.target.closest(".hero");clear();if(hero){hero.classList.add("tsf-hot");return;}var o=idx(e.clientY);if(!o.b)return;line=document.createElement("div");line.className="tsf-ins";if(o.i>=o.b.children.length)o.b.appendChild(line);else o.b.insertBefore(line,o.b.children[o.i]);},true);'
+      +'document.addEventListener("dragover",function(e){if(!(e.dataTransfer&&([].indexOf.call(e.dataTransfer.types||[],"Files")>=0||[].indexOf.call(e.dataTransfer.types||[],"application/x-tsf-media")>=0)))return;e.preventDefault();e.dataTransfer.dropEffect="copy";var hero=e.target.closest&&e.target.closest(".hero");clear();if(hero){hero.classList.add("tsf-hot");if(!hero.querySelector(".tsf-herolabel")){var l=document.createElement("div");l.className="tsf-herolabel";l.textContent="Déposez l’image principale ici";hero.appendChild(l);}return;}var o=idx(e.clientY);if(!o.b)return;line=document.createElement("div");line.className="tsf-ins";if(o.i>=o.b.children.length)o.b.appendChild(line);else o.b.insertBefore(line,o.b.children[o.i]);},true);'
       +'document.addEventListener("dragleave",function(e){if(e.target===document||e.relatedTarget===null)clear();},true);'
-      +'document.addEventListener("drop",function(e){var dt=e.dataTransfer;if(!dt)return;var hero=e.target.closest&&e.target.closest(".hero");e.preventDefault();var o=idx(e.clientY);var index=hero?"hero":o.i;clear();var mid=dt.getData("application/x-tsf-media");if(mid){if(P.TSFM)P.TSFM.previewDropMedia(mid,index);return;}if(dt.files&&dt.files.length){if(P.TSFM)P.TSFM.previewDropFile(dt.files[0],index);}},true);})();<\/script>';
+      +'document.addEventListener("drop",function(e){var dt=e.dataTransfer;if(!dt)return;var hero=e.target.closest&&e.target.closest(".hero");e.preventDefault();var o=idx(e.clientY);var index=hero?"hero":o.i;clear();var mid=dt.getData("application/x-tsf-media");if(mid){if(P.TSFM)P.TSFM.previewDropMedia(mid,index);return;}if(dt.files&&dt.files.length){if(P.TSFM)P.TSFM.previewDropFile(dt.files[0],index);}},true);'
+      +'var z=document.getElementById("tsfHeroZone");if(z){z.addEventListener("click",function(){if(P.TSFM)P.TSFM.heroPick();});z.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){e.preventDefault();if(P.TSFM)P.TSFM.heroPick();}});}'
+      +'Array.prototype.forEach.call(document.querySelectorAll(".tsf-herobar button"),function(btn){btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();var a=btn.getAttribute("data-hero");if(!P.TSFM)return;if(a==="replace")P.TSFM.heroReplace();else if(a==="info")P.TSFM.heroEditInfo();else if(a==="remove")P.TSFM.heroRemove();});});'
+      +'})();<\/script>';
     html=html.replace('</head>', (css?'<style>'+css+'</style>':'')+'</head>').replace('</body>', drop+'</body>');
     return html;
   };
@@ -1244,8 +1282,9 @@ autosave(true); update();
     gid('mediaCount').textContent=list.length?('· '+list.length+' image'+(list.length>1?'s':'')):'';
     grid.innerHTML='';
     list.forEach(m=>{
-      const el=document.createElement('div'); el.className='rb-mtile'+(m.status==='error'?' err':''); el.dataset.id=m.id; el.draggable=(m.status==='done');
-      const thumb=m.url?'<div class="rb-mthumb"><img src="'+esc(m.url)+'" alt=""></div>':'<div class="rb-mthumb"></div>';
+      const hero=isHeroMedia(m);
+      const el=document.createElement('div'); el.className='rb-mtile'+(m.status==='error'?' err':'')+(hero?' ishero':''); el.dataset.id=m.id; el.draggable=(m.status==='done');
+      const thumb=(m.url?'<div class="rb-mthumb"><img src="'+esc(m.url)+'" alt=""></div>':'<div class="rb-mthumb"></div>')+(hero?'<span class="rb-hero-ribbon">IMAGE PRINCIPALE</span>':'');
       const dims=(m.width&&m.height)?(m.width+'×'+m.height):'…';
       const badges='<div class="rb-mbadges">'+(m.alt?'<span class="rb-badge ok">alt ✓</span>':'<span class="rb-badge no">alt ✗</span>')+(m.credit?'<span class="rb-badge ok">crédit ✓</span>':'<span class="rb-badge no">crédit ✗</span>')+'</div>';
       const prog=m.status==='uploading'?'<div class="rb-mprog"><i style="width:'+(m.progress||0)+'%"></i></div>':'';
@@ -1279,8 +1318,16 @@ autosave(true); update();
     else if(a==='remove') removeMedia(id);
   }
 
-  function applyHero(m){ const hero=document.querySelector('[data-h="hero"]'); if(!hero)return; hero.value=m.url||m.original; hero.dispatchEvent(new Event('input',{bubbles:true}));
-    setHeaderIf('hero_alt',m.alt); setHeaderIf('hero_caption',m.caption); setHeaderIf('hero_credit',m.credit); update(); toast('Image principale mise à jour ✓','ok'); }
+  function heroValue(){ const h=document.querySelector('[data-h="hero"]'); return h?(h.value||'').trim():''; }
+  function hasHero(){ return !!heroValue(); }
+  function isHeroMedia(m){ const v=heroValue(); return !!v && (m.url===v || m.original===v); }
+  function applyHero(m){ const hero=document.querySelector('[data-h="hero"]'); if(!hero)return;
+    hero.value=m.url||m.original; hero.dispatchEvent(new Event('input',{bubbles:true}));
+    // relie l'image principale à ses infos (alt/légende/crédit) + dimensions/ratio ; les blocs du corps ne les écrasent pas.
+    setHeaderForce('hero_alt', m.alt||''); setHeaderForce('hero_caption', m.caption||''); setHeaderForce('hero_credit', m.credit||'');
+    const hc=document.querySelector('[data-h="hero_cover"]'); if(hc){ hc.checked=false; state.header.hero_cover=false; } // le mode 16:9 reste opt-in
+    state.header._heroW=m.width||null; state.header._heroH=m.height||null; state.header._heroVariants=m.variants||[];
+    renderMedia(); update(); if(typeof autosave==='function') autosave(true); toast('Image principale mise à jour ✓','ok'); }
   function setHeaderIf(k,v){ if(!v)return; const el=document.querySelector('[data-h="'+k+'"]'); if(el && !el.value){ el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); } }
   function mediaToBlockData(m){ return {src:m.url||m.original, original:m.original, variants:(m.variants||[]), alt:m.alt||'', caption:m.caption||'', credit:m.credit||'', captionColor:null, creditColor:null, width:m.width, height:m.height, _sig:m.sig}; }
   function insertMediaBlock(m,at){ const b=addBlock('image',mediaToBlockData(m),at); update(); API().save&&API().save(); TSFM.open&&null; toast('Image insérée dans l\'article ✓','ok'); return b; }
@@ -1309,6 +1356,8 @@ autosave(true); update();
       const res=await api.storeImage(m._file, p=>{ m.progress=p; const bar=gid('mediaGrid').querySelector('[data-id="'+m.id+'"] .rb-mprog i'); if(bar)bar.style.width=p+'%'; }, m._ctl);
       m.url=res.displayUrl; m.original=res.origUrl; m.variants=res.variants; m.width=res.width; m.height=res.height; m.status='done'; m.progress=100; m._file=null;
       renderMedia(); persistExtras();
+      // 1re image d'un article SANS image principale -> devient automatiquement l'image principale (aucun bloc créé).
+      if(!hasHero()) applyHero(m);
     }catch(e){ if(m._ctl.cancelled){ const i=ensureMedia().indexOf(m); if(i>=0)ensureMedia().splice(i,1); renderMedia(); return; } m.status='error'; m.error='Échec : '+(e.message||e); renderMedia(); }
   }
   function cancelUpload(id){ const m=ensureMedia().find(x=>x.id===id); if(!m)return; if(m._ctl)m._ctl.cancelled=true; const i=ensureMedia().indexOf(m); if(i>=0)ensureMedia().splice(i,1); renderMedia(); toast('Téléversement annulé.','warn'); }
@@ -1377,10 +1426,102 @@ autosave(true); update();
   });
 
   /* ---------- dépôt direct dans l'aperçu (via le script injecté même-origine) ---------- */
-  TSFM.previewDropFile=function(file,index){ if(!/^image\//.test(file.type)){toast('Fichier non image ignoré.','warn');return;} if(index==='hero'){ heroFromFile(file); return; } const at=(typeof index==='number')?index:state.blocks.length; const b=addBlock('image',{alt:'',caption:'',credit:'',src:''},at); const i=state.blocks.indexOf(b); uploadImageToBlock(i,file); };
-  TSFM.previewDropMedia=function(id,index){ const m=ensureMedia().find(x=>x.id===id); if(!m)return; if(index==='hero'){ applyHero(m); return; } insertMediaBlock(m,(typeof index==='number')?index:state.blocks.length); };
-  async function heroFromFile(file){ const api=API(); const bad=api.validateFile&&api.validateFile(file); if(bad){toast(bad,'err');return;} if(!api.token){toast('Connecte-toi (admin) pour téléverser.','warn');return;} toast('Téléversement de l\'image principale…','warn'); try{ const res=await api.storeImage(file); const hero=document.querySelector('[data-h="hero"]'); hero.value=res.displayUrl; hero.dispatchEvent(new Event('input',{bubbles:true})); // ajoute aussi à la bibliothèque
-      ensureMedia().push({id:'m'+Date.now(),name:file.name,size:file.size,type:file.type,width:res.width,height:res.height,url:res.displayUrl,original:res.origUrl,variants:res.variants,alt:'',caption:'',credit:'',status:'done',progress:100,sig:fileSig(file)}); renderMedia(); persistExtras(); toast('Image principale ajoutée ✓','ok'); }catch(e){ toast('Échec : '+(e.message||e),'err'); } }
+  // Dépôt d'un FICHIER : sur la zone hero -> devient/remplace l'image principale (immédiat, sans confirmation).
+  TSFM.previewDropFile=function(file,index){ if(index==='hero'){ heroUploadFile(file); return; } if(!/^image\//.test(file.type)){toast('Fichier non image ignoré.','warn');return;} const at=(typeof index==='number')?index:state.blocks.length; const b=addBlock('image',{alt:'',caption:'',credit:'',src:''},at); const i=state.blocks.indexOf(b); uploadImageToBlock(i,file); };
+  // Dépôt d'une VIGNETTE de la médiathèque : sur la zone hero -> remplace immédiatement (jamais deux hero).
+  TSFM.previewDropMedia=function(id,index){ const m=ensureMedia().find(x=>x.id===id); if(!m)return; if(index==='hero'){ if(isHeroMedia(m)) return; applyHero(m); return; } insertMediaBlock(m,(typeof index==='number')?index:state.blocks.length); };
+
+  /* ---------- image principale : sélection fichier, remplacement, infos, retrait ---------- */
+  let heroInputEl=null;
+  function heroFileInput(){ if(heroInputEl) return heroInputEl; heroInputEl=document.createElement('input'); heroInputEl.type='file'; heroInputEl.accept='image/jpeg,image/png,image/webp,image/avif'; heroInputEl.style.display='none'; document.body.appendChild(heroInputEl);
+    heroInputEl.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) heroUploadFile(f); }); return heroInputEl; }
+  TSFM.heroPick=function(){ heroFileInput().click(); };
+  TSFM.heroReplace=function(){ heroFileInput().click(); };
+  TSFM.heroEditInfo=function(){ openHeroInfo(); };
+  TSFM.heroRemove=function(){ openHeroRemove(); };
+
+  function setHeroUp(p){ state.header._heroUp = (p==null?null:{p:Math.round(p)}); }
+  function pokeHeroProgress(p){ try{ const d=gid('pv').contentDocument; if(!d)return; const bar=d.querySelector('.tsf-heroup__bar i'); if(bar) bar.style.width=Math.round(p)+'%'; const t=d.querySelector('.tsf-heroup__txt'); if(t) t.textContent='Envoi de l\'image principale… '+Math.round(p)+'%'; }catch(e){} }
+
+  async function heroUploadFile(file){
+    const api=API();
+    const bad=api.validateFile?api.validateFile(file):(/^image\//.test(file.type)?null:'Format non pris en charge.');
+    if(bad){ toast(bad,'err'); return; }                         // fichier incompatible : refus propre, image conservée
+    if(!api.token){ toast('Connecte-toi (admin) pour téléverser l\'image principale.','warn'); return; }
+    const hadHero=hasHero();
+    setHeroUp(0); update();                                       // affiche la progression (par-dessus l'ancienne image si remplacement)
+    try{
+      let dim=null; try{ dim=await api.processImage(file); }catch(e){}
+      const res=await api.storeImage(file, p=>{ setHeroUp(p); pokeHeroProgress(p); });
+      const w=(dim&&dim.w)||res.width, ht=(dim&&dim.h)||res.height;
+      const sig=fileSig(file); const list=ensureMedia();
+      let item=list.find(m=>m.sig===sig && m.status==='done');
+      if(item){ item.url=res.displayUrl; item.original=res.origUrl; item.variants=res.variants; item.width=w; item.height=ht; }
+      else { item={ id:'m'+Date.now()+Math.random().toString(36).slice(2,5), name:file.name, size:file.size, type:file.type, width:w, height:ht, url:res.displayUrl, original:res.origUrl, variants:res.variants, alt:'', caption:'', credit:'', status:'done', progress:100, sig }; list.push(item); }
+      const hero=document.querySelector('[data-h="hero"]'); hero.value=res.displayUrl; hero.dispatchEvent(new Event('input',{bubbles:true}));
+      state.header._heroW=w; state.header._heroH=ht; state.header._heroVariants=res.variants||[];
+      const hc=document.querySelector('[data-h="hero_cover"]'); if(hc){ hc.checked=false; state.header.hero_cover=false; }
+      setHeroUp(null); renderMedia(); update(); persistExtras(); if(typeof autosave==='function') autosave(true);
+      toast(hadHero?'Image principale remplacée ✓':'Image principale ajoutée ✓','ok');
+    }catch(e){
+      setHeroUp(null); update();                                 // échec : l'ancienne image reste intacte
+      toast('Échec de l\'envoi : '+(e.message||e)+' — l\'image précédente est conservée.','err');
+    }
+  }
+
+  function openHeroInfo(){
+    const H=state.header;
+    const wrap=document.createElement('div'); wrap.className='rb-modal on'; wrap.style.zIndex=60; wrap.setAttribute('role','dialog'); wrap.setAttribute('aria-modal','true'); wrap.setAttribute('aria-label','Informations de l’image principale');
+    wrap.innerHTML='<div class="rb-card" style="width:min(460px,96vw)"><h3>Informations · Image principale</h3>'
+      +'<label class="rb-l" for="hi-alt">Texte alternatif</label><input class="rb-i" id="hi-alt" value="'+esc(H.hero_alt||'')+'">'
+      +'<label class="rb-l" for="hi-cap" style="margin-top:8px">Légende photographique</label><input class="rb-i" id="hi-cap" value="'+esc(H.hero_caption||'')+'">'
+      +'<label class="rb-l" for="hi-cr" style="margin-top:8px">Crédit photographique</label><input class="rb-i" id="hi-cr" value="'+esc(H.hero_credit||'')+'">'
+      +'<div class="row"><button class="btn" id="hi-cancel">Fermer</button><button class="btn btn--primary" id="hi-ok">Enregistrer</button></div></div>';
+    document.body.appendChild(wrap);
+    const close=()=>wrap.remove();
+    const apply=()=>{ setHeaderForce('hero_alt',wrap.querySelector('#hi-alt').value); setHeaderForce('hero_caption',wrap.querySelector('#hi-cap').value); setHeaderForce('hero_credit',wrap.querySelector('#hi-cr').value);
+      const v=heroValue(); ensureMedia().forEach(m=>{ if(m.url===v||m.original===v){ m.alt=wrap.querySelector('#hi-alt').value; m.caption=wrap.querySelector('#hi-cap').value; m.credit=wrap.querySelector('#hi-cr').value; } });
+      renderMedia(); update(); persistExtras(); if(typeof autosave==='function') autosave(true); };
+    wrap.querySelector('#hi-cancel').onclick=close;
+    wrap.querySelector('#hi-ok').onclick=()=>{ apply(); close(); };
+    ['hi-alt','hi-cap','hi-cr'].forEach(id=>wrap.querySelector('#'+id).addEventListener('input',apply));
+    wrap.addEventListener('keydown',e=>{ if(e.key==='Escape')close(); });
+    setTimeout(()=>{ const a=wrap.querySelector('#hi-alt'); if(a)a.focus(); },30);
+  }
+
+  function detachHero(){
+    const hero=document.querySelector('[data-h="hero"]'); if(hero){ hero.value=''; hero.dispatchEvent(new Event('input',{bubbles:true})); }
+    setHeaderForce('hero_alt',''); setHeaderForce('hero_caption',''); setHeaderForce('hero_credit','');
+    state.header._heroW=null; state.header._heroH=null; state.header._heroVariants=[];
+    const hc=document.querySelector('[data-h="hero_cover"]'); if(hc){ hc.checked=false; state.header.hero_cover=false; }
+    renderMedia(); update(); persistExtras(); if(typeof autosave==='function') autosave(true);
+  }
+  async function deleteHeroFromLibrary(){
+    const v=heroValue(); const m=ensureMedia().find(x=>x.url===v||x.original===v);
+    if(!confirm('Supprimer DÉFINITIVEMENT ce fichier de la médiathèque ? Cette action est irréversible.')) return;   // confirmation explicite (annulable)
+    if(!API().admin){ toast('Suppression définitive réservée à l’administrateur.','warn'); return; }
+    if(m){ try{ const paths=[]; if(m.original)paths.push(storagePath(m.original)); (m.variants||[]).forEach(vv=>paths.push(storagePath(vv.url))); if(m.url)paths.push(storagePath(m.url)); await API().sb.storage.from('articles').remove(paths.filter(Boolean)); }catch(e){}
+      const i=ensureMedia().indexOf(m); if(i>=0)ensureMedia().splice(i,1); }
+    detachHero();
+    toast('Fichier supprimé de la médiathèque.','ok');
+  }
+  function openHeroRemove(){
+    if(!hasHero()){ toast('Aucune image principale.','warn'); return; }
+    const wrap=document.createElement('div'); wrap.className='rb-modal on'; wrap.style.zIndex=60; wrap.setAttribute('role','dialog'); wrap.setAttribute('aria-modal','true'); wrap.setAttribute('aria-label','Retirer l’image principale');
+    wrap.innerHTML='<div class="rb-card" style="width:min(500px,96vw)"><h3>Image principale</h3>'
+      +'<p style="color:#cdd9ea;font-size:14px;line-height:1.5;margin:0 0 6px">Que souhaitez-vous faire ?</p>'
+      +'<div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">'
+      +'<button class="btn" id="hr-article" style="display:block;text-align:left;padding:12px 14px">Retirer de l’article<small style="display:block;color:#9fb2cc;font-weight:500;margin-top:3px">L’image quitte l’article ; le fichier reste dans la médiathèque.</small></button>'
+      +'<button class="btn" id="hr-delete" style="display:block;text-align:left;padding:12px 14px;border-color:#7a2230;color:#ffb3bf">Supprimer définitivement de la médiathèque<small style="display:block;color:#c98b95;font-weight:500;margin-top:3px">Le fichier est réellement supprimé du stockage. Irréversible.</small></button>'
+      +'</div><div class="row"><button class="btn" id="hr-cancel">Annuler</button></div></div>';
+    document.body.appendChild(wrap);
+    const close=()=>wrap.remove();
+    wrap.querySelector('#hr-cancel').onclick=close;
+    wrap.querySelector('#hr-article').onclick=()=>{ detachHero(); close(); toast('Image principale retirée de l’article.','ok'); };
+    wrap.querySelector('#hr-delete').onclick=async ()=>{ close(); await deleteHeroFromLibrary(); };
+    wrap.addEventListener('keydown',e=>{ if(e.key==='Escape')close(); });
+    setTimeout(()=>{ const b=wrap.querySelector('#hr-article'); if(b)b.focus(); },30);
+  }
 
   /* ---------- persistance des extras (bibliothèque média + couleurs d'en-tête) via sidecar storage ---------- */
   let scT=null;
