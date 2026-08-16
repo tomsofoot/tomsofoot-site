@@ -49,7 +49,7 @@
 
   <header class="site-header">
     <nav class="nav">
-      <div class="nav-links"><a href="#actu">Actualités</a><a href="#magazine">Magazine</a><a href="#videos">Vidéos</a><a href="/jeu">Jeu</a></div>
+      <div class="nav-links"><a href="#actu">Actualités</a><a href="/articles/">Articles</a><a href="#magazine">Magazine</a><a href="#videos">Vidéos</a><a href="/jeu">Jeu</a></div>
       <a class="logo" href="#">TOMSO<i>FOOT</i></a>
       <div class="nav-actions"><a href="#newsletter">Newsletter</a><a href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">YouTube ↗</a><div class="reading-picker" role="group" aria-label="Choisissez votre mode de lecture"><span class="reading-picker-label">Mode de lecture</span><button class="reading-mode" type="button" data-mode="smartphone" aria-label="Lecture smartphone" aria-pressed="false" title="Smartphone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M10 5h4M11 19h2"/></svg></button><button class="reading-mode" type="button" data-mode="tablet" aria-label="Lecture tablette" aria-pressed="false" title="Tablette"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path d="M11 18.5h2"/></svg></button><button class="reading-mode" type="button" data-mode="desktop" aria-label="Lecture ordinateur" aria-pressed="true" title="Ordinateur"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button></div><button class="icon-btn menu-btn" aria-label="Ouvrir le menu">☰</button></div>
     </nav>
@@ -106,6 +106,7 @@
           <a href="https://heyzine.com/flip-book/210994d918.html" target="_blank" rel="noopener">Le magazine</a>
           <a href="https://www.twitch.tv/tomsofoot" target="_blank" rel="noopener">Live</a>
           <a href="#actu">Actualités</a>
+          <a href="/articles/">Articles</a>
           <a href="#videos">Vidéos</a>
         </nav>
         <nav class="tmf-tabs" aria-label="Sections">
@@ -214,6 +215,42 @@
       <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#">Toutes les publications →</a></div>
       <div class="story-grid" id="cms-articles"></div>
     </section>
+
+    <!-- Derniers articles publiés (alimenté en direct depuis la base, sans redéploiement) -->
+    <section class="section" id="derniers-articles" style="display:none">
+      <div class="section-head"><div><span class="kicker">Le fil</span><h2>Derniers articles</h2></div><a class="see-all" href="/articles/">Tous les articles →</a></div>
+      <div class="story-grid" id="latest-articles"></div>
+    </section>
+    <script>
+    (function(){
+      var SB='https://yubndvqmglttlntkugzm.supabase.co', KEY='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+      var sec=document.getElementById('derniers-articles'), grid=document.getElementById('latest-articles');
+      if(!grid) return;
+      function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+      function sb(p){ return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}); }
+      Promise.all([
+        sb('articles_public?select=slug,title,hero_image,hero_alt,reading_time,published_at,competition_id,genre_id&status=eq.published&order=published_at.desc.nullslast&limit=6'),
+        sb('competitions?select=id,label_fr'),
+        sb('editorial_genres?select=id,label_fr')
+      ]).then(function(res){
+        var arts=res[0]||[], comp={}, genre={};
+        (res[1]||[]).forEach(function(c){ comp[c.id]=c.label_fr; });
+        (res[2]||[]).forEach(function(g){ genre[g.id]=g.label_fr; });
+        if(!arts.length) return;                          // aucune carte vide si rien n'est publié
+        grid.innerHTML = arts.map(function(a){
+          var cat=[comp[a.competition_id],genre[a.genre_id]].filter(Boolean).join(' · ')||'Article';
+          var meta='';
+          try{ if(a.published_at) meta=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric'}).format(new Date(a.published_at)); }catch(e){}
+          if(a.reading_time) meta+=(meta?' · ':'')+a.reading_time+' min de lecture';
+          var img=a.hero_image||'';
+          return '<a class="story" href="/articles/'+esc(a.slug)+'">'
+            +(img?'<img src="'+esc(img)+'" alt="'+esc(a.hero_alt||a.title)+'" loading="lazy">':'')
+            +'<div class="story-content"><span class="label">'+esc(cat)+'</span><h3>'+esc(a.title)+'</h3><div class="meta">'+esc(meta)+'</div></div></a>';
+        }).join('');
+        if(sec) sec.style.display='';                       // affichée uniquement s'il y a des articles
+      });
+    })();
+    </script>
 
     <section class="issue" id="magazine">
       <div class="issue-inner">
