@@ -309,8 +309,24 @@
   // ---------- Reprise après rafraîchissement ----------
   // Reconstruit TOUTES les lignes/couleurs à partir des propositions renvoyées par le serveur,
   // en récupérant les attributs PUBLICS des joueurs proposés (jamais la cible avant la fin).
+  // Squelette de reprise : affiche INSTANTANÉMENT autant de lignes « en chargement » que de
+  // propositions à restaurer, pour un retour visuel immédiat pendant la récupération des attributs
+  // publics (évite l'impression d'écran figé pendant le chargement).
+  function renderResumeSkeleton(n) {
+    if (!el.board || !n) return;
+    var head = '<div class="board-head">' + HEAD.map(function (h) { return "<span>" + h + "</span>"; }).join("") + "</div>";
+    var rows = "";
+    for (var r = 0; r < n; r++) {
+      var c = "";
+      for (var i = 0; i < 8; i++) { c += '<div class="flip-cell"><div class="pending-cell" style="animation-delay:' + (i * 85) + 'ms"></div></div>'; }
+      rows += '<div class="guess-row is-pending" aria-hidden="true">' + c + "</div>";
+    }
+    el.board.innerHTML = '<div class="board-wrap"><div class="board">' + head + rows + "</div></div>";
+  }
+
   async function rebuildFromResume(s) {
     var raw = s.guesses || [];
+    renderResumeSkeleton(raw.length);   // feedback immédiat pendant la récupération des attributs
     var ids = raw.map(function (g) { return g.guess_player_id; }).filter(Boolean);
     var players = [];
     try { players = await API.getPlayersByIds(ids); } catch (e) { players = []; }
@@ -343,14 +359,20 @@
   async function boot() {
     try {
       if (API.warm) API.warm();   // pré-chauffe la fonction dès l'ouverture du jeu
-      var d = await API.getDailyPuzzle(); if (el.edition && d && d.edition) el.edition.textContent = "#" + d.edition;
-      var s = await API.ensureSession();
+      // Les deux appels d'ouverture sont INDÉPENDANTS : on les lance EN PARALLÈLE au lieu de les
+      // enchaîner en série, ce qui réduit fortement le temps de chargement (surtout au démarrage à
+      // froid des fonctions). L'édition du jour s'affiche dès qu'elle arrive, sans bloquer le plateau.
+      var puzzleP = API.getDailyPuzzle();
+      var sessionP = API.ensureSession();
+      puzzleP.then(function (d) { if (el.edition && d && d.edition) el.edition.textContent = "#" + d.edition; }).catch(function () {});
+      var s = await sessionP;
       if (s && s.guesses && s.guesses.length) {
         await rebuildFromResume(s);
       } else {
         state.status = (s && s.status) || "active"; state.hintRevealed = !!(s && s.hint_revealed);
         updateCount(); refreshHint(); refreshPoints(); refreshReveal();
       }
+      try { await puzzleP; } catch (e) {}   // édition déjà gérée ci-dessus ; on absorbe une éventuelle erreur
     } catch (e) { degrade(); }
   }
   function degrade() {
@@ -359,6 +381,46 @@
     if (g) g.insertAdjacentHTML("afterbegin", '<div class="jg-degraded">Le championnat est momentanément indisponible. Réessayez plus tard.</div>');
   }
 
-  global.JogadleGame = { boot: boot };
+  // ---------- Rafraîchissement automatique au changement de jour (minuit, Paris) ----------
+  // À minuit (heure de Paris) le joueur du jour change. Sans rechargement de page, tout ce qui
+  // concerne la partie de la veille (plateau, propositions, liste « déjà utilisés », recherche,
+  // écran de fin) doit disparaître, puis la partie du nouveau jour se charge. Fonctionne en mode
+  // CONNECTÉ comme INVITÉ, et se déclenche aussi au retour sur l'onglet.
+  function parisDayKey() {
+    try {
+      return new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    } catch (e) {
+      var n = new Date(); return n.getUTCFullYear() + "-" + (n.getUTCMonth() + 1) + "-" + n.getUTCDate();
+    }
+  }
+  var currentDayKey = parisDayKey();
+  function resetForNewDay() {
+    // On repart d'un état vierge : plus aucune trace des joueurs testés la veille (y compris dans
+    // les suggestions de la barre de recherche, qui s'appuient sur state.guesses / « déjà utilisé »).
+    state = { guesses: [], status: "active", hintRevealed: false, hintLetter: null, playersById: {}, busy: false, winRecap: null };
+    if (el.input) { el.input.value = ""; el.input.disabled = false; }
+    hideSugg();
+    if (el.board) el.board.innerHTML = "";
+    if (el.used) { el.used.hidden = true; el.used.innerHTML = ""; }
+    if (el.end) el.end.innerHTML = "";
+    if (el.search) el.search.style.display = "";
+    if (el.hint) {
+      el.hint.classList.remove("is-open", "is-ready");
+      el.hint.classList.add("is-locked");
+      var hb = el.hint.querySelector(".hint-fab__reveal b"); if (hb) hb.textContent = "";
+      var hc = el.hint.querySelector(".hint-fab__count"); if (hc) hc.textContent = "0/5";
+    }
+    lockInput(false);
+    updateCount(); refreshHint(); refreshPoints(); refreshReveal();
+    boot();   // recharge le joueur du jour (nouvelle session serveur) ; degrade() si indisponible
+  }
+  function checkDayRollover() {
+    var k = parisDayKey();
+    if (k !== currentDayKey) { currentDayKey = k; resetForNewDay(); }
+  }
+  setInterval(checkDayRollover, 15000);   // vérification légère toutes les 15 s
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) checkDayRollover(); });
+
+  global.JogadleGame = { boot: boot, resetForNewDay: resetForNewDay };
   boot();
 })(window);
