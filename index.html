@@ -211,11 +211,6 @@
       </div>
     </section>
 
-    <section class="section" id="actu">
-      <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#">Toutes les publications →</a></div>
-      <div class="story-grid" id="cms-articles"></div>
-    </section>
-
     <!-- Derniers articles publiés (alimenté en direct depuis la base, sans redéploiement) -->
     <section class="section" id="derniers-articles" style="display:none">
       <div class="section-head"><div><span class="kicker">Le fil</span><h2>Derniers articles</h2></div><a class="see-all" href="/articles/">Tous les articles →</a></div>
@@ -252,6 +247,16 @@
     })();
     </script>
 
+    <section class="section" id="actu">
+      <div class="section-head"><div><span class="kicker">À la une</span><h2>Le football autrement</h2></div><a class="see-all" href="#">Toutes les publications →</a></div>
+      <div class="story-grid" id="cms-articles"></div>
+    </section>
+
+    <section class="section" id="videos">
+      <div class="section-head"><div><span class="kicker">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne →</a></div>
+      <div class="videos-wrap"><button class="varrow" id="vprev" type="button" aria-label="Documentaires précédents" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button><div class="videos" id="cms-videos"></div><button class="varrow" id="vnext" type="button" aria-label="Documentaires suivants"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div>
+    </section>
+
     <section class="issue" id="magazine">
       <div class="issue-inner">
         <div>
@@ -265,11 +270,6 @@
           <img data-cms-src="magazine.couverture" src="images/couverture-n12.jpg" alt="Couverture du numéro">
         </a>
       </div>
-    </section>
-
-    <section class="section" id="videos">
-      <div class="section-head"><div><span class="kicker">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne →</a></div>
-      <div class="videos-wrap"><button class="varrow" id="vprev" type="button" aria-label="Documentaires précédents" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button><div class="videos" id="cms-videos"></div><button class="varrow" id="vnext" type="button" aria-label="Documentaires suivants"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div>
     </section>
 
     <!-- ===================== SECTION MENU TOMSOFOOT (drop-in) ===================== -->
@@ -541,12 +541,11 @@
     </script>
     <!-- =================== FIN SECTION MENU TOMSOFOOT =================== -->
 
+    <section class="newsletter" id="newsletter"><div class="newsletter-inner"><div><span class="kicker" style="color:white">Le vestiaire TomsoFoot</span><h2>Une longueur d'avance.</h2></div><form class="form" onsubmit="event.preventDefault();this.querySelector('button').textContent='INSCRIT ✓'"><input type="email" aria-label="Votre adresse e-mail" placeholder="Votre adresse e-mail" required><button type="submit">S'inscrire</button></form></div></section>
+
     <section class="manifesto">
       <div class="manifesto-inner"><div><div class="manifesto-number" data-cms="manifeste.numero">Notre manifeste — 01</div></div><div><blockquote class="quote"><span data-cms="manifeste.citation1">Le score raconte le résultat.</span> <em data-cms="manifeste.citation2">Nous racontons ce qu'il signifie.</em></blockquote><p data-cms="manifeste.texte">TomsoFoot refuse le bruit permanent et l'analyse jetable. Ici, le football est traité comme une culture : avec du recul, une identité visuelle forte et le goût des histoires qui restent après le coup de sifflet.</p><a class="btn" href="#magazine" style="margin-top:20px">Découvrir notre vision</a></div></div>
     </section>
-
-
-    <section class="newsletter" id="newsletter"><div class="newsletter-inner"><div><span class="kicker" style="color:white">Le vestiaire TomsoFoot</span><h2>Une longueur d'avance.</h2></div><form class="form" onsubmit="event.preventDefault();this.querySelector('button').textContent='INSCRIT ✓'"><input type="email" aria-label="Votre adresse e-mail" placeholder="Votre adresse e-mail" required><button type="submit">S'inscrire</button></form></div></section>
   </main>
 
   <footer><div class="footer-inner"><div class="footer-top"><div><div class="footer-logo">TOMSOFOOT</div><p style="color:#8995a5">Le football, notre passion.</p></div><div class="footer-links"><a href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">YouTube ↗</a><a href="https://www.instagram.com/tomso_foot/" target="_blank" rel="noopener">Instagram ↗</a><a href="https://x.com/tomsofoot" target="_blank" rel="noopener">X / Twitter ↗</a><a href="https://www.tiktok.com/@tomsofoot" target="_blank" rel="noopener">TikTok ↗</a><a href="mailto:tomsofoot@gmail.com">Contact ↗</a><a href="#magazine">Le magazine</a><a href="/jeu">Jogadle (le jeu)</a><a href="/mentions-legales">Mentions légales</a><a href="/confidentialite">Confidentialité</a><a href="/regie">Régie</a></div></div><div class="rub-stats" aria-label="Consultations">Consultations du jour · YouTube <b data-count="youtube">–</b> · Magazine <b data-count="magazine">–</b> · Jeux <b data-count="jeux">–</b></div><div class="copyright"><span>© 2026 TomsoFoot</span><span>Information · Culture · Passion</span></div></div></footer>
