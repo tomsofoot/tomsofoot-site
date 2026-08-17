@@ -1070,28 +1070,38 @@ autosave(true); update();
       img.src=url;
     });
   }
+  function _fileToDataURL(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=()=>rej(new Error('lecture impossible')); r.readAsDataURL(f); }); }
   async function realUpload(i,f){
     const blk=state.blocks[i]; if(!blk||blk.type!=='image')return;
     const err=validateFile(f); if(err){ blk.data.error=err; renderBlocks(); return; }
-    if(!token){ blk.data.error='Connecte-toi (admin) pour téléverser. L\'article n\'est pas affecté.'; renderBlocks(); return; }
     const sig=f.name+':'+f.size;
     if(state.blocks.some((b,j)=>j!==i&&b.type==='image'&&b.data._sig===sig)){ blk.data.error='Image déjà présente dans l\'article.'; renderBlocks(); return; }
-    blk.data.error=null; blk.data._sig=sig; renderBlocks();
-    const prog=gid('prog-'+blk.id); if(prog)prog.style.display='block'; const bar=prog?prog.querySelector('i'):null; const setBar=p=>{if(bar)bar.style.width=p+'%';}; setBar(12);
+    blk.data.error=null; blk.data._sig=sig; blk.data._name=f.name;
+    // 1) APERÇU IMMÉDIAT (local, hors-ligne) : l'image apparaît « en direct » dès le dépôt,
+    //    dans la zone glisser-déposer ET dans l'aperçu, sans attendre le réseau ni exiger d'être connecté(e).
+    let localUrl=null;
+    try{ localUrl=await _fileToDataURL(f); }
+    catch(e){ blk.data.error='Échec de lecture du fichier (réessaie). L\'article n\'est pas affecté.'; renderBlocks(); return; }
+    blk.data.src=localUrl; blk.data.original=localUrl;
+    renderBlocks(); update(); autosave(); afterImageReady(blk.id);
+    // 2) Sans compte admin ou sans service de stockage : on conserve l'aperçu local intégré.
+    if(!token || !sb || !sb.storage){ return; }
+    // 3) Téléversement en arrière-plan → remplace le data:URL par l'URL permanente (WebP).
+    const prog=gid('prog-'+blk.id); if(prog)prog.style.display='block'; const bar=prog?prog.querySelector('i'):null; const setBar=p=>{if(bar)bar.style.width=p+'%';}; setBar(20);
     try{
-      const {w,h,webpBlob,webpW}=await processImage(f); setBar(40);
+      const {w,h,webpBlob,webpW}=await processImage(f); setBar(50);
       const stamp=Date.now()+'-'+Math.random().toString(36).slice(2,7);
       const ext=((f.type.split('/')[1]||'jpg').replace('jpeg','jpg')).replace(/[^a-z0-9]/g,'')||'jpg';
       const origPath='articles/'+stamp+'-orig.'+ext;
       const up1=await sb.storage.from('articles').upload(origPath,f,{contentType:f.type,upsert:true}); if(up1.error) throw up1.error;
-      const origUrl=sb.storage.from('articles').getPublicUrl(origPath).data.publicUrl; setBar(72);
+      const origUrl=sb.storage.from('articles').getPublicUrl(origPath).data.publicUrl; setBar(75);
       let variants=[], displayUrl=origUrl;
       if(webpBlob){ const wpath='articles/'+stamp+'-'+webpW+'.webp'; const up2=await sb.storage.from('articles').upload(wpath,webpBlob,{contentType:'image/webp',upsert:true});
         if(!up2.error){ const wurl=sb.storage.from('articles').getPublicUrl(wpath).data.publicUrl; variants=[{url:wurl,w:webpW,type:'image/webp'}]; displayUrl=wurl; } }
       setBar(100);
       blk.data.src=displayUrl; blk.data.original=origUrl; blk.data.variants=variants; blk.data.width=w; blk.data.height=h; blk.data.error=null;
-      renderBlocks(); update(); realSave(true); afterImageReady(blk.id);
-    }catch(e){ blk.data.error='Échec du téléversement : '+(e.message||e)+' — l\'article n\'est pas affecté.'; renderBlocks(); }
+      renderBlocks(); update(); realSave(true);
+    }catch(e){ blk.data.error='Aperçu local affiché ✓ — le téléversement distant a échoué ('+(e.message||e)+'). L\'image reste visible et sera intégrée à la publication.'; renderBlocks(); }
   }
   uploadImageToBlock=realUpload;
 
