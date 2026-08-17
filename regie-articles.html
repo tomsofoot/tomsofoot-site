@@ -78,6 +78,15 @@ textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
 .rb-addimg{display:block;width:100%;margin-top:10px;padding:8px 10px;background:transparent;border:1px dashed #33507e;border-radius:8px;color:#7f93b3;font:800 11px "Barlow Condensed",sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:border-color .12s,color .12s,background .12s}
 .rb-addimg:hover,.rb-addimg:focus-visible{border-color:#4a76c9;color:#cdd9ea;background:rgba(74,118,201,.10);outline:none}
 .rb-addimg.on{border-color:#ff334d;color:#ff9aa8;background:rgba(255,51,77,.10)}
+/* ---------- Lisibilité du champ d'édition des PARAGRAPHES (RÉGIE uniquement, affichage seul) ----------
+   Le texte du champ éditable s'affiche en blanc sur fond sombre — y compris quand un copier-coller
+   a laissé une couleur sombre en style inline dans le contenu. Strictement limité au champ éditable
+   des blocs de type paragraphe (lié au TYPE, jamais à l'index). NE modifie PAS les données enregistrées
+   (d.text / textColor), NI l'aperçu de droite (#pv), NI l'article public : ceux-ci gardent leurs couleurs. */
+[data-block-type="paragraph"] .rb-ce{ color:var(--white); caret-color:var(--white); }
+[data-block-type="paragraph"] .rb-ce [style*="color"]{ color:inherit !important; }   /* neutralise une couleur sombre collée — DANS L'ÉDITEUR seulement, le contenu n'est pas réécrit */
+[data-block-type="paragraph"] .rb-ce ::selection{ background:#2b5bb0; color:#fff; }
+[data-block-type="paragraph"] .rb-ce ::-moz-selection{ background:#2b5bb0; color:#fff; }
 .rb-ce{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:11px 13px;min-height:46px;font-size:16px;line-height:1.55;outline:none}
 .rb-ce:focus{border-color:#4a76c9}
 .rb-ce[data-ph]:empty:before{content:attr(data-ph);color:#5a6f90}
