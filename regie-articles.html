@@ -72,6 +72,12 @@ textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
 .rb-block[data-block-type="heading"]{background:rgba(250,204,21,.13);border-color:#FACC15;border-left:4px solid #FACC15}
 .rb-block[data-block-type="heading"] .rb-block__type{color:#FDE68A}
 .rb-block[data-block-type="heading"].sel{border-color:#4a76c9}   /* la bordure de sélection bleue reste prioritaire */
+/* ---------- Bouton « + image sous ce paragraphe » (éditeur, ADMIN) ----------
+   Généré à partir du TYPE de bloc (voir TSFINS.decorate) : présent sous chaque paragraphe,
+   qu'il soit existant, nouveau, dupliqué, déplacé ou restauré. */
+.rb-addimg{display:block;width:100%;margin-top:10px;padding:8px 10px;background:transparent;border:1px dashed #33507e;border-radius:8px;color:#7f93b3;font:800 11px "Barlow Condensed",sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:border-color .12s,color .12s,background .12s}
+.rb-addimg:hover,.rb-addimg:focus-visible{border-color:#4a76c9;color:#cdd9ea;background:rgba(74,118,201,.10);outline:none}
+.rb-addimg.on{border-color:#ff334d;color:#ff9aa8;background:rgba(255,51,77,.10)}
 .rb-ce{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:11px 13px;min-height:46px;font-size:16px;line-height:1.55;outline:none}
 .rb-ce:focus{border-color:#4a76c9}
 .rb-ce[data-ph]:empty:before{content:attr(data-ph);color:#5a6f90}
@@ -873,7 +879,7 @@ function doUpdate(force){
   const pv=$('#pv'); const doc=pv.contentDocument;
   if(force || !pvReady || !doc || !doc.querySelector('.body')){
     const anchor = doc ? captureAnchor(doc,pv) : null;   // ancre avant un éventuel reload structurel
-    pv.onload=()=>{ pvReady=true; const d=pv.contentDocument; if(anchor) restoreAnchor(d,pv,anchor); };
+    pv.onload=()=>{ pvReady=true; const d=pv.contentDocument; if(anchor) restoreAnchor(d,pv,anchor); if(window.TSFINS && TSFINS.active) TSFINS.sync(d); };
     pv.srcdoc=previewHTML();
     return;
   }
@@ -890,6 +896,7 @@ function patchPreview(doc){
   const st=doc.getElementById('rb-hcol'); if(st && typeof headerColorCSS==='function') st.textContent=headerColorCSS();
   reconcileHero(doc);                                      // image principale (héro) : placeholder <-> image, en direct
   const body=doc.querySelector('.body'); if(body) reconcileBody(body);
+  if(window.TSFINS && TSFINS.active) TSFINS.sync(doc);      // zone d'insertion image : repositionnée après chaque patch (jamais de remontée)
 }
 // L'aperçu incrémental (patchPreview) ne re-rendait jamais le héro : après le 1er rendu
 // (héro vide -> cadre gris), toute mise à jour passait par patchPreview qui ignorait
@@ -1463,12 +1470,13 @@ autosave(true); update();
   const _previewHTML2=previewHTML;
   previewHTML=function(){ let html=_previewHTML2(); const css=window.headerColorCSS();
     // script de cibles de dépôt (aperçu) — même origine (srcdoc), appels directs au parent
-    const drop='<style>.tsf-ins{height:0;border-top:3px solid #ff334d;box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px}.tsf-hot{outline:2px dashed rgba(255,51,77,.55);outline-offset:-4px}</style>'
+    const drop='<style>.tsf-ins{height:0;border-top:3px solid #ff334d;box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px}.tsf-hot{outline:2px dashed rgba(255,51,77,.55);outline-offset:-4px}'
+      +'.tsf-dz{border:2px dashed #ff334d;background:rgba(255,51,77,.06);border-radius:12px;padding:22px 18px;margin:14px 0;text-align:center;cursor:pointer;font-family:Inter,system-ui,Arial,sans-serif}.tsf-dz .dzm{font-weight:800;font-size:15px;color:#c0304a}.tsf-dz .dzs{font-size:13px;color:#8a99ad;margin-top:4px}.tsf-dz.hot{background:rgba(255,51,77,.16);border-color:#ff1f3d}.tsf-dz:focus{outline:2px solid #ff334d;outline-offset:2px}</style>'
       +'<script>(function(){var P=window.parent;function body(){return document.querySelector(".body");}var line=null;function clear(){if(line&&line.parentNode)line.parentNode.removeChild(line);line=null;document.querySelectorAll(".tsf-hot").forEach(function(e){e.classList.remove("tsf-hot")});}'
       +'function idx(y){var b=body();if(!b)return{i:0,b:b};var k=b.children,i=k.length;for(var j=0;j<k.length;j++){var r=k[j].getBoundingClientRect();if(y<r.top+r.height/2){i=j;break;}}return{i:i,b:b};}'
-      +'document.addEventListener("dragover",function(e){if(!(e.dataTransfer&&([].indexOf.call(e.dataTransfer.types||[],"Files")>=0||[].indexOf.call(e.dataTransfer.types||[],"application/x-tsf-media")>=0)))return;e.preventDefault();var hero=e.target.closest&&e.target.closest(".hero");clear();if(hero){hero.classList.add("tsf-hot");return;}var o=idx(e.clientY);if(!o.b)return;line=document.createElement("div");line.className="tsf-ins";if(o.i>=o.b.children.length)o.b.appendChild(line);else o.b.insertBefore(line,o.b.children[o.i]);},true);'
-      +'document.addEventListener("dragleave",function(e){if(e.target===document||e.relatedTarget===null)clear();},true);'
-      +'document.addEventListener("drop",function(e){var dt=e.dataTransfer;if(!dt)return;var hero=e.target.closest&&e.target.closest(".hero");e.preventDefault();var o=idx(e.clientY);var index=hero?"hero":o.i;clear();var mid=dt.getData("application/x-tsf-media");if(mid){if(P.TSFM)P.TSFM.previewDropMedia(mid,index);return;}if(dt.files&&dt.files.length){if(P.TSFM)P.TSFM.previewDropFile(dt.files[0],index);}},true);})();<\/script>';
+      +'document.addEventListener("dragover",function(e){if(P.TSFINS&&P.TSFINS.active)return;if(!(e.dataTransfer&&([].indexOf.call(e.dataTransfer.types||[],"Files")>=0||[].indexOf.call(e.dataTransfer.types||[],"application/x-tsf-media")>=0)))return;e.preventDefault();var hero=e.target.closest&&e.target.closest(".hero");clear();if(hero){hero.classList.add("tsf-hot");return;}var o=idx(e.clientY);if(!o.b)return;line=document.createElement("div");line.className="tsf-ins";if(o.i>=o.b.children.length)o.b.appendChild(line);else o.b.insertBefore(line,o.b.children[o.i]);},true);'
+      +'document.addEventListener("dragleave",function(e){if(P.TSFINS&&P.TSFINS.active)return;if(e.target===document||e.relatedTarget===null)clear();},true);'
+      +'document.addEventListener("drop",function(e){if(P.TSFINS&&P.TSFINS.active)return;var dt=e.dataTransfer;if(!dt)return;var hero=e.target.closest&&e.target.closest(".hero");e.preventDefault();var o=idx(e.clientY);var index=hero?"hero":o.i;clear();var mid=dt.getData("application/x-tsf-media");if(mid){if(P.TSFM)P.TSFM.previewDropMedia(mid,index);return;}if(dt.files&&dt.files.length){if(P.TSFM)P.TSFM.previewDropFile(dt.files[0],index);}},true);})();<\/script>';
     html=html.replace('</head>', '<style id="rb-hcol">'+css+'</style></head>').replace('</body>', drop+'</body>');
     return html;
   };
@@ -1652,6 +1660,153 @@ autosave(true); update();
   decorateColorControls();
   applyHeaderColorInputs();
   renderMedia();
+})();
+</script>
+<script>
+/* =========================================================================
+   TSFINS — « Ajouter une image sous ce paragraphe » (dépôt dans l'aperçu).
+   Réutilise le pipeline existant : addBlock() + uploadImageToBlock() (= realUpload,
+   aperçu local immédiat + upload Supabase). Ancre = ID STABLE du paragraphe (jamais l'index).
+   Aucune logique existante modifiée ; purement additif.
+   ========================================================================= */
+(function(){
+  if(window.TSFINS) return;
+  var T = {
+    active:false, paraId:null, _keyHandler:null, _input:null, _scrolled:false,
+
+    // input fichier dédié (n'interfère pas avec #fileInput / la médiathèque)
+    input:function(){
+      if(T._input) return T._input;
+      var inp=document.createElement('input');
+      inp.type='file'; inp.accept='image/jpeg,image/png,image/webp,image/avif'; inp.style.display='none';
+      inp.addEventListener('change',function(e){ var f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) T.onFile(f); });
+      document.body.appendChild(inp); T._input=inp; return inp;
+    },
+
+    // Position d'insertion : après le paragraphe ET après ses images déjà présentes,
+    // avant le prochain bloc de texte. Basé sur l'ID stable.
+    insertIndex:function(paraId){
+      var p=indexOfId(paraId); if(p<0) return state.blocks.length;
+      var i=p+1; while(i<state.blocks.length && state.blocks[i].type==='image') i++;
+      return i;
+    },
+    _paraText:function(paraId){ var i=indexOfId(paraId); var t=(i>=0 && state.blocks[i].data && state.blocks[i].data.text)||''; return t.replace(/<[^>]*>/g,'').trim().slice(0,40); },
+
+    // Bouton sous chaque paragraphe (appelé après chaque renderBlocks → lié au type).
+    decorate:function(){
+      var els=document.querySelectorAll('#blocks .rb-block[data-block-type="paragraph"]');
+      [].forEach.call(els,function(el){
+        var body=el.querySelector('.rb-block__body'); if(!body) return;
+        var id=+el.dataset.blockId;
+        var existing=body.querySelector(':scope > .rb-addimg');
+        if(existing){ existing.classList.toggle('on', T.active && id===T.paraId); return; }
+        var btn=document.createElement('button');
+        btn.type='button'; btn.className='rb-addimg';
+        btn.textContent='＋ Ajouter une image sous ce paragraphe';
+        btn.setAttribute('aria-label','Ajouter une image sous le paragraphe : '+(T._paraText(id)||'(vide)'));
+        btn.addEventListener('click',function(ev){ ev.preventDefault(); ev.stopPropagation(); T.start(+el.dataset.blockId); });
+        btn.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); T.start(+el.dataset.blockId); } });
+        body.appendChild(btn);
+        btn.classList.toggle('on', T.active && id===T.paraId);
+      });
+    },
+
+    start:function(paraId){
+      if(T.active && T.paraId===paraId){ T.cancel(); return; }   // re-clic sur le même = fermer
+      T.cancel();                                                 // une seule zone active à la fois
+      if(indexOfId(paraId)<0) return;
+      T.active=true; T.paraId=paraId; T._scrolled=false;
+      T.decorate();
+      var doc=T._doc(); if(doc) T.sync(doc);
+      update();                                                 // garantit un patch d'aperçu (place la zone même juste après une dup/ajout)
+      T._keyHandler=function(e){ if(e.key==='Escape'){ T.cancel(); } };
+      document.addEventListener('keydown',T._keyHandler,true);
+      try{ if(doc) doc.addEventListener('keydown',T._keyHandler,true); }catch(_){}
+    },
+
+    cancel:function(){
+      if(T._keyHandler){ document.removeEventListener('keydown',T._keyHandler,true); try{ var d=T._doc(); d&&d.removeEventListener('keydown',T._keyHandler,true);}catch(_){} T._keyHandler=null; }
+      var was=T.active; T.active=false; T.paraId=null; T._scrolled=false;
+      try{ var doc=T._doc(); var z=doc&&doc.getElementById('tsf-dz'); if(z&&z.parentNode) z.parentNode.removeChild(z); }catch(_){}
+      if(was) T.decorate();
+    },
+
+    _doc:function(){ var pv=document.querySelector('#pv'); return pv&&pv.contentDocument; },
+
+    // (Re)place la zone juste après le paragraphe (et ses images) — sans recharger l'aperçu.
+    sync:function(doc){
+      if(!T.active) return; doc=doc||T._doc(); if(!doc) return;
+      if(indexOfId(T.paraId)<0){ T.cancel(); return; }         // paragraphe réellement supprimé -> annuler
+      var para=doc.querySelector('.body [data-blk="'+T.paraId+'"]');
+      if(!para){ return; }                                      // pas encore rendu dans l'aperçu : réessai au prochain patch
+      var p=indexOfId(T.paraId); var anchorIdx=T.insertIndex(T.paraId)-1;
+      var anchorId=(anchorIdx>p && state.blocks[anchorIdx])?state.blocks[anchorIdx].id:T.paraId;
+      var anchor=doc.querySelector('.body [data-blk="'+anchorId+'"]')||para;
+      var zone=doc.getElementById('tsf-dz');
+      if(!zone){
+        zone=doc.createElement('div'); zone.id='tsf-dz'; zone.className='tsf-dz';
+        zone.setAttribute('role','button'); zone.setAttribute('tabindex','0');
+        zone.innerHTML='<div class="dzm">Glissez-déposez une image ici</div><div class="dzs">ou cliquez pour choisir un fichier</div>';
+        T._bind(zone);
+      }
+      zone.setAttribute('aria-label','Déposer une image ici — insérée sous le paragraphe : '+(T._paraText(T.paraId)||'(vide)'));
+      if(anchor.nextSibling!==zone) anchor.parentNode.insertBefore(zone, anchor.nextSibling);
+      if(!T._scrolled){ T._scrolled=true; T._scrollIfNeeded(doc, zone); }
+    },
+
+    _scrollIfNeeded:function(doc,zone){
+      try{ var win=doc.defaultView; var r=zone.getBoundingClientRect(); var vh=win.innerHeight||doc.documentElement.clientHeight;
+        if(r.top<0 || r.bottom>vh){ zone.scrollIntoView({block:'nearest'}); } }catch(_){}
+    },
+
+    _bind:function(zone){
+      var stop=function(e){ e.preventDefault(); e.stopPropagation(); };
+      zone.addEventListener('dragenter',function(e){ stop(e); zone.classList.add('hot'); });
+      zone.addEventListener('dragover',function(e){ stop(e); try{e.dataTransfer.dropEffect='copy';}catch(_){}; zone.classList.add('hot'); });
+      zone.addEventListener('dragleave',function(e){ if(e.target===zone) zone.classList.remove('hot'); });
+      zone.addEventListener('drop',function(e){ stop(e); zone.classList.remove('hot'); var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) T.onFile(f); });
+      zone.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); T.input().click(); });
+      zone.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); T.input().click(); } });
+    },
+
+    onFile:function(file){
+      if(!T.active || T.paraId==null) return;
+      var err=(typeof validateFile==='function')?validateFile(file):null;   // valider AVANT (jamais de bloc vide)
+      if(err){ T._error(err); return; }
+      var at=T.insertIndex(T.paraId);
+      T.cancel();                                                            // la zone sera remplacée par la vraie image
+      var b=addBlock('image',{alt:'',caption:'',credit:'',src:''},at);       // vrai bloc image (id stable, position enregistrée)
+      var i=state.blocks.indexOf(b);
+      T._successAfterLoad(b.id);
+      uploadImageToBlock(i,file);                                            // = realUpload : aperçu immédiat + Supabase en arrière-plan
+    },
+
+    _error:function(msg){
+      try{ var doc=T._doc(); var z=doc&&doc.getElementById('tsf-dz');
+        if(z){ z.classList.remove('hot'); z.innerHTML='<div class="dzm" style="color:#b02a37">'+String(msg).replace(/</g,'&lt;')+'</div><div class="dzs">Corrige le fichier, puis dépose à nouveau ou clique pour choisir.</div>'; } }catch(_){}
+      if(typeof toast==='function') toast(msg,'err');
+    },
+
+    // Réussite seulement après le vrai load de l'image dans l'aperçu.
+    _successAfterLoad:function(id){
+      var tries=0;
+      (function poll(){
+        tries++;
+        var doc=T._doc(); var img=doc&&doc.querySelector('.body figure[data-blk="'+id+'"] img');
+        if(img){
+          if(img.complete && img.naturalWidth>0){ if(typeof toast==='function') toast('Image ajoutée sous le paragraphe ✓','ok'); return; }
+          img.addEventListener('load',function(){ if(typeof toast==='function') toast('Image ajoutée sous le paragraphe ✓','ok'); },{once:true});
+          img.addEventListener('error',function(){ if(typeof toast==='function') toast('Image téléversée mais affichage impossible dans l\'aperçu.','err'); },{once:true});
+          return;
+        }
+        if(tries<40) setTimeout(poll,60);
+      })();
+    }
+  };
+  window.TSFINS=T;
+  var _render=renderBlocks;
+  renderBlocks=function(){ _render.apply(this,arguments); try{ T.decorate(); }catch(_){} };
+  try{ T.decorate(); }catch(_){}
 })();
 </script>
 </body>
