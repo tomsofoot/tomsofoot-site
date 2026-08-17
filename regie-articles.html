@@ -62,6 +62,16 @@ textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
 .rb-block__type{font-family:"Barlow Condensed";font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:13px;color:#9fb2cc}
 .rb-block__sp{flex:1}
 .rb-block__body{padding:12px}
+/* ---------- Repérage esthétique de la régie (ADMIN uniquement) ----------
+   Purement visuel dans l'interface d'administration. Piloté par le TYPE de bloc
+   (attribut data-block-type posé à chaque rendu), donc conservé automatiquement à
+   l'ajout, la duplication, le déplacement et le rechargement d'un brouillon.
+   N'existe pas dans l'aperçu (#pv, ARTICLE_CSS) ni dans l'article public. Aucun stockage. */
+.rb-sec--entete{background:rgba(236,72,153,.14);border-color:#EC4899;border-left:4px solid #EC4899}
+.rb-sec--entete>.rb-sec__t{color:#F9A8D4}
+.rb-block[data-block-type="heading"]{background:rgba(250,204,21,.13);border-color:#FACC15;border-left:4px solid #FACC15}
+.rb-block[data-block-type="heading"] .rb-block__type{color:#FDE68A}
+.rb-block[data-block-type="heading"].sel{border-color:#4a76c9}   /* la bordure de sélection bleue reste prioritaire */
 .rb-ce{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:11px 13px;min-height:46px;font-size:16px;line-height:1.55;outline:none}
 .rb-ce:focus{border-color:#4a76c9}
 .rb-ce[data-ph]:empty:before{content:attr(data-ph);color:#5a6f90}
@@ -246,7 +256,7 @@ body:not(.media-open) .rb-media{display:none}
   <div class="rb-main">
     <!-- ======================= EDITOR ======================= -->
     <div class="rb-editor" id="editorPane">
-      <div class="rb-sec">
+      <div class="rb-sec rb-sec--entete">
         <p class="rb-sec__t">En-tête de l'article</p>
         <div class="rb-grid">
           <div class="full"><label class="rb-l">Surtitre</label><input class="rb-i" data-h="kicker" placeholder="Mondial 2026 · Match d'ouverture"></div>
@@ -498,7 +508,7 @@ function renderBlocks(){
     // Glisser-déposer par POINTEUR (voir startBlockDrag) : fiable, indépendant du drag natif
     // HTML5. On presse la barre du bloc pour le déplacer ; le texte reste sélectionnable.
     el.className='rb-block'+(b.hidden?' hidden-b':'')+(state.sel===i?' sel':'');
-    el.dataset.i=i; el.dataset.blockId=b.id;
+    el.dataset.i=i; el.dataset.blockId=b.id; el.dataset.blockType=b.type;   // repère esthétique admin, lié au TYPE (jamais stocké)
     el.innerHTML =
       '<div class="rb-block__bar">'
       + '<span class="rb-drag" title="Glisser le bloc pour le déplacer">⠿</span>'
