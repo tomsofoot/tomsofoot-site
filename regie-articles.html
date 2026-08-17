@@ -89,8 +89,11 @@ textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
 .rb-dropline{height:0;border-top:3px solid var(--red);box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px;display:none}
 .rb-dropline.on{display:block}
 .rb-editor.file-drag{outline:2px dashed rgba(255,51,77,.5);outline-offset:-8px}
-/* poignée de déplacement (SEULE zone qui initie le glisser d'un bloc) */
-.rb-block__bar{cursor:default}
+/* Le bloc entier se glisse : la barre affiche le curseur « grab ». Les zones d'édition
+   (texte, champs) gardent le curseur texte et ne déclenchent pas le glisser. */
+.rb-block__bar{cursor:grab}
+.rb-block__bar:active{cursor:grabbing}
+.rb-ce,.rb-i,.rb-block input,.rb-block textarea{cursor:text}
 .rb-drag{cursor:grab;user-select:none;color:#7f93b3;font-size:15px;line-height:1;padding:2px 4px;border-radius:5px}
 .rb-drag:hover{color:#fff;background:rgba(255,255,255,.08)}
 .rb-drag:active{cursor:grabbing}
@@ -489,12 +492,14 @@ function renderBlocks(){
   state.blocks.forEach((b,i)=>{
     const def=BLOCK_DEFS[b.type];
     const el=document.createElement('div');
-    // Le bloc n'est PAS déplaçable en entier : seule la poignée .rb-drag initie le glisser.
+    // Le bloc entier est déplaçable (comme avant), MAIS le glisser est annulé s'il démarre
+    // depuis une zone d'édition (texte, champs) → la sélection de texte reste possible.
     el.className='rb-block'+(b.hidden?' hidden-b':'')+(state.sel===i?' sel':'');
+    el.draggable=true;
     el.dataset.i=i; el.dataset.blockId=b.id;
     el.innerHTML =
       '<div class="rb-block__bar">'
-      + '<span class="rb-drag" draggable="true" title="Déplacer le bloc (glisser)">⠿</span>'
+      + '<span class="rb-drag" title="Glisser le bloc pour le déplacer">⠿</span>'
       + '<span class="rb-block__type">'+def.icon+' '+def.label+'</span><span class="rb-block__sp"></span>'
       + '<button class="icon-btn" title="Monter" onclick="TSF.moveId('+b.id+',-1)">▲</button>'
       + '<button class="icon-btn" title="Descendre" onclick="TSF.moveId('+b.id+',1)">▼</button>'
@@ -503,12 +508,13 @@ function renderBlocks(){
       + '<button class="icon-btn" title="Supprimer" onclick="TSF.delId('+b.id+')">🗑</button>'
       + '</div><div class="rb-block__body">'+blockEditor(b,i)+'</div>';
     host.appendChild(el);
-    const handle=el.querySelector('.rb-drag');
-    handle.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/block-id',String(b.id)); e.dataTransfer.effectAllowed='move'; el.classList.add('dragging'); });
-    handle.addEventListener('dragend',()=>el.classList.remove('dragging'));
-    // Garde-fou RÉEL : tout dragstart qui ne part pas de la poignée (donc depuis .rb-ce,
-    // input, textarea, légende, crédit, alt, bouton…) est annulé → sélection de texte préservée.
-    el.addEventListener('dragstart',e=>{ if(e.target!==handle){ e.preventDefault(); e.stopPropagation(); } });
+    el.addEventListener('dragstart',e=>{
+      // On n'initie PAS le glisser si on est en train de sélectionner du texte / d'éditer un champ
+      // (contenteditable, input, textarea, select) → la sélection de texte reste native.
+      if(e.target.closest('.rb-ce, input, textarea, select, [contenteditable="true"]')){ e.preventDefault(); e.stopPropagation(); return; }
+      e.dataTransfer.setData('text/block-id',String(b.id)); e.dataTransfer.effectAllowed='move'; el.classList.add('dragging');
+    });
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
     host.insertAdjacentHTML('beforeend', insHTML(i+1));       // point d'insertion APRÈS ce bloc
   });
   bindEditors(); bindInserters();
