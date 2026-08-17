@@ -878,7 +878,26 @@ function patchPreview(doc){
   const deck=doc.querySelector('article .deck'); if(deck){ if(h.deck){deck.textContent=h.deck; deck.style.opacity='';} else {deck.textContent='Le chapô s\'affichera ici…'; deck.style.opacity='.5';} }
   const k=doc.querySelector('article .k'); if(k){ const kk=[h.competition,h.genre].filter(Boolean).join(' · '); if(kk){k.textContent=kk;k.style.opacity='';} else {k.textContent='Rubrique · Genre';k.style.opacity='.4';} }
   const st=doc.getElementById('rb-hcol'); if(st && typeof headerColorCSS==='function') st.textContent=headerColorCSS();
+  reconcileHero(doc);                                      // image principale (héro) : placeholder <-> image, en direct
   const body=doc.querySelector('.body'); if(body) reconcileBody(body);
+}
+// L'aperçu incrémental (patchPreview) ne re-rendait jamais le héro : après le 1er rendu
+// (héro vide -> cadre gris), toute mise à jour passait par patchPreview qui ignorait
+// l'image principale, donc le cadre gris restait même quand state.header.hero contenait l'URL.
+// On réconcilie ici le <figure class="hero"> à partir de la SEULE source de vérité (state.header),
+// avec exactement la même logique que previewHTML().
+function reconcileHero(doc){
+  const h=state.header;
+  const fig=doc.querySelector('figure.hero'); if(!fig) return;
+  const desiredHTML = h.hero
+    ? '<figure class="hero'+(h.hero_cover?' cover':'')+'"><img src="'+esc(h.hero)+'" alt="'+esc(h.hero_alt||'')+'">'+figcap(h.hero_caption,h.hero_credit)+'</figure>'
+    : '<figure class="hero"><div style="aspect-ratio:16/9;background:#dbe6f4;border-radius:12px;display:grid;place-items:center;color:#8aa;font-weight:700">Image principale (ratio naturel)</div></figure>';
+  const tmp=doc.createElement('div'); tmp.innerHTML=desiredHTML; const fresh=tmp.firstElementChild; if(!fresh) return;
+  if(fig.outerHTML===fresh.outerHTML) return;              // rien n'a changé : on ne recharge pas l'image
+  fig.replaceWith(fresh);
+  // Si l'image ne se charge pas (404, CORS…), on l'indique explicitement : jamais de cadre gris silencieux.
+  const img=fresh.querySelector('img');
+  if(img){ img.addEventListener('error',function(){ fresh.classList.remove('cover'); fresh.innerHTML='<div style="aspect-ratio:16/9;background:#fdecec;border:1px solid #f5c2c7;border-radius:12px;display:grid;place-items:center;color:#b02a37;font-weight:700;text-align:center;padding:16px;line-height:1.4">L\'image a été téléversée, mais son affichage dans l\'aperçu a échoué.</div>'; }); }
 }
 // Diff par clé (data-blk = block.id) : n'update que les blocs réellement modifiés.
 function reconcileBody(body){
