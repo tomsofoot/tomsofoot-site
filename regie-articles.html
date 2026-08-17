@@ -89,8 +89,14 @@ textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
 .rb-dropline{height:0;border-top:3px solid var(--red);box-shadow:0 0 10px rgba(255,51,77,.6);margin:-6px 0;border-radius:2px;display:none}
 .rb-dropline.on{display:block}
 .rb-editor.file-drag{outline:2px dashed rgba(255,51,77,.5);outline-offset:-8px}
-/* poignée de déplacement (SEULE zone qui initie le glisser d'un bloc) */
-.rb-block__bar{cursor:default}
+/* Le bloc entier se glisse : la barre affiche le curseur « grab ». Les zones d'édition
+   (texte, champs) gardent le curseur texte et ne déclenchent pas le glisser. */
+.rb-block__bar{cursor:grab}
+.rb-block__bar:active{cursor:grabbing}
+.rb-ce,.rb-i,.rb-block input,.rb-block textarea{cursor:text}
+body.rb-dragging{cursor:grabbing;user-select:none}
+body.rb-dragging .rb-block__bar,body.rb-dragging .rb-block{cursor:grabbing}
+.rb-block.dragging{opacity:.55}
 .rb-drag{cursor:grab;user-select:none;color:#7f93b3;font-size:15px;line-height:1;padding:2px 4px;border-radius:5px}
 .rb-drag:hover{color:#fff;background:rgba(255,255,255,.08)}
 .rb-drag:active{cursor:grabbing}
@@ -489,12 +495,13 @@ function renderBlocks(){
   state.blocks.forEach((b,i)=>{
     const def=BLOCK_DEFS[b.type];
     const el=document.createElement('div');
-    // Le bloc n'est PAS déplaçable en entier : seule la poignée .rb-drag initie le glisser.
+    // Glisser-déposer par POINTEUR (voir startBlockDrag) : fiable, indépendant du drag natif
+    // HTML5. On presse la barre du bloc pour le déplacer ; le texte reste sélectionnable.
     el.className='rb-block'+(b.hidden?' hidden-b':'')+(state.sel===i?' sel':'');
     el.dataset.i=i; el.dataset.blockId=b.id;
     el.innerHTML =
       '<div class="rb-block__bar">'
-      + '<span class="rb-drag" draggable="true" title="Déplacer le bloc (glisser)">⠿</span>'
+      + '<span class="rb-drag" title="Glisser le bloc pour le déplacer">⠿</span>'
       + '<span class="rb-block__type">'+def.icon+' '+def.label+'</span><span class="rb-block__sp"></span>'
       + '<button class="icon-btn" title="Monter" onclick="TSF.moveId('+b.id+',-1)">▲</button>'
       + '<button class="icon-btn" title="Descendre" onclick="TSF.moveId('+b.id+',1)">▼</button>'
@@ -503,12 +510,14 @@ function renderBlocks(){
       + '<button class="icon-btn" title="Supprimer" onclick="TSF.delId('+b.id+')">🗑</button>'
       + '</div><div class="rb-block__body">'+blockEditor(b,i)+'</div>';
     host.appendChild(el);
-    const handle=el.querySelector('.rb-drag');
-    handle.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/block-id',String(b.id)); e.dataTransfer.effectAllowed='move'; el.classList.add('dragging'); });
-    handle.addEventListener('dragend',()=>el.classList.remove('dragging'));
-    // Garde-fou RÉEL : tout dragstart qui ne part pas de la poignée (donc depuis .rb-ce,
-    // input, textarea, légende, crédit, alt, bouton…) est annulé → sélection de texte préservée.
-    el.addEventListener('dragstart',e=>{ if(e.target!==handle){ e.preventDefault(); e.stopPropagation(); } });
+    // Démarrage du déplacement : pression sur la barre du bloc, hors boutons / champs de saisie.
+    // (La sélection de texte reste intacte car on ne démarre jamais depuis .rb-ce ni un input.)
+    const bar=el.querySelector('.rb-block__bar');
+    bar.addEventListener('pointerdown',e=>{
+      if(e.button!==0) return;                                                       // clic gauche seulement
+      if(e.target.closest('button, a, input, textarea, select, [contenteditable="true"]')) return;
+      startBlockDrag(el, b.id, e);
+    });
     host.insertAdjacentHTML('beforeend', insHTML(i+1));       // point d'insertion APRÈS ce bloc
   });
   bindEditors(); bindInserters();
@@ -728,16 +737,36 @@ editor.addEventListener('drop',e=>{ if(![...(e.dataTransfer.types||[])].includes
   const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
   let at=idx; files.forEach(f=>{ const b=addBlock('image',{alt:'',caption:'',credit:'',src:''},at++); uploadImageToBlock(state.blocks.indexOf(b),f); });
 });
-// Réordonnancement des blocs par glisser de la POIGNÉE uniquement (dataTransfer 'text/block-id').
-editor.addEventListener('dragover',e=>{ const t=e.dataTransfer&&e.dataTransfer.types; if(!t||[].indexOf.call(t,'text/block-id')<0)return; e.preventDefault();
+// ---- Réordonnancement des blocs par POINTEUR (fiable, indépendant du drag natif HTML5) ----
+// startBlockDrag(el,id,e) est appelé au pointerdown sur la barre d'un bloc (voir renderBlocks).
+// On suit le pointeur, on affiche l'indicateur d'insertion, et au relâchement on réordonne.
+let _pdrag=null;
+function _pdragMove(e){
+  if(!_pdrag) return;
+  if(!_pdrag.active){ if(Math.abs(e.clientY-_pdrag.y0)<4 && Math.abs(e.clientX-_pdrag.x0)<4) return; _pdrag.active=true; document.body.classList.add('rb-dragging'); }
+  e.preventDefault();
   const idx=insertIndexFromY(e.clientY); const dl=ensureDropline(); dl.classList.add('on');
   const cards=[...host.querySelectorAll('.rb-block')]; if(idx>=cards.length) host.appendChild(dl); else host.insertBefore(dl,cards[idx]); host._dropIdx=idx;
-});
-editor.addEventListener('drop',e=>{ const id=(e.dataTransfer&&e.dataTransfer.getData('text/block-id'))||''; if(!id)return; e.preventDefault(); if(dropline)dropline.classList.remove('on');
-  const from=indexOfId(+id); let to=host._dropIdx!=null?host._dropIdx:state.blocks.length; if(from<0)return;
+}
+function _pdragEnd(){
+  document.removeEventListener('pointermove',_pdragMove);
+  document.removeEventListener('pointerup',_pdragEnd);
+  document.body.classList.remove('rb-dragging');
+  if(dropline) dropline.classList.remove('on');
+  const pd=_pdrag; _pdrag=null;
+  const elc=host.querySelector('.rb-block.dragging'); if(elc) elc.classList.remove('dragging');
+  if(!pd || !pd.active) return;                              // simple clic (pas de mouvement) → rien
+  const from=indexOfId(pd.id); let to=host._dropIdx!=null?host._dropIdx:state.blocks.length; if(from<0)return;
   const blk=state.blocks.splice(from,1)[0]; if(to>from)to--; to=Math.max(0,Math.min(to,state.blocks.length)); state.blocks.splice(to,0,blk);
   renderBlocks(); update(); autosave();
-});
+}
+function startBlockDrag(el, id, e){
+  e.preventDefault();                                        // évite la sélection de texte pendant le glisser
+  if(el) el.classList.add('dragging');
+  _pdrag={id:id, y0:e.clientY, x0:e.clientX, active:false};
+  document.addEventListener('pointermove',_pdragMove);
+  document.addEventListener('pointerup',_pdragEnd);
+}
 
 /* ---------- preview-in-real button ---------- */
 $('#btnPreviewReal').onclick=()=>alert('« Prévisualiser » : ouvre /articles/<slug>?preview=1 — page privée identique au futur article public, accessible uniquement avec ta session admin (noindex, indécouvrable au slug). Maquette.');
