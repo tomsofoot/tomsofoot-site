@@ -198,6 +198,35 @@
 }
 
 </style>
+<style id="mc-name-fix">
+/* Correctif d'affichage — noms d'equipes du Match Center.
+   But : empecher le nom des equipes de se casser caractere par caractere
+   (rendu "vertical") quand trois cartes se partagent la largeur en grand ecran.
+   Purement visuel : aucune donnee, requete, URL ni logique n'est modifiee.
+   Les selecteurs sont prefixes #match-center (specificite ID) afin de primer
+   sur les regles de base sans recourir a !important. */
+
+/* Coupure au mot (jamais lettre par lettre) a toutes les largeurs. */
+#match-center .match-team-name{
+  overflow-wrap:break-word;
+  word-break:normal;
+  hyphens:none;
+}
+
+/* Grand ecran (3 cartes par page) : on libere de la largeur pour les noms
+   en affinant legerement les logos et le bloc central (temps/score). */
+@media(min-width:1440px){
+  #match-center .match-row{
+    grid-template-columns:50px minmax(0,1fr) 76px minmax(0,1fr) 50px;
+    column-gap:10px;
+  }
+  #match-center .match-team-logo-wrap{width:50px;height:50px;flex-basis:50px;}
+  #match-center .match-team-logo{width:44px;height:44px;}
+  #match-center .match-center{width:76px;flex-basis:76px;}
+  #match-center .match-center__value{width:74px;}
+  #match-center .match-team-name{font-size:13px;line-height:1.14;}
+}
+</style>
 </head>
 <body>
   <div class="reading-progress" aria-hidden="true"><span class="reading-progress__value"></span></div>
