@@ -440,5 +440,31 @@
   document.addEventListener("visibilitychange", function () { if (!document.hidden) checkDayRollover(); });
 
   global.JogadleGame = { boot: boot, resetForNewDay: resetForNewDay };
-  boot();
+
+  // ---------- Démarrage synchronisé avec l'authentification ----------
+  // Correctif : auth-supabase.js restaure la session de façon ASYNCHRONE (import ESM du client
+  // Supabase + getSession). Si l'on appelait boot() tout de suite, il s'exécutait AVANT que le JWT
+  // ne soit posé : le jeu démarrait alors sur la session INVITÉ (vide) et ne se resynchronisait
+  // jamais après la connexion → plateau figé à « 00 » pour un joueur pourtant connecté.
+  // On attend donc JogadleAuth.ready (comme le fait déjà identity.js), puis on reboote proprement
+  // si l'identité change (connexion / déconnexion / changement de compte), jamais sur un simple
+  // rafraîchissement de jeton. Comportement inchangé en TEST_MODE ou si l'auth est indisponible.
+  (function startWhenAuthReady() {
+    var A = global.JogadleAuth;
+    if (!A || !A.ready || typeof A.ready.then !== "function") { boot(); return; }
+    var started = false, bootedKey = null;
+    function identityKey() {
+      if (!global.__JOGADLE_JWT) return "guest";
+      try { var s = A.getSession && A.getSession(); return "user:" + (s && s.user && s.user.id ? s.user.id : "1"); }
+      catch (e) { return "user:1"; }
+    }
+    function firstBoot() { if (started) return; started = true; bootedKey = identityKey(); boot(); }
+    A.ready.then(firstBoot, firstBoot);
+    setTimeout(firstBoot, 4000);   // filet de sécurité si l'init auth traîne (import ESM lent/bloqué)
+    if (A.onChange) A.onChange(function () {
+      if (!started) return;                 // le premier boot gère déjà l'état initial
+      var k = identityKey();
+      if (k !== bootedKey) { bootedKey = k; resetForNewDay(); }   // resetForNewDay() reboote proprement
+    });
+  })();
 })(window);
