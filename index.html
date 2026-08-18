@@ -78,20 +78,64 @@
 @keyframes tsf-pulse{0%{box-shadow:0 0 0 0 rgba(239,51,64,.55)}70%{box-shadow:0 0 0 7px rgba(239,51,64,0)}100%{box-shadow:0 0 0 0 rgba(239,51,64,0)}}
 @keyframes tsf-marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* ---- Héros : zoom lent + anneaux + séquence ---- */
-.hero:before{animation:tsf-hero-breathe 15s ease-in-out infinite alternate;transform-origin:60% 52%;will-change:transform}
+/* ================= HÉROS — reproduction fidèle reference-01 (héros uniquement) ================= */
+/* Voile dégradé gauche→droite (texte lisible à gauche, photo préservée à droite) + cadrage image */
+.hero:before{
+  background:
+    linear-gradient(90deg, rgba(3,10,20,.96) 0%, rgba(3,10,20,.84) 30%, rgba(3,10,20,.42) 53%, rgba(3,10,20,.08) 78%),
+    linear-gradient(0deg, rgba(3,10,20,.56) 0%, transparent 45%),
+    var(--hero-img) 68% 30% / cover;
+  animation:tsf-hero-breathe 15s ease-in-out infinite alternate;
+  transform-origin:68% 30%;
+  will-change:transform;
+}
 @keyframes tsf-hero-breathe{from{transform:scale(1)}to{transform:scale(1.035)}}
-.hero__rings{position:absolute;z-index:-1;right:7vw;top:50%;translate:0 -50%;width:min(48vw,640px);aspect-ratio:1;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle,transparent 57.6%,rgba(255,255,255,.055) 58%,transparent 60%),
-             radial-gradient(circle,transparent 43.6%,rgba(255,255,255,.05) 44%,transparent 46%),
-             radial-gradient(circle,transparent 29.6%,rgba(255,255,255,.045) 30%,transparent 32%)}
+/* Hauteur : remplit l'espace sous la nav + le bandeau, sans zone vide excessive */
+.hero,.hero .hero-inner{min-height:clamp(600px, calc(100dvh - 158px), 860px)}
+/* Contenu franchement à gauche (aligné sur la marge de la navigation), centré verticalement */
+.hero .hero-inner{justify-content:center;align-items:flex-start;padding-top:clamp(40px,8vh,96px);padding-bottom:clamp(48px,9vh,104px)}
+/* Cercles décoratifs : moitié droite, derrière le joueur, très discrets, ne traversent pas le titre */
+.hero__rings{position:absolute;z-index:-1;right:3vw;top:50%;translate:0 -50%;width:min(52vw,760px);aspect-ratio:1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,transparent 57.6%,rgba(255,255,255,.05) 58%,transparent 60%),
+             radial-gradient(circle,transparent 43.6%,rgba(255,255,255,.045) 44%,transparent 46%),
+             radial-gradient(circle,transparent 29.6%,rgba(255,255,255,.04) 30%,transparent 32%)}
+/* Catégorie : « Ligue 1 » rouge · genre blanc, capitales, sans grand trait décoratif */
+.hero .eyebrow{gap:0;font-size:12px;font-weight:700;letter-spacing:.16em}
+.hero .eyebrow::before{display:none}
+.hero .eyebrow .hero-cat-comp{color:var(--red);font-weight:800}
+.hero .eyebrow .hero-cat-sep{margin:0 9px;color:rgba(255,255,255,.5)}
+.hero .eyebrow .hero-cat-genre{color:#fff;font-weight:700}
+/* Titre : puissant, blanc, 2 lignes sur grand écran, largeur maîtrisée */
+.hero h1{max-width:min(54vw,860px);margin:24px 0 0;font-size:clamp(64px,5.7vw,104px);line-height:.9;letter-spacing:-.04em;text-wrap:balance}
+/* Résumé : sans-serif, régulier, aéré, largeur limitée */
+.hero .hero-copy{max-width:590px;margin:24px 0 0;font-family:Inter,system-ui,sans-serif;font-weight:400;font-size:clamp(17px,1.25vw,21px);line-height:1.45;color:rgba(255,255,255,.82)}
+/* Boutons : principal rouge + flèche, secondaire contour clair — mêmes destinations */
+.hero .cta-row{margin-top:34px;gap:14px}
+.hero .btn{min-height:62px;padding:0 26px;font-size:12px}
+.hero .btn.primary{background:var(--red);color:#fff;border-color:var(--red)}
+.hero .btn.primary::after{content:"→";margin-left:12px;font-size:15px;line-height:1}
+.hero .btn.primary:hover{background:#d92f3a;border-color:#d92f3a;color:#fff;transform:translateY(-2px)}
+.hero .btn:not(.primary){background:transparent;border-color:rgba(255,255,255,.42);color:#fff}
+.hero .btn:not(.primary):hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.7);color:#fff;transform:translateY(-2px)}
+/* Métadonnées masquées dans le héros uniquement (données conservées partout ailleurs) */
+.hero .hero-meta{display:none}
+/* Apparition en séquence (surtitre, titre, chapô, boutons) */
 .js .hero-anim>*{opacity:0;transform:translateY(14px);animation:tsf-rise .5s var(--tsf-ease) forwards}
 .js .hero-anim>.eyebrow{animation-delay:.05s}
 .js .hero-anim>h1{animation-delay:.13s;transform:translateY(18px)}
 .js .hero-anim>.hero-copy{animation-delay:.22s}
 .js .hero-anim>.cta-row{animation-delay:.30s}
-.js .hero-anim>.hero-meta{animation-delay:.36s}
 @keyframes tsf-rise{to{opacity:1;transform:none}}
+/* Responsive héros */
+@media(max-width:900px){
+  .hero h1{max-width:none;font-size:clamp(46px,8.2vw,74px)}
+  .hero .hero-copy{max-width:560px}
+  .hero__rings{opacity:.55;right:-6vw}
+}
+@media(max-width:600px){
+  .hero .cta-row{flex-direction:column;align-items:stretch}
+  .hero .btn{width:100%}
+}
 
 /* ---- Cartes « Derniers articles » (reference-02) ---- */
 .story{transition:transform .38s var(--tsf-ease),box-shadow .38s var(--tsf-ease)}
@@ -1128,6 +1172,24 @@
   var SB='https://yubndvqmglttlntkugzm.supabase.co', KEY='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
   function sb(p){ return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}); }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  /* ---------- Héros : catégorie « Ligue 1 » rouge · genre blanc (mise en forme d'affichage, données inchangées) ---------- */
+  var heroKicker=document.getElementById('hero-kicker');
+  if(heroKicker){
+    var fmtKicker=function(){
+      if(heroKicker.querySelector('.hero-cat-comp')) return;
+      var raw=(heroKicker.textContent||'').trim();
+      if(!raw) return;
+      var parts=raw.split('·');
+      var comp=parts.shift().trim();
+      var rest=parts.join('·').trim();
+      var html='<span class="hero-cat-comp">'+esc(comp)+'</span>';
+      if(rest) html+='<span class="hero-cat-sep" aria-hidden="true">·</span><span class="hero-cat-genre">'+esc(rest)+'</span>';
+      heroKicker.innerHTML=html;
+    };
+    fmtKicker();
+    if('MutationObserver' in window){ new MutationObserver(function(){ if(!heroKicker.querySelector('.hero-cat-comp')) fmtKicker(); }).observe(heroKicker,{childList:true,characterData:true,subtree:true}); }
+  }
 
   /* ---------- Progression de lecture + navigation sticky (une seule boucle rAF) ---------- */
   var pv=document.querySelector('.reading-progress__value');
