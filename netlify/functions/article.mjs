@@ -92,15 +92,20 @@ function safeInline(htmlStr){
   // le texte dans des <div>/<p> imbriqués (+ commentaires <!--StartFragment-->).
   // Historiquement ces balises n'étaient pas dans la liste blanche : elles étaient
   // échappées en TEXTE LITTÉRAL, ce qui affichait « <div><div>… » à l'écran.
-  // On les « déballe » désormais. Point clé : on distingue les sauts PARASITES
-  // (générés par des <div> imbriqués au collage) des <br><br> saisis VOLONTAIREMENT
-  // par l'auteur (les écarts entre paragraphes) — seuls les premiers sont fusionnés.
-  s = s.replace(/<!--[\s\S]*?-->/g, '');                 // commentaires de collage -> supprimés
-  s = s.replace(/<\s*(?:div|p)\b[^>]*>/gi, '');           // ouvertures  <div ...> -> rien
-  s = s.replace(/<\s*\/\s*(?:div|p)\s*>/gi, '\n');         // fermetures  </div>    -> saut placeholder \n
-  s = s.replace(/[ \t]*\n(?:[ \t]*\n)+[ \t]*/g, '\n');     // \n multiples (imbrication) -> 1 seul
-  s = s.replace(/^\s*\n+/, '').replace(/\n+\s*$/, '');     // \n en tête / queue -> supprimés
-  s = s.replace(/\n/g, '<br>');                            // placeholder -> <br>
+  // On les « déballe » désormais. POINT CLÉ (correctif : rendu public = aperçu régie) :
+  // les sauts de ligne LITTÉRAUX (\n) présents dans le texte enregistré ne sont PAS des retours
+  // voulus. Dans l'aperçu de la régie (iframe rendu « <p> + texte » avec le MÊME CSS), le
+  // navigateur affiche ces \n comme un simple ESPACE. On reproduit exactement ce comportement :
+  // un bloc paragraphe reste UN paragraphe fluide, jamais fragmenté en <br>/paragraphes. Seules
+  // les vraies séparations (blocs éditoriaux distincts, ou fermeture d'un <div>/<p> réellement
+  // collé) marquent une rupture. Les <br> saisis volontairement par l'auteur sont préservés.
+  s = s.replace(/<!--[\s\S]*?-->/g, '');                  // commentaires de collage -> supprimés
+  s = s.replace(/\r\n?|\n/g, ' ');                         // sauts de ligne LITTÉRAUX -> espace (comme l'aperçu)
+  s = s.replace(/<\s*(?:div|p)\b[^>]*>/gi, '');            // ouvertures  <div ...>    -> rien
+  s = s.replace(/<\s*\/\s*(?:div|p)\s*>/gi, '\x01');        // fermetures  </div>/</p>  -> placeholder de rupture
+  s = s.replace(/(?:[ \t]*\x01[ \t]*)+/g, '\x01');          // ruptures multiples (imbrication) -> 1 seule
+  s = s.replace(/^[\s\x01]+/, '').replace(/[\s\x01]+$/, ''); // rupture/espaces en tête / queue -> supprimés
+  s = s.replace(/\x01/g, '<br>');                           // placeholder -> <br> (rupture réelle collée)
   s = s.replace(/<\/?([a-zA-Z0-9]+)([^>]*)>/g, (m, tag, attrs) => {
     const t = tag.toLowerCase();
     if(!allowed.has(t)) return esc(m);
