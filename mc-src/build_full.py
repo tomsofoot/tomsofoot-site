@@ -29,6 +29,10 @@ if os.path.exists("/tmp/natsport.json"):
     _natref=json.load(open("/tmp/natsport.json",encoding="utf-8"))
 elif os.path.exists("/tmp/nationalites.json"):
     _natref=json.load(open("/tmp/nationalites.json",encoding="utf-8"))
+# Nationalités sportives GARDÉES dans le jeu (LISTE BLANCHE) : SEULS les joueurs de ces
+# nationalités restent dans le pool à deviner (Mode Carrière) ; tous les autres sont retirés.
+# Pour ajouter/retirer une nationalité, modifier cet ensemble (chaînes EXACTES de natsport.json).
+_NAT_KEPT={"France","Angleterre","Espagne","Brésil","Argentine","Allemagne","Portugal","Croatie"}
 # Joueurs sans nationalité sportive -> à retirer de la base
 _natremoved=set()
 if os.path.exists("/tmp/natsport_removed.json"):
@@ -62,6 +66,8 @@ for p in careers:
     car=[[c[0],c[1]] for c in p.get("career",[]) if c]
     if not car: continue
     _nat=_natref.get(p.get("id")) or p.get("nat","")
+    if _nat not in _NAT_KEPT:  # hors liste blanche -> joueur retiré du pool à deviner
+        continue
     byLevel[lvl].append({"name":p["name"],"answer":p.get("answer",""),"nat":_nat,"pos":p.get("pos",""),"career":car,"id":p.get("id","")})
 print("Retirés (sans nationalité sportive) :",_nb_removed_nonat)
 
