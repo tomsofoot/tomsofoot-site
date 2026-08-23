@@ -261,7 +261,7 @@
       var safety=setTimeout(showFallback, 3500);
       // SOURCE UNIQUE : article publié le plus récent destiné à la une (featured sinon plus récent, date effective).
       // UNE seule requête (article + compétition + genre via embed). Jamais de réponse de cache obsolète.
-      var url=SB+'/rest/v1/articles?select=slug,title,deck,hero_image,hero_alt,reading_time,published_at,created_at,id,featured,comp:competitions(label_fr),genre:editorial_genres(label_fr)&status=eq.published&order=published_at.desc.nullslast,created_at.desc&limit=30&t='+Date.now();
+      var url=SB+'/rest/v1/articles?select=slug,title,deck,hero_image,hero_alt,reading_time,published_at,created_at,id,featured,comp:competitions(label_fr),genre:editorial_genres(label_fr)&status=eq.published&order=published_at.desc.nullslast,created_at.desc&limit=30';
       fetch(url,{cache:'no-store',headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}})
         .then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; })
         .then(function(list){
