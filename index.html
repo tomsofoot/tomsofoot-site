@@ -16,7 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Barlow+Semi+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/tomsofoot-game-modal.css">
   <style>
-    :root{--hero-img:url("images/messi-atlanta.jpg");--ink:#07101f;--navy:#091a33;--blue:#1167ff;--red:#ef3340;--paper:#f3f0e9;--white:#fff;--mist:#d8e0eb;--gold:#cbb583;--max:1440px;--pad:clamp(20px,4vw,72px)}
+    :root{--hero-img:none;--ink:#07101f;--navy:#091a33;--blue:#1167ff;--red:#ef3340;--paper:#f3f0e9;--white:#fff;--mist:#d8e0eb;--gold:#cbb583;--max:1440px;--pad:clamp(20px,4vw,72px)}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Arial,sans-serif}a{color:inherit;text-decoration:none}button{font:inherit}img{max-width:100%}
     :focus-visible{outline:2px solid var(--blue);outline-offset:3px}
     .announcement{min-height:32px;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--red);color:white;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:6px 16px;text-align:center}
@@ -121,7 +121,10 @@
 .hero .btn:not(.primary):hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.7);color:#fff;transform:translateY(-2px)}
 /* Métadonnées masquées dans le héros uniquement (données conservées partout ailleurs) */
 .hero .hero-meta{display:none}
-/* Apparition en séquence (surtitre, titre, chapô, boutons) */
+/* Chargement du héros : contenu masqué (fond neutre) tant que l'article à la une n'est pas prêt.
+   Évite tout flash d'un ancien article / d'un héros incomplet avant l'injection Supabase. */
+.js .hero-inner.hero-hold{opacity:0}
+/* Apparition en séquence (surtitre, titre, chapô, boutons) — démarre uniquement au reveal (.hero-anim ajouté par JS) */
 .js .hero-anim>*{opacity:0;transform:translateY(14px);animation:tsf-rise .5s var(--tsf-ease) forwards}
 .js .hero-anim>.eyebrow{animation-delay:.05s}
 .js .hero-anim>h1{animation-delay:.13s;transform:translateY(18px)}
@@ -232,7 +235,7 @@
     <aside class="now-rail" aria-label="TomsoFoot maintenant" data-now-rail hidden><strong class="now-rail__title"><span class="now-dot" aria-hidden="true"></span>TomsoFoot maintenant</strong><div class="now-rail__viewport"></div></aside>
     <section class="hero" id="hero-une">
       <div class="hero__rings" aria-hidden="true"></div>
-      <div class="hero-inner hero-anim">
+      <div class="hero-inner hero-hold" id="hero-inner">
         <div class="eyebrow" id="hero-kicker">À la une</div>
         <h1 id="hero-title">Le football, raconté autrement.</h1>
         <p class="hero-copy" id="hero-deck">Analyses, récits et grands entretiens — le meilleur du football, sur TomsoFoot.</p>
@@ -246,29 +249,38 @@
     (function(){
       var SB='https://yubndvqmglttlntkugzm.supabase.co', KEY='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
       var hero=document.getElementById('hero-une'); if(!hero) return;
-      function sb(p){ return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}); }
-      var SEL='select=slug,title,deck,hero_image,hero_alt,reading_time,published_at,created_at,id,competition_id,genre_id&status=eq.published';
-      function effH(a){ return new Date(a.published_at||a.created_at||0).getTime(); }
-      function byEffH(x,y){ var d=effH(y)-effH(x); if(d) return d; var c=new Date(y.created_at||0)-new Date(x.created_at||0); if(c) return c; return String(y.id||'').localeCompare(String(x.id||'')); }
-      sb('articles?'+SEL+'&featured=is.true&order=published_at.desc.nullslast,created_at.desc&limit=1').then(function(f){
-        return (f&&f.length)?f:sb('articles?'+SEL+'&order=published_at.desc.nullslast,created_at.desc&limit=30').then(function(list){ return (list||[]).slice().sort(byEffH).slice(0,1); });
-      }).then(function(arr){
-        if(!arr||!arr.length) return;                    // aucun article -> on garde le fallback statique
-        var a=arr[0];
-        return Promise.all([sb('competitions?select=id,label_fr'), sb('editorial_genres?select=id,label_fr')]).then(function(res){
-          var comp={},genre={};
-          (res[0]||[]).forEach(function(c){comp[c.id]=c.label_fr;});
-          (res[1]||[]).forEach(function(g){genre[g.id]=g.label_fr;});
-          var cat=[comp[a.competition_id],genre[a.genre_id]].filter(Boolean).join(' · ')||'À la une';
-          var meta=''; var eff=a.published_at||a.created_at;
-          try{ if(eff) meta=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Paris'}).format(new Date(eff)); }catch(e){}
+      var inner=document.getElementById('hero-inner')||hero.querySelector('.hero-inner');
+      // Révélation ATOMIQUE : le contenu reste masqué (fond neutre) tant que les données + l'image ne sont pas prêtes.
+      // L'animation d'apparition ne démarre qu'au reveal (ajout de .hero-anim), jamais avant.
+      function reveal(){ if(!inner) return; inner.classList.remove('hero-hold'); inner.classList.add('hero-anim'); }
+      function set(id,txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+      var revealed=false;
+      function showFallback(){ if(revealed) return; revealed=true; reveal(); }  // aucun ancien article : fond neutre + contenu générique statique
+      // Filet de sécurité : si Supabase ne répond pas, on ne laisse pas le héros masqué indéfiniment.
+      var safety=setTimeout(showFallback, 3500);
+      // SOURCE UNIQUE : article publié le plus récent destiné à la une (featured sinon plus récent, date effective).
+      // UNE seule requête (article + compétition + genre via embed). Jamais de réponse de cache obsolète.
+      var url=SB+'/rest/v1/articles?select=slug,title,deck,hero_image,hero_alt,reading_time,published_at,created_at,id,featured,comp:competitions(label_fr),genre:editorial_genres(label_fr)&status=eq.published&order=published_at.desc.nullslast,created_at.desc&limit=30&t='+Date.now();
+      fetch(url,{cache:'no-store',headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}})
+        .then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; })
+        .then(function(list){
+          if(revealed) return;
+          list=Array.isArray(list)?list:[];
+          if(!list.length){ clearTimeout(safety); showFallback(); return; }
+          function eff(a){ return new Date(a.published_at||a.created_at||0).getTime(); }
+          list.sort(function(x,y){ var d=eff(y)-eff(x); if(d) return d; var c=new Date(y.created_at||0)-new Date(x.created_at||0); if(c) return c; return String(y.id||'').localeCompare(String(x.id||'')); });
+          var a=list.filter(function(x){return x.featured;})[0] || list[0];   // priorité au featured, sinon le plus récent (effective)
+          var cat=[a.comp&&a.comp.label_fr, a.genre&&a.genre.label_fr].filter(Boolean).join(' · ')||'À la une';
+          var meta=''; var dd=a.published_at||a.created_at;
+          try{ if(dd) meta=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Paris'}).format(new Date(dd)); }catch(e){}
           if(a.reading_time) meta+=(meta?' · ':'')+a.reading_time+' min de lecture';
-          function set(id,txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+          // On prépare TOUT le contenu (encore masqué), puis reveal en une seule opération APRÈS préchargement de l'image.
           set('hero-kicker',cat); set('hero-title',a.title||''); set('hero-deck',a.deck||''); set('hero-meta',meta);
           var cta=document.getElementById('hero-cta'); if(cta){ cta.textContent='Lire l\'article'; cta.setAttribute('href','/articles/'+a.slug); }
-          if(a.hero_image) hero.style.setProperty('--hero-img','url("'+a.hero_image+'")');  // prioritaire sur le CMS
+          function done(withImg){ if(revealed) return; revealed=true; clearTimeout(safety); if(withImg&&a.hero_image) hero.style.setProperty('--hero-img','url("'+a.hero_image+'")'); reveal(); }
+          if(a.hero_image){ var im=new Image(); im.onload=function(){ done(true); }; im.onerror=function(){ done(false); }; im.src=a.hero_image; }  // jamais l'image d'un autre article
+          else { done(false); }
         });
-      });
     })();
     </script>
 
@@ -872,9 +884,8 @@
       if (typeof v === 'string' && v.trim()) el.setAttribute('src', v);
     });
 
-    if (data.une && data.une.image) {
-      document.documentElement.style.setProperty('--hero-img', 'url("' + data.une.image + '")');
-    }
+    // NOTE : le héros a désormais une SOURCE UNIQUE (article à la une Supabase, script dédié plus haut).
+    // contenu.json ne pilote plus --hero-img pour ne jamais afficher temporairement un ancien article.
 
     const bandeau = document.getElementById('cms-bandeau');
     if (bandeau) {
