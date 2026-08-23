@@ -228,7 +228,7 @@ function page(a, blocks, labels, isPreview, hc){
   +     (a.deck?'<p class="a-deck"'+colorStyle(hc.deck)+'>'+esc(a.deck)+'</p>':'')
   +     '<div class="a-byline">'
   +       (a.author?'<span class="a-author">Par '+esc(a.author)+'</span>':'<span class="a-author">La rédaction</span>')
-  +       (a.published_at?'<span class="a-dot">·</span><time datetime="'+escAttr(a.published_at)+'">'+esc(fmtDate(a.published_at))+'</time>':'')
+  +       ((a.published_at||a.created_at)?'<span class="a-dot">·</span><time datetime="'+escAttr(a.published_at||a.created_at)+'">'+esc(fmtDate(a.published_at||a.created_at))+'</time>':'')
   +       (a.reading_time?'<span class="a-dot">·</span><span>'+a.reading_time+' min de lecture</span>':'')
   +     '</div>'
   +     '<div class="a-actions">'

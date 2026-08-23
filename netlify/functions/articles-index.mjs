@@ -21,7 +21,7 @@ function card(a, labelMap, feat){
     + (kick?'<span class="x-card__k">'+esc(kick)+'</span>':'')
     + '<span class="x-card__t">'+esc(a.title)+'</span>'
     + (a.deck?'<span class="x-card__d">'+esc(a.deck)+'</span>':'')
-    + '<span class="x-card__m">'+(a.published_at?esc(fmtDate(a.published_at)):'')+(a.reading_time?' · '+a.reading_time+' min':'')+'</span>'
+    + '<span class="x-card__m">'+(function(){var eff=a.published_at||a.created_at;return eff?esc(fmtDate(eff)):'';})()+(a.reading_time?' · '+a.reading_time+' min':'')+'</span>'
     + '</span></a>';
 }
 
@@ -108,9 +108,13 @@ export default async (req) => {
     .map(id => ({ id, label_fr: labelMap.comp[id] || id }))
     .sort((a,b) => a.label_fr.localeCompare(b.label_fr, 'fr'));
 
-  const all = (await sb('articles_public?select=slug,title,deck,hero_image,hero_alt,published_at,reading_time,featured,competition_id,genre_id,zone_id'+filter+'&order=featured.desc,published_at.desc.nullslast&limit=60')) || [];
-  let feature = all.find(a=>a.featured) || null;
-  const list = all.filter(a=>a!==feature);
+  // Classement chronologique fiable : date effective = published_at || created_at, puis created_at, puis id.
+  // Lecture sur la table (created_at disponible) ; RLS limite aux publiés/archivés visibles.
+  const raw = (await sb('articles?select=slug,title,deck,hero_image,hero_alt,published_at,created_at,id,reading_time,featured,competition_id,genre_id,zone_id&status=in.(published,archived)'+filter+'&order=published_at.desc.nullslast,created_at.desc&limit=60')) || [];
+  const effT = a => new Date(a.published_at||a.created_at||0).getTime();
+  raw.sort((x,y)=>{ const d=effT(y)-effT(x); if(d) return d; const c=new Date(y.created_at||0)-new Date(x.created_at||0); if(c) return c; return String(y.id||'').localeCompare(String(x.id||'')); });
+  const feature = raw.find(a=>a.featured) || null;
+  const list = raw.filter(a=>a!==feature);
 
   return html(200, page(feature, list, labelMap, { comps: compChips }, comp||''));
 };
