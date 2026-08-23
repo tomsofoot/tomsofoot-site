@@ -250,8 +250,10 @@ body:not(.media-open) .rb-media{display:none}
     <span class="rb-status"><span class="rb-dot" id="saveDot"></span><span id="saveTxt">Brouillon enregistré</span></span>
     <span class="rb-spacer"></span>
     <div class="rb-actions">
-      <input class="rb-i" id="loadId" style="width:190px;min-height:38px" placeholder="Charger : TSF-ART-… ou slug" spellcheck="false" autocapitalize="off" autocomplete="off">
+      <input class="rb-i" id="loadId" style="width:170px;min-height:38px" placeholder="Charger : TSF-ART-… ou slug" spellcheck="false" autocapitalize="off" autocomplete="off">
       <button class="btn" id="btnLoad">Charger</button>
+      <button class="btn" id="btnList" title="Voir la liste des articles existants et en modifier un">📄 Articles</button>
+      <button class="btn" id="btnPubDate" title="Modifier volontairement la date de publication de l'article chargé">🗓 Date</button>
       <button class="btn" id="btnNew" title="Nouvel article vierge">Nouveau</button>
       <button class="btn btn--spell" id="btnCheck" title="Vérifier l'orthographe, la grammaire, la ponctuation et les répétitions">✓ Corriger l'orthographe</button>
       <button class="btn" id="btnMediaTop" title="Médias de l'article — dépôt et gestion des images">🖼 Médias</button>
@@ -1014,6 +1016,9 @@ autosave(true); update();
   const SB_ANON='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
   const sb = window.supabase && window.supabase.createClient(SB_URL, SB_ANON, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   let token='', admin=false, currentUuid=ARTICLE_UUID, currentEditorialId=ARTICLE_ID, currentStatus='draft', scheduleWhen=null;
+  // Date de publication d'origine de l'article chargé : suivie séparément pour ne JAMAIS l'écraser
+  // lors d'un simple enregistrement/correction (elle n'est modifiée que par une action explicite).
+  let currentPublishedAt=null, currentScheduledAt=null, currentFeatured=false;
   const gid=id=>document.getElementById(id);
 
   // ---------- taxonomie label<->id (identiques aux seeds de 0005) ----------
@@ -1043,6 +1048,9 @@ autosave(true); update();
       journal_slug: h.journal||null, dossier_id: h._dossier_id||null,
       status: currentStatus||'draft'
     };
+    // Renvoie TOUJOURS la date d'origine : une correction ne doit jamais remettre published_at à NULL.
+    a.published_at = currentPublishedAt || null;
+    if(currentScheduledAt) a.scheduled_at = currentScheduledAt;
     if(scheduleWhen){ a.status='scheduled'; a.scheduled_at=scheduleWhen; a.published_at=scheduleWhen; }
     return a;
   }
@@ -1071,7 +1079,7 @@ autosave(true); update();
         const {data,error}=await sb.rpc('save_article',{p_article:buildArticle(), p_blocks:buildBlocks()});
         if(error) throw error;
         const row=Array.isArray(data)?data[0]:data;
-        if(row){ currentUuid=row.id; currentEditorialId=row.editorial_id||currentEditorialId; currentStatus=row.status||currentStatus; gid('edId').textContent=currentEditorialId; setPill(); }
+        if(row){ currentUuid=row.id; currentEditorialId=row.editorial_id||currentEditorialId; currentStatus=row.status||currentStatus; currentPublishedAt=row.published_at||null; currentScheduledAt=row.scheduled_at||null; currentFeatured=!!row.featured; gid('edId').textContent=currentEditorialId; setPill(); }
         if(window.__afterSave) try{ window.__afterSave(currentUuid); }catch(e){}
         gid('saveDot').classList.remove('saving'); const t=new Date(); gid('saveTxt').textContent='Enregistré · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
         resolve(row);
@@ -1086,9 +1094,15 @@ autosave(true); update();
     const row=await realSave(true);
     if(!currentUuid){ return; }
     try{
-      const {data,error}=await sb.rpc('publish_article',{p_id:currentUuid, p_featured:!!featured, p_when:new Date().toISOString()});
+      // p_when: null -> la RPC conserve la date d'origine si l'article est déjà daté
+      // (une re-publication après correction ne remonte pas l'article), et ne fixe now()
+      // qu'à la toute première publication.
+      const {data,error}=await sb.rpc('publish_article',{p_id:currentUuid, p_featured:!!featured, p_when:null});
       if(error) throw error;
-      currentStatus='published'; scheduleWhen=null; setPill();
+      const pub=Array.isArray(data)?data[0]:data;
+      currentStatus='published'; scheduleWhen=null;
+      if(pub){ currentPublishedAt=pub.published_at||currentPublishedAt; currentFeatured=!!pub.featured; }
+      setPill();
       const slug=buildArticle().slug;
       toast('Publié ✓ — en ligne sur /articles/'+slug+(featured?' · à la une':''),'ok');
     }catch(e){ toast('Échec publication : '+(e.message||e),'err'); }
@@ -1180,6 +1194,7 @@ autosave(true); update();
       const {data:blocks}=await sb.from('article_blocks').select('type,content,position').eq('article_id',a.id).order('position',{ascending:true});
       // reconstruire l'état
       currentUuid=a.id; currentEditorialId=a.editorial_id||key; currentStatus=a.status||'draft'; scheduleWhen=null;
+      currentPublishedAt=a.published_at||null; currentScheduledAt=a.scheduled_at||null; currentFeatured=!!a.featured;   // dates d'origine rechargées
       gid('edId').textContent=currentEditorialId; setPill();
       const h=state.header;
       const map={title:a.title,deck:a.deck,author:a.author,hero:a.hero_image,hero_alt:a.hero_alt,hero_caption:a.hero_caption,hero_credit:a.hero_credit,reading:a.reading_time,seo:a.seo_description,journal:a.journal_slug,slug:a.slug,kicker:''};
@@ -1206,6 +1221,76 @@ autosave(true); update();
   gid('btnLoad').onclick=()=>loadArticle(gid('loadId').value);
   gid('loadId').addEventListener('keydown',e=>{ if(e.key==='Enter')loadArticle(gid('loadId').value); });
   gid('btnNew').onclick=()=>{ if(!confirm('Créer un nouvel article vierge ? (le brouillon en cours doit déjà être enregistré)'))return; location.reload(); };
+
+  // ---------- Liste des articles existants + action « Modifier » (plus besoin de connaître l'UUID) ----------
+  function fmtParis(iso){ if(!iso) return '—'; try{ return new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Paris'}).format(new Date(iso)); }catch(e){ return '—'; } }
+  function ensureListPanel(){
+    let ov=gid('artListOv'); if(ov) return ov;
+    ov=document.createElement('div'); ov.id='artListOv';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(6,12,26,.55);z-index:9999;display:none;align-items:flex-start;justify-content:center;padding:6vh 16px';
+    ov.innerHTML='<div style="background:#fff;max-width:760px;width:100%;max-height:82vh;overflow:auto;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35)">'
+      +'<div style="position:sticky;top:0;background:#fff;display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid #e6ecf5">'
+      +'<b style="font-size:16px;flex:1">Articles existants</b>'
+      +'<input id="artListQ" placeholder="Filtrer par titre…" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid #d7deea;border-radius:8px">'
+      +'<button id="artListClose" style="border:0;background:#0b1a33;color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer">Fermer</button></div>'
+      +'<div id="artListBody" style="padding:8px 10px 14px"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{ if(e.target===ov) ov.style.display='none'; });
+    gid('artListClose').onclick=()=>ov.style.display='none';
+    gid('artListQ').addEventListener('input',()=>renderArtList(gid('artListQ').value));
+    return ov;
+  }
+  let _artCache=[];
+  function renderArtList(filter){
+    const body=gid('artListBody'); if(!body) return;
+    const f=(filter||'').toLowerCase().trim();
+    const rows=_artCache.filter(a=>!f || (a.title||'').toLowerCase().includes(f) || (a.slug||'').toLowerCase().includes(f));
+    if(!rows.length){ body.innerHTML='<p style="color:#5a6b83;padding:14px">Aucun article.</p>'; return; }
+    const pill={draft:'#8a94a6',scheduled:'#b8860b',published:'#1a9e57',unpublished:'#b23',archived:'#667'};
+    body.innerHTML=rows.map(a=>{
+      const eff=a.published_at||a.created_at;
+      const key=a.editorial_id||a.slug;
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid #eef2f8">'
+        +'<span style="width:9px;height:9px;border-radius:50%;background:'+(pill[a.status]||'#999')+';flex:0 0 auto"></span>'
+        +'<span style="flex:1;min-width:0"><b style="display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.title||'(sans titre)')+'</b>'
+        +'<span style="color:#5a6b83;font-size:12px">'+statusLabel(a.status)+' · '+fmtParis(eff)+' · '+esc(a.competition_id||'—')+'</span></span>'
+        +'<button data-edit="'+esc(key)+'" style="border:1px solid #ff334d;color:#ff334d;background:#fff;border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer">Modifier</button></div>';
+    }).join('');
+    body.querySelectorAll('[data-edit]').forEach(b=>{ b.onclick=()=>{ gid('artListOv').style.display='none'; loadArticle(b.getAttribute('data-edit')); }; });
+  }
+  async function openArticleList(){
+    const ov=ensureListPanel(); ov.style.display='flex';
+    const body=gid('artListBody'); body.innerHTML='<p style="color:#5a6b83;padding:14px">Chargement…</p>';
+    if(!sb){ body.innerHTML='<p style="color:#b23;padding:14px">Service indisponible.</p>'; return; }
+    if(!token){ body.innerHTML='<p style="color:#b23;padding:14px">Connecte-toi (admin) pour voir la liste complète.</p>'; return; }
+    try{
+      const {data,error}=await sb.from('articles')
+        .select('editorial_id,slug,title,status,published_at,created_at,competition_id')
+        .order('published_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false}).limit(200);
+      if(error) throw error;
+      _artCache=data||[]; renderArtList('');
+    }catch(e){ body.innerHTML='<p style="color:#b23;padding:14px">Échec : '+esc(e.message||e)+'</p>'; }
+  }
+  gid('btnList').onclick=openArticleList;
+
+  // ---------- Changement VOLONTAIRE et EXPLICITE de la date de publication ----------
+  gid('btnPubDate').onclick=async ()=>{
+    if(!token){ toast('Connexion admin requise.','warn'); return; }
+    if(!currentUuid || currentStatus!=='published'){ toast('Charge d\'abord un article déjà publié.','warn'); return; }
+    const cur=currentPublishedAt?new Date(currentPublishedAt):new Date();
+    const pad=n=>String(n).padStart(2,'0');
+    const def=cur.getFullYear()+'-'+pad(cur.getMonth()+1)+'-'+pad(cur.getDate())+'T'+pad(cur.getHours())+':'+pad(cur.getMinutes());
+    const v=prompt('Nouvelle date de publication (AAAA-MM-JJTHH:MM, heure locale). Action volontaire : elle changera le classement de l\'article.', def);
+    if(!v) return;
+    const d=new Date(v); if(isNaN(d)){ toast('Date invalide.','err'); return; }
+    try{
+      const {data,error}=await sb.rpc('publish_article',{p_id:currentUuid, p_featured:currentFeatured, p_when:d.toISOString()});
+      if(error) throw error;
+      const pub=Array.isArray(data)?data[0]:data;
+      if(pub){ currentPublishedAt=pub.published_at||d.toISOString(); }
+      toast('Date de publication mise à jour : '+fmtParis(currentPublishedAt),'ok');
+    }catch(e){ toast('Échec : '+(e.message||e),'err'); }
+  };
 
   // ---------- dossiers (remplir le sélecteur avec de vrais ids) ----------
   (async function(){ if(!sb)return; try{ const {data}=await sb.from('dossiers').select('id,title,slug').order('created_at',{ascending:false}).limit(50);
