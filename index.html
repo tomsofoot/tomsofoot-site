@@ -599,19 +599,20 @@
     </script>
 
     <section class="section" id="videos">
-      <div class="section-head" data-reveal><div><span class="kicker section-index">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne →</a></div>
+      <div class="section-head" data-reveal><div><span class="kicker section-index">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne &rarr;</a></div>
       <div id="docs-root" class="docs" aria-live="polite"></div>
     </section>
     <style id="docs-css">
-      /* ===== Section « Les documentaires » — reconstruite (données YouTube réelles) ===== */
+      /* ===== Section « Les documentaires » — carrousel complet (donnees YouTube reelles) ===== */
       #videos{--max:2004px}
       #videos .section-index{font-size:clamp(12px,1vw,16px);letter-spacing:.18em}
-      .docs{display:grid;gap:22px}
-      /* Grande carte 01 — DOCUMENTAIRE À LA UNE */
+      .docs{display:grid;gap:26px}
+      /* Grande carte (video selectionnee) */
       .doc-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
-        min-height:420px;border-radius:16px;overflow:hidden;text-decoration:none;color:#fff;
+        min-height:430px;border-radius:16px;overflow:hidden;text-decoration:none;color:#fff;
         background:linear-gradient(180deg,#0a1330,#070f24);border:1px solid rgba(255,255,255,.06);
-        transition:box-shadow .3s,border-color .3s}
+        transition:box-shadow .3s,border-color .3s,opacity .3s ease}
+      .doc-hero.is-swap{opacity:0}
       .doc-hero:hover,.doc-hero:focus-visible{outline:none;border-color:rgba(203,181,131,.45);box-shadow:0 22px 50px rgba(6,12,30,.45)}
       .doc-num{position:absolute;left:clamp(14px,2.2vw,40px);top:clamp(6px,1.6vw,26px);z-index:1;
         font-family:"Archivo Black",Inter,sans-serif;font-size:clamp(120px,15vw,230px);line-height:.8;
@@ -627,6 +628,7 @@
       .doc-meta span{display:inline-flex;align-items:center;gap:7px}
       .doc-meta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;opacity:.85}
       .doc-badge{color:var(--red);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+      .doc-badge[hidden]{display:none}
       .doc-cta{display:flex;align-items:center;gap:16px;margin-top:6px}
       .doc-play{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;
         border:1.5px solid rgba(255,255,255,.55);flex:0 0 auto;transition:background .2s,border-color .2s,transform .2s}
@@ -639,51 +641,66 @@
       .doc-hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
       .doc-hero:hover .doc-hero-media img{transform:scale(1.04)}
       .doc-hero-grad{position:absolute;inset:0;background:linear-gradient(90deg,#070f24 2%,rgba(7,15,36,.55) 32%,rgba(7,15,36,0) 70%)}
-      /* Cartes secondaires 02–04 */
-      .doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-      .doc-card{position:relative;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;text-decoration:none;
-        background:#0b1730;border:1px solid rgba(255,255,255,.06);transition:transform .25s,box-shadow .25s,border-color .25s}
-      .doc-card:hover,.doc-card:focus-visible{outline:none;transform:translateY(-3px);border-color:rgba(203,181,131,.5);box-shadow:0 16px 34px rgba(6,12,30,.4)}
+      /* Rangee carrousel : 3 cartes visibles + fleches */
+      .doc-rail{position:relative}
+      .doc-track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 44px)/3);gap:22px;
+        overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:10px 0 14px}
+      .doc-track::-webkit-scrollbar{display:none}
+      .doc-card{position:relative;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;text-align:left;
+        text-decoration:none;background:#0b1730;border:1px solid rgba(255,255,255,.06);cursor:pointer;
+        scroll-snap-align:start;font:inherit;color:inherit;padding:0;
+        transition:transform .25s,box-shadow .25s,border-color .25s}
+      .doc-card:hover{transform:translateY(-3px);border-color:rgba(203,181,131,.5);box-shadow:0 16px 34px rgba(6,12,30,.4)}
+      .doc-card:focus-visible{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(203,181,131,.5)}
+      .doc-card.is-active{border-color:rgba(203,181,131,.85);box-shadow:0 14px 30px rgba(6,12,30,.4)}
       .doc-card-media{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0c1a30}
       .doc-card-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
       .doc-card:hover .doc-card-media img{transform:scale(1.06)}
       .doc-card-body{position:relative;flex:1;display:flex;flex-direction:column;gap:8px;padding:20px 20px 22px}
       .doc-cnum{position:absolute;right:14px;top:-6px;font-family:"Archivo Black",Inter,sans-serif;font-size:64px;line-height:1;
         color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.12);pointer-events:none}
+      .doc-card.is-active .doc-cnum{-webkit-text-stroke-color:rgba(203,181,131,.55)}
       .doc-card-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:-.01em;
         line-height:1.1;color:#fff;font-size:clamp(15px,1.15vw,18px);margin:0;padding-right:54px}
       .doc-cmeta{display:flex;flex-wrap:wrap;gap:14px;color:#aeb9d0;font-size:12.5px;font-weight:600;margin-top:auto}
       .doc-cmeta span{display:inline-flex;align-items:center;gap:6px}
       .doc-cmeta svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;opacity:.85}
-      .doc-arrow{position:absolute;right:16px;bottom:16px;color:#fff;opacity:.8;transition:transform .25s,opacity .25s}
-      .doc-arrow svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
-      .doc-card:hover .doc-arrow{transform:translateX(4px);opacity:1}
       .doc-card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--red);transform:scaleX(.28);transform-origin:left;transition:transform .3s}
-      .doc-card:hover::after,.doc-card:focus-visible::after{transform:scaleX(1)}
-      /* Indicateur 01 / 04 + barre */
-      .doc-progress{display:flex;align-items:center;gap:18px;margin-top:6px}
+      .doc-card:hover::after,.doc-card:focus-visible::after,.doc-card.is-active::after{transform:scaleX(1)}
+      .doc-tag{position:absolute;left:14px;bottom:14px;z-index:2;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+        color:#fff;background:rgba(239,51,64,.94);padding:5px 9px;border-radius:4px;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s}
+      .doc-card.is-active .doc-tag{opacity:1;transform:none}
+      /* Fleches */
+      .doc-nav-btn{position:absolute;top:34%;transform:translateY(-50%);z-index:5;display:grid;place-items:center;
+        width:48px;height:48px;border-radius:50%;background:var(--white);color:var(--ink);border:1.5px solid rgba(7,16,31,.16);
+        box-shadow:0 10px 24px rgba(7,16,31,.20);cursor:pointer;transition:background .2s,color .2s,border-color .2s,opacity .2s}
+      .doc-nav-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2}
+      .doc-nav-btn:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+      .doc-nav-btn:focus-visible{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(203,181,131,.5)}
+      .doc-nav-btn:disabled{opacity:.3;cursor:default;pointer-events:none;box-shadow:none}
+      .doc-nav-btn.prev{left:-16px}
+      .doc-nav-btn.next{right:-16px}
+      /* Compteur + barre */
+      .doc-progress{display:flex;align-items:center;gap:18px;margin-top:2px}
       .doc-pos{font-family:"Archivo Black",Inter,sans-serif;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
       .doc-bar{position:relative;flex:1;height:2px;background:rgba(7,16,31,.14);border-radius:2px;overflow:hidden}
-      .doc-bar>span{position:absolute;left:0;top:0;bottom:0;background:var(--red);border-radius:2px;transition:width .3s,left .3s}
+      .doc-bar>span{position:absolute;left:0;top:0;bottom:0;background:var(--red);border-radius:2px;transition:width .3s}
       /* ---- Responsive ---- */
       @media(max-width:1000px){
         .doc-hero{grid-template-columns:1fr;min-height:0}
         .doc-hero-media{order:-1;aspect-ratio:16/9}
         .doc-hero-media img{position:absolute}
         .doc-hero-grad{background:linear-gradient(0deg,#070f24 6%,rgba(7,15,36,.35) 45%,rgba(7,15,36,0) 75%)}
-        .doc-grid{grid-template-columns:1fr 1fr}
       }
       @media(max-width:600px){
         .doc-hero-title{font-size:clamp(22px,7vw,30px)}
         .doc-num{font-size:96px;-webkit-text-stroke-width:1.5px}
-        /* Cartes secondaires en carrousel horizontal (scroll-snap), une carte lisible par écran */
-        .doc-grid{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:86%;
-          overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
-          scrollbar-width:none;padding-bottom:4px;margin:0 calc(var(--pad)*-1);padding-left:var(--pad);padding-right:var(--pad)}
-        .doc-grid::-webkit-scrollbar{display:none}
-        .doc-card{scroll-snap-align:start}
+        .doc-track{grid-auto-columns:80%}
         .doc-watch,.doc-play{min-height:44px}
         .doc-play{width:48px;height:48px}
+        .doc-nav-btn{width:44px;height:44px;top:30%}
+        .doc-nav-btn.prev{left:2px}
+        .doc-nav-btn.next{right:2px}
       }
     </style>
     <script>
@@ -694,60 +711,94 @@
       var EYE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
       var CLOCK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
       var PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
-      var ARROW='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-      function metaSpans(v){
-        var h='';
-        if(v.views) h+='<span>'+EYE+esc(v.views)+'</span>';
-        if(v.duration) h+='<span>'+CLOCK+esc(v.duration)+'</span>';
-        return h;
-      }
-      function hero(v){
-        return '<a class="doc-hero" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
-          +'<span class="doc-num" aria-hidden="true">01</span>'
-          +'<div class="doc-hero-body">'
-          +'<span class="doc-eyebrow">Documentaire à la une</span>'
-          +'<h3 class="doc-hero-title">'+esc(v.title)+'</h3>'
-          +'<div class="doc-meta">'+metaSpans(v)+'<span class="doc-badge">Le plus vu</span></div>'
-          +'<div class="doc-cta"><span class="doc-play">'+PLAY+'</span><span class="doc-watch">Regarder le film</span></div>'
-          +'</div>'
-          +'<div class="doc-hero-media">'+(v.thumbnail?'<img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy">':'')+'<span class="doc-hero-grad"></span></div>'
-          +'</a>';
-      }
-      function card(v,label){
-        return '<a class="doc-card" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
-          +'<div class="doc-card-media">'+(v.thumbnail?'<img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy">':'')+'</div>'
-          +'<div class="doc-card-body"><span class="doc-cnum" aria-hidden="true">'+label+'</span>'
-          +'<h4 class="doc-card-title">'+esc(v.title)+'</h4>'
-          +'<div class="doc-cmeta">'+metaSpans(v)+'</div>'
-          +'<span class="doc-arrow">'+ARROW+'</span></div></a>';
-      }
+      var CHEVL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+      var CHEVR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
       function pad2(n){ return (n<10?'0':'')+n; }
+      function metaSpans(v){ var h=''; if(v.views) h+='<span>'+EYE+esc(v.views)+'</span>'; if(v.duration) h+='<span>'+CLOCK+esc(v.duration)+'</span>'; return h; }
       fetch(ENDPOINT,{headers:{accept:'application/json'}})
         .then(function(r){ return r.ok?r.json():null; })
         .then(function(d){
           if(!d||!d.ok||!Array.isArray(d.videos)||!d.videos.length){ root.style.display='none'; return; }
-          var vs=d.videos.slice(0,4);
-          var html=hero(vs[0]);
-          if(vs.length>1){
-            html+='<div class="doc-grid" id="docs-grid">';
-            for(var i=1;i<vs.length;i++) html+=card(vs[i], pad2(i+1));
-            html+='</div>';
+          var vs=d.videos, total=vs.length, state={sel:0,t:0};
+          root.innerHTML=
+            '<a class="doc-hero" id="doc-hero" href="#" target="_blank" rel="noopener">'
+            +'<span class="doc-num" id="doc-hero-num" aria-hidden="true">01</span>'
+            +'<div class="doc-hero-body">'
+            +'<span class="doc-eyebrow">Documentaire a la une</span>'
+            +'<h3 class="doc-hero-title" id="doc-hero-title"></h3>'
+            +'<div class="doc-meta" id="doc-hero-meta"></div>'
+            +'<div class="doc-cta"><span class="doc-play">'+PLAY+'</span><span class="doc-watch">Regarder le film</span></div>'
+            +'</div>'
+            +'<div class="doc-hero-media"><img id="doc-hero-img" src="" alt=""><span class="doc-hero-grad"></span></div>'
+            +'</a>'
+            +'<div class="doc-rail">'
+            +'<button type="button" class="doc-nav-btn prev" id="doc-prev" aria-label="Documentaires precedents" aria-controls="doc-track">'+CHEVL+'</button>'
+            +'<div class="doc-track" id="doc-track" role="group" aria-label="Documentaires de la playlist, classes par nombre de vues"></div>'
+            +'<button type="button" class="doc-nav-btn next" id="doc-next" aria-label="Documentaires suivants" aria-controls="doc-track">'+CHEVR+'</button>'
+            +'</div>'
+            +'<div class="doc-progress"><span class="doc-pos" id="doc-pos" aria-live="polite">01 / '+pad2(total)+'</span><span class="doc-bar"><span id="doc-bar"></span></span></div>';
+          var hero=document.getElementById('doc-hero'), heroNum=document.getElementById('doc-hero-num'),
+              heroTitle=document.getElementById('doc-hero-title'), heroMeta=document.getElementById('doc-hero-meta'),
+              heroImg=document.getElementById('doc-hero-img'), track=document.getElementById('doc-track'),
+              pos=document.getElementById('doc-pos'), bar=document.getElementById('doc-bar'),
+              prev=document.getElementById('doc-prev'), next=document.getElementById('doc-next');
+          var cards=vs.map(function(v,i){
+            var b=document.createElement('button');
+            b.type='button'; b.className='doc-card'; b.setAttribute('data-i',i); b.tabIndex=(i===0?0:-1);
+            b.setAttribute('aria-label','Documentaire n '+pad2(i+1)+' : '+v.title+(v.views?', '+v.views:'')+'. Afficher dans la carte principale.');
+            b.setAttribute('aria-pressed', i===0?'true':'false');
+            b.innerHTML='<div class="doc-card-media">'+(v.thumbnail?'<img src="'+esc(v.thumbnail)+'" alt="" loading="lazy">':'')+'<span class="doc-tag">En lecture</span></div>'
+              +'<div class="doc-card-body"><span class="doc-cnum" aria-hidden="true">'+pad2(i+1)+'</span>'
+              +'<h4 class="doc-card-title">'+esc(v.title)+'</h4>'
+              +'<div class="doc-cmeta">'+metaSpans(v)+'</div></div>';
+            b.addEventListener('click',function(){ select(i,false); });
+            track.appendChild(b);
+            return b;
+          });
+          function fillHero(v,i){
+            heroNum.textContent=pad2(i+1);
+            heroTitle.textContent=v.title||'';
+            heroMeta.innerHTML=metaSpans(v)+'<span class="doc-badge"'+(i===0?'':' hidden')+'>Le plus vu</span>';
+            heroImg.src=v.thumbnail||''; heroImg.alt=v.title||'';
+            hero.setAttribute('href', v.url || ('https://www.youtube.com/watch?v='+v.id));
+            hero.setAttribute('aria-label','Regarder « '+(v.title||'')+' » sur YouTube');
           }
-          var total=vs.length;
-          html+='<div class="doc-progress"><span class="doc-pos" id="docs-pos">01 / '+pad2(total)+'</span>'
-              +'<span class="doc-bar"><span id="docs-bar" style="width:'+(100/total)+'%"></span></span></div>';
-          root.innerHTML=html;
-          // Indicateur réel : suit le carrousel des cartes secondaires (mobile)
-          var grid=document.getElementById('docs-grid'), pos=document.getElementById('docs-pos'), bar=document.getElementById('docs-bar');
-          if(grid&&pos&&bar){
-            grid.addEventListener('scroll',function(){
-              var cards=grid.children, best=0, bestd=Infinity, gl=grid.getBoundingClientRect().left;
-              for(var i=0;i<cards.length;i++){ var d=Math.abs(cards[i].getBoundingClientRect().left-gl); if(d<bestd){bestd=d;best=i;} }
-              var current=best+2; // 01 = hero ; le 1er de la grille = 02
-              pos.textContent=pad2(current)+' / '+pad2(total);
-              bar.style.width=(100/total)+'%'; bar.style.left=((current-1)*100/total)+'%';
-            },{passive:true});
+          function updateProgress(i){ pos.textContent=pad2(i+1)+' / '+pad2(total); bar.style.width=(((i+1)/total)*100)+'%'; }
+          function updateActive(i){ cards.forEach(function(c,ci){ var on=ci===i; c.classList.toggle('is-active',on); c.setAttribute('aria-pressed',on?'true':'false'); }); }
+          function setRoving(i){ cards.forEach(function(c,ci){ c.tabIndex=(ci===i?0:-1); }); }
+          function scrollIntoView(i){
+            var c=cards[i]; if(!c) return;
+            var cl=c.offsetLeft, cw=c.offsetWidth, sl=track.scrollLeft, vw=track.clientWidth;
+            if(cl<sl) track.scrollTo({left:Math.max(0,cl-8),behavior:'smooth'});
+            else if(cl+cw>sl+vw) track.scrollTo({left:cl+cw-vw+8,behavior:'smooth'});
           }
+          function select(i,fromKey){
+            if(i<0||i>=total) return;
+            state.sel=i;
+            hero.classList.add('is-swap');
+            window.clearTimeout(state.t);
+            state.t=window.setTimeout(function(){ fillHero(vs[i],i); hero.classList.remove('is-swap'); },200);
+            updateActive(i); updateProgress(i); setRoving(i); scrollIntoView(i);
+            if(fromKey){ var c=cards[i]; if(c) c.focus(); }
+          }
+          function page(dir){ track.scrollBy({left:dir*Math.round(track.clientWidth*0.92),behavior:'smooth'}); }
+          function updateArrows(){ var max=track.scrollWidth-track.clientWidth-1; prev.disabled=track.scrollLeft<=1; next.disabled=track.scrollLeft>=max; }
+          prev.addEventListener('click',function(){ page(-1); });
+          next.addEventListener('click',function(){ page(1); });
+          track.addEventListener('scroll',updateArrows,{passive:true});
+          window.addEventListener('resize',function(){ updateArrows(); });
+          track.addEventListener('keydown',function(e){
+            var i=cards.indexOf(document.activeElement); if(i<0) return;
+            var n=null;
+            if(e.key==='ArrowRight'||e.key==='ArrowDown') n=Math.min(total-1,i+1);
+            else if(e.key==='ArrowLeft'||e.key==='ArrowUp') n=Math.max(0,i-1);
+            else if(e.key==='Home') n=0;
+            else if(e.key==='End') n=total-1;
+            else return;
+            e.preventDefault(); setRoving(n); cards[n].focus(); scrollIntoView(n);
+          });
+          fillHero(vs[0],0); updateActive(0); updateProgress(0); updateArrows();
+          window.setTimeout(updateArrows,350);
         })
         .catch(function(){ root.style.display='none'; });
     })();
