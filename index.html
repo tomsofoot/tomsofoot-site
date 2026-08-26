@@ -599,24 +599,160 @@
     </script>
 
     <section class="section" id="videos">
-      <div class="section-head"><div><span class="kicker">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne →</a></div>
-      <div class="videos-wrap"><button class="varrow" id="vprev" type="button" aria-label="Documentaires précédents" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button><div class="videos" id="cms-videos"></div><button class="varrow" id="vnext" type="button" aria-label="Documentaires suivants"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div>
+      <div class="section-head" data-reveal><div><span class="kicker section-index">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne →</a></div>
+      <div id="docs-root" class="docs" aria-live="polite"></div>
     </section>
+    <style id="docs-css">
+      /* ===== Section « Les documentaires » — reconstruite (données YouTube réelles) ===== */
+      #videos{--max:2004px}
+      #videos .section-index{font-size:clamp(12px,1vw,16px);letter-spacing:.18em}
+      .docs{display:grid;gap:22px}
+      /* Grande carte 01 — DOCUMENTAIRE À LA UNE */
+      .doc-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
+        min-height:420px;border-radius:16px;overflow:hidden;text-decoration:none;color:#fff;
+        background:linear-gradient(180deg,#0a1330,#070f24);border:1px solid rgba(255,255,255,.06);
+        transition:box-shadow .3s,border-color .3s}
+      .doc-hero:hover,.doc-hero:focus-visible{outline:none;border-color:rgba(203,181,131,.45);box-shadow:0 22px 50px rgba(6,12,30,.45)}
+      .doc-num{position:absolute;left:clamp(14px,2.2vw,40px);top:clamp(6px,1.6vw,26px);z-index:1;
+        font-family:"Archivo Black",Inter,sans-serif;font-size:clamp(120px,15vw,230px);line-height:.8;
+        color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.10);pointer-events:none;user-select:none}
+      .doc-hero-body{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;
+        gap:16px;padding:clamp(24px,3vw,52px);max-width:640px}
+      .doc-eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--red);
+        display:inline-flex;align-items:center;gap:12px}
+      .doc-eyebrow::after{content:"";width:34px;height:2px;background:var(--red);opacity:.9}
+      .doc-hero-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;letter-spacing:-.01em;
+        text-transform:uppercase;line-height:1.02;margin:0;font-size:clamp(26px,3vw,46px)}
+      .doc-meta{display:flex;flex-wrap:wrap;align-items:center;gap:18px;color:#c9d3e6;font-size:14px;font-weight:600}
+      .doc-meta span{display:inline-flex;align-items:center;gap:7px}
+      .doc-meta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;opacity:.85}
+      .doc-badge{color:var(--red);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+      .doc-cta{display:flex;align-items:center;gap:16px;margin-top:6px}
+      .doc-play{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;
+        border:1.5px solid rgba(255,255,255,.55);flex:0 0 auto;transition:background .2s,border-color .2s,transform .2s}
+      .doc-play svg{width:18px;height:18px;fill:#fff;margin-left:2px}
+      .doc-hero:hover .doc-play{background:var(--red);border-color:var(--red);transform:scale(1.05)}
+      .doc-watch{display:inline-flex;align-items:center;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+        font-size:13px;color:#fff;border:2px solid rgba(255,255,255,.6);border-radius:999px;padding:13px 22px;transition:background .2s,color .2s,border-color .2s}
+      .doc-hero:hover .doc-watch{background:#fff;color:var(--ink);border-color:#fff}
+      .doc-hero-media{position:relative;overflow:hidden}
+      .doc-hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+      .doc-hero:hover .doc-hero-media img{transform:scale(1.04)}
+      .doc-hero-grad{position:absolute;inset:0;background:linear-gradient(90deg,#070f24 2%,rgba(7,15,36,.55) 32%,rgba(7,15,36,0) 70%)}
+      /* Cartes secondaires 02–04 */
+      .doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+      .doc-card{position:relative;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;text-decoration:none;
+        background:#0b1730;border:1px solid rgba(255,255,255,.06);transition:transform .25s,box-shadow .25s,border-color .25s}
+      .doc-card:hover,.doc-card:focus-visible{outline:none;transform:translateY(-3px);border-color:rgba(203,181,131,.5);box-shadow:0 16px 34px rgba(6,12,30,.4)}
+      .doc-card-media{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0c1a30}
+      .doc-card-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
+      .doc-card:hover .doc-card-media img{transform:scale(1.06)}
+      .doc-card-body{position:relative;flex:1;display:flex;flex-direction:column;gap:8px;padding:20px 20px 22px}
+      .doc-cnum{position:absolute;right:14px;top:-6px;font-family:"Archivo Black",Inter,sans-serif;font-size:64px;line-height:1;
+        color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.12);pointer-events:none}
+      .doc-card-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:-.01em;
+        line-height:1.1;color:#fff;font-size:clamp(15px,1.15vw,18px);margin:0;padding-right:54px}
+      .doc-cmeta{display:flex;flex-wrap:wrap;gap:14px;color:#aeb9d0;font-size:12.5px;font-weight:600;margin-top:auto}
+      .doc-cmeta span{display:inline-flex;align-items:center;gap:6px}
+      .doc-cmeta svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;opacity:.85}
+      .doc-arrow{position:absolute;right:16px;bottom:16px;color:#fff;opacity:.8;transition:transform .25s,opacity .25s}
+      .doc-arrow svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
+      .doc-card:hover .doc-arrow{transform:translateX(4px);opacity:1}
+      .doc-card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--red);transform:scaleX(.28);transform-origin:left;transition:transform .3s}
+      .doc-card:hover::after,.doc-card:focus-visible::after{transform:scaleX(1)}
+      /* Indicateur 01 / 04 + barre */
+      .doc-progress{display:flex;align-items:center;gap:18px;margin-top:6px}
+      .doc-pos{font-family:"Archivo Black",Inter,sans-serif;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+      .doc-bar{position:relative;flex:1;height:2px;background:rgba(7,16,31,.14);border-radius:2px;overflow:hidden}
+      .doc-bar>span{position:absolute;left:0;top:0;bottom:0;background:var(--red);border-radius:2px;transition:width .3s,left .3s}
+      /* ---- Responsive ---- */
+      @media(max-width:1000px){
+        .doc-hero{grid-template-columns:1fr;min-height:0}
+        .doc-hero-media{order:-1;aspect-ratio:16/9}
+        .doc-hero-media img{position:absolute}
+        .doc-hero-grad{background:linear-gradient(0deg,#070f24 6%,rgba(7,15,36,.35) 45%,rgba(7,15,36,0) 75%)}
+        .doc-grid{grid-template-columns:1fr 1fr}
+      }
+      @media(max-width:600px){
+        .doc-hero-title{font-size:clamp(22px,7vw,30px)}
+        .doc-num{font-size:96px;-webkit-text-stroke-width:1.5px}
+        /* Cartes secondaires en carrousel horizontal (scroll-snap), une carte lisible par écran */
+        .doc-grid{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:86%;
+          overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+          scrollbar-width:none;padding-bottom:4px;margin:0 calc(var(--pad)*-1);padding-left:var(--pad);padding-right:var(--pad)}
+        .doc-grid::-webkit-scrollbar{display:none}
+        .doc-card{scroll-snap-align:start}
+        .doc-watch,.doc-play{min-height:44px}
+        .doc-play{width:48px;height:48px}
+      }
+    </style>
+    <script>
+    (function(){
+      var root=document.getElementById('docs-root'); if(!root) return;
+      var ENDPOINT='/.netlify/functions/youtube-documentaries';
+      function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+      var EYE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+      var CLOCK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+      var PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+      var ARROW='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+      function metaSpans(v){
+        var h='';
+        if(v.views) h+='<span>'+EYE+esc(v.views)+'</span>';
+        if(v.duration) h+='<span>'+CLOCK+esc(v.duration)+'</span>';
+        return h;
+      }
+      function hero(v){
+        return '<a class="doc-hero" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
+          +'<span class="doc-num" aria-hidden="true">01</span>'
+          +'<div class="doc-hero-body">'
+          +'<span class="doc-eyebrow">Documentaire à la une</span>'
+          +'<h3 class="doc-hero-title">'+esc(v.title)+'</h3>'
+          +'<div class="doc-meta">'+metaSpans(v)+'<span class="doc-badge">Le plus vu</span></div>'
+          +'<div class="doc-cta"><span class="doc-play">'+PLAY+'</span><span class="doc-watch">Regarder le film</span></div>'
+          +'</div>'
+          +'<div class="doc-hero-media">'+(v.thumbnail?'<img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy">':'')+'<span class="doc-hero-grad"></span></div>'
+          +'</a>';
+      }
+      function card(v,label){
+        return '<a class="doc-card" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
+          +'<div class="doc-card-media">'+(v.thumbnail?'<img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy">':'')+'</div>'
+          +'<div class="doc-card-body"><span class="doc-cnum" aria-hidden="true">'+label+'</span>'
+          +'<h4 class="doc-card-title">'+esc(v.title)+'</h4>'
+          +'<div class="doc-cmeta">'+metaSpans(v)+'</div>'
+          +'<span class="doc-arrow">'+ARROW+'</span></div></a>';
+      }
+      function pad2(n){ return (n<10?'0':'')+n; }
+      fetch(ENDPOINT,{headers:{accept:'application/json'}})
+        .then(function(r){ return r.ok?r.json():null; })
+        .then(function(d){
+          if(!d||!d.ok||!Array.isArray(d.videos)||!d.videos.length){ root.style.display='none'; return; }
+          var vs=d.videos.slice(0,4);
+          var html=hero(vs[0]);
+          if(vs.length>1){
+            html+='<div class="doc-grid" id="docs-grid">';
+            for(var i=1;i<vs.length;i++) html+=card(vs[i], pad2(i+1));
+            html+='</div>';
+          }
+          var total=vs.length;
+          html+='<div class="doc-progress"><span class="doc-pos" id="docs-pos">01 / '+pad2(total)+'</span>'
+              +'<span class="doc-bar"><span id="docs-bar" style="width:'+(100/total)+'%"></span></span></div>';
+          root.innerHTML=html;
+          // Indicateur réel : suit le carrousel des cartes secondaires (mobile)
+          var grid=document.getElementById('docs-grid'), pos=document.getElementById('docs-pos'), bar=document.getElementById('docs-bar');
+          if(grid&&pos&&bar){
+            grid.addEventListener('scroll',function(){
+              var cards=grid.children, best=0, bestd=Infinity, gl=grid.getBoundingClientRect().left;
+              for(var i=0;i<cards.length;i++){ var d=Math.abs(cards[i].getBoundingClientRect().left-gl); if(d<bestd){bestd=d;best=i;} }
+              var current=best+2; // 01 = hero ; le 1er de la grille = 02
+              pos.textContent=pad2(current)+' / '+pad2(total);
+              bar.style.width=(100/total)+'%'; bar.style.left=((current-1)*100/total)+'%';
+            },{passive:true});
+          }
+        })
+        .catch(function(){ root.style.display='none'; });
+    })();
+    </script>
 
-    <section class="issue" id="magazine">
-      <div class="issue-inner">
-        <div>
-          <span class="kicker" data-cms="magazine.surtitre">Le magazine · N°12</span>
-          <h2 data-cms="magazine.titre">Un numéro qui se feuillette</h2>
-          <p data-cms="magazine.texte">Chaque numéro est mis en page comme une revue, puis publié ici en lecture page à page. Sur ordinateur, la double page. Sur téléphone, une page à la fois. Aucune application à installer.</p>
-          <div class="cta-row"><a class='btn primary' data-cms-href='magazine.lien' data-cms='magazine.bouton' href='/lecteur?pdf=numeros/n12.pdf' style='border-color:white;background:white;color:var(--ink)'>Ouvrir le numéro 12</a></div>
-        </div>
-        <a aria-label='Ouvrir le numéro 12' class='issue-cover' data-cms-href='magazine.lien' href='/lecteur?pdf=numeros/n12.pdf'>
-          <span data-cms="magazine.pastille">N°12</span>
-          <img data-cms-src="magazine.couverture" src="images/couverture-n12.jpg" alt="Couverture du numéro">
-        </a>
-      </div>
-    </section>
 
     <!-- ===================== SECTION MENU TOMSOFOOT (drop-in) ===================== -->
     <style id="tsf-menu-css">
