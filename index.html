@@ -603,106 +603,151 @@
       <div id="docs-root" class="docs" aria-live="polite"></div>
     </section>
     <style id="docs-css">
-      /* ===== Section « Les documentaires » — direction ultra-premium + carrousel (donnees YouTube reelles) ===== */
-      #videos{--max:2004px;--nav:#0b1730;--graphite:rgba(255,255,255,.09);--cold:rgba(255,255,255,.15)}
-      #videos .section-index{font-size:clamp(12px,1vw,16px);letter-spacing:.18em}
-      .docs{display:grid;gap:24px;min-height:120px}
-      /* Grande carte cinematographique */
-      .doc-hero{position:relative;display:grid;align-items:stretch;min-height:clamp(340px,42vw,468px);border-radius:18px;overflow:hidden;
-        text-decoration:none;color:#fff;background:#070f24;border:1px solid var(--graphite);
-        box-shadow:0 30px 60px -24px rgba(4,9,22,.75);transition:box-shadow .22s ease,border-color .22s ease,opacity .2s ease}
-      .doc-hero.is-swap{opacity:0}
-      .doc-hero:hover,.doc-hero:focus-visible{outline:none;border-color:rgba(203,181,131,.42);box-shadow:0 36px 72px -22px rgba(4,9,22,.82)}
-      .doc-hero-media{position:absolute;inset:0;z-index:0;overflow:hidden}
-      .doc-hero-media img{width:100%;height:100%;object-fit:cover;object-position:center 20%;transition:transform .5s ease}
-      .doc-hero:hover .doc-hero-media img{transform:scale(1.035)}
-      .doc-hero-media.no-img{background:linear-gradient(135deg,#12213f,#070f24)}
-      .doc-hero-grad{position:absolute;inset:0;background:linear-gradient(90deg,#060d1f 0%,rgba(6,12,28,.94) 27%,rgba(6,12,28,.56) 54%,rgba(6,12,28,.12) 100%)}
-      .doc-hero-mist{position:absolute;inset:0;pointer-events:none;background:radial-gradient(130% 90% at 12% 32%,rgba(8,15,33,.4),transparent 62%)}
-      .doc-num{position:absolute;left:clamp(14px,2vw,34px);top:clamp(0px,.8vw,12px);z-index:1;
-        font-family:"Archivo Black",Inter,sans-serif;font-size:clamp(120px,15vw,228px);line-height:.8;
-        color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.09);pointer-events:none;user-select:none}
-      .doc-hero-body{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:15px;padding:clamp(26px,3vw,52px);max-width:min(620px,66%)}
-      .doc-eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--red);display:inline-flex;align-items:center;gap:12px}
-      .doc-eyebrow::after{content:"";width:34px;height:2px;background:var(--red);opacity:.9}
-      .doc-hero-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;letter-spacing:-.015em;text-transform:uppercase;line-height:1.02;margin:0;font-size:clamp(24px,3vw,44px);text-shadow:0 2px 18px rgba(3,8,20,.55)}
-      .doc-meta{display:flex;flex-wrap:wrap;align-items:center;gap:16px;color:#d3dcec;font-size:14px;font-weight:600}
+      /* ===== Section « Les documentaires » — plateau editorial anime (donnees YouTube reelles) ===== */
+      #videos{--ivory:#ece5d8;--plateau:#f4efe6;--nav:#0d1b33;--nav2:#0a1526;--red:#e12c22;--line:rgba(13,27,51,.12);--dur:700ms;--ease:cubic-bezier(.22,.61,.36,1);background:var(--ivory)}
+      #videos .section-head{max-width:none;align-items:flex-end}
+      #videos .section-index{color:var(--red);font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+      #videos h2{color:var(--nav);text-transform:uppercase;font-weight:900;letter-spacing:-.01em;line-height:.9;font-size:clamp(34px,5.2vw,60px);margin:6px 0 0}
+      #videos .see-all{color:var(--nav);font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+      .docs{display:block;min-height:120px}
+
+      .doc-stage-wrap{position:relative}
+      .doc-plateau{position:relative;background:var(--plateau);border:1px solid var(--line);border-radius:22px;overflow:hidden;
+        background-image:radial-gradient(rgba(13,27,51,.028) 1px,transparent 1px);background-size:22px 22px}
+      .doc-plateau::before{content:"";position:absolute;left:0;top:0;bottom:0;width:34px;background:var(--nav);z-index:2}
+
+      .doc-grid{position:relative;z-index:3;display:grid;grid-template-columns:1.02fr 1.32fr .92fr;gap:26px;padding:34px 34px 22px 62px;align-items:stretch}
+
+      /* Colonne editoriale gauche */
+      .doc-col-edit{display:flex;flex-direction:column;justify-content:center;min-width:0}
+      .doc-eyebrow{display:inline-flex;align-items:center;gap:14px;color:var(--red);font-weight:800;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(11px,.85vw,13px)}
+      .doc-eyebrow::after{content:"";width:46px;height:2px;background:var(--red);display:inline-block}
+      .doc-live{min-width:0;will-change:opacity,transform}
+      .doc-title{color:var(--nav);text-transform:uppercase;font-weight:900;line-height:.99;letter-spacing:-.01em;font-size:clamp(23px,2.35vw,38px);margin:16px 0 18px}
+      .doc-meta{display:flex;align-items:center;gap:14px;color:rgba(13,27,51,.72);font-weight:600;font-size:clamp(13px,1vw,15px)}
       .doc-meta span{display:inline-flex;align-items:center;gap:7px}
-      .doc-meta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;opacity:.85}
-      .doc-badge{color:var(--red);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
-      .doc-badge[hidden]{display:none}
-      .doc-cta{display:flex;align-items:center;gap:16px;margin-top:8px}
-      .doc-play{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);flex:0 0 auto;transition:background .2s,border-color .2s,transform .2s}
-      .doc-play svg{width:18px;height:18px;fill:#fff;margin-left:2px}
-      .doc-hero:hover .doc-play{background:var(--red);border-color:var(--red);transform:scale(1.06)}
-      .doc-watch{display:inline-flex;align-items:center;font-weight:800;letter-spacing:.09em;text-transform:uppercase;font-size:13px;color:#fff;border:2px solid rgba(255,255,255,.62);border-radius:999px;padding:13px 22px;transition:background .2s,color .2s,border-color .2s}
-      .doc-hero:hover .doc-watch{background:#fff;color:var(--ink);border-color:#fff}
-      /* Cartes secondaires */
-      .doc-rail{position:relative}
-      .doc-track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 44px)/3);gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:10px 2px 14px}
-      .doc-track::-webkit-scrollbar{display:none}
-      .doc-card{position:relative;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;text-align:left;text-decoration:none;
-        background:var(--nav);border:1px solid var(--graphite);cursor:pointer;scroll-snap-align:start;font:inherit;color:inherit;padding:0;
-        box-shadow:0 16px 30px -20px rgba(4,9,22,.7);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
-      .doc-card:hover{transform:translateY(-3px);border-color:rgba(203,181,131,.4);box-shadow:0 22px 42px -20px rgba(4,9,22,.82)}
-      .doc-card:focus-visible{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(203,181,131,.5)}
-      .doc-card.is-active{border-color:rgba(203,181,131,.7)}
-      .doc-card-media{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0c1a30}
-      .doc-card-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}
-      .doc-card:hover .doc-card-media img{transform:scale(1.05)}
-      .doc-card-media.no-img{background:linear-gradient(135deg,#12213f,#0a1526)}
-      .doc-card-body{position:relative;flex:1;display:flex;flex-direction:column;gap:8px;padding:18px 18px 20px}
-      .doc-cnum{position:absolute;right:12px;top:-10px;font-family:"Archivo Black",Inter,sans-serif;font-size:64px;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.11);pointer-events:none}
-      .doc-card.is-active .doc-cnum{-webkit-text-stroke-color:rgba(203,181,131,.5)}
-      .doc-card-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:-.01em;line-height:1.12;color:#fff;font-size:clamp(14px,1.05vw,17px);margin:0;padding-right:50px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-      .doc-cmeta{display:flex;flex-wrap:wrap;gap:14px;color:#aeb9d0;font-size:12.5px;font-weight:600;margin-top:auto}
-      .doc-cmeta span{display:inline-flex;align-items:center;gap:6px}
-      .doc-cmeta svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;opacity:.85}
-      .doc-card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
-      .doc-card.is-active::after{transform:scaleX(1)}
-      /* Controles : indicateur + barre (gauche), capsule fleches (droite) */
-      .doc-controls{display:flex;align-items:center;gap:18px;margin-top:4px}
-      .doc-pos{font-family:"Archivo Black",Inter,sans-serif;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;flex:0 0 auto}
-      .doc-bar{position:relative;flex:1 1 auto;min-width:40px;height:2px;background:rgba(7,16,31,.16);border-radius:2px}
-      .doc-bar-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--red);border-radius:2px;transition:width .25s ease}
-      .doc-bar-dot{position:absolute;top:50%;left:0;width:9px;height:9px;border-radius:50%;background:var(--red);transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(239,51,64,.18);transition:left .25s ease}
-      .doc-cap{display:inline-flex;align-items:stretch;flex:0 0 auto;background:var(--nav);border:1px solid var(--cold);border-radius:999px;overflow:hidden;box-shadow:0 12px 24px -16px rgba(4,9,22,.8)}
-      .doc-cap-btn{display:grid;place-items:center;width:52px;height:44px;background:transparent;border:0;color:#c6d0e2;cursor:pointer;transition:color .2s,background .2s}
+      .doc-meta svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8}
+      .doc-meta .doc-sep{width:1px;height:15px;background:var(--line)}
+      .doc-cta{display:flex;align-items:center;gap:16px;margin-top:24px;flex-wrap:wrap}
+      .doc-play{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:var(--red);color:#fff;flex:none;box-shadow:0 8px 22px rgba(225,44,34,.35);transition:transform .2s}
+      .doc-play svg{width:20px;height:20px;fill:currentColor;margin-left:3px}
+      .doc-play:hover{transform:scale(1.06)}
+      .doc-watch{display:inline-flex;align-items:center;height:52px;padding:0 26px;border:1.5px solid rgba(13,27,51,.35);border-radius:30px;color:var(--nav);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:13px;transition:background .2s,color .2s,border-color .2s}
+      .doc-watch:hover{background:var(--nav);color:#fff;border-color:var(--nav)}
+
+      /* Scene centrale */
+      .doc-stage{position:relative;min-height:342px;display:flex;align-items:flex-end;justify-content:center;isolation:isolate;touch-action:pan-y}
+      .doc-bignum{position:absolute;z-index:1;top:50%;left:50%;transform:translate(-50%,-50%);color:transparent;-webkit-text-stroke:2px rgba(13,27,51,.15);font-weight:900;font-size:clamp(170px,21vw,290px);line-height:1;pointer-events:none;font-variant-numeric:tabular-nums;will-change:opacity,transform}
+      .doc-media-layer{position:relative;z-index:2;width:100%;min-height:342px}
+      .doc-media{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;opacity:0;will-change:transform,opacity}
+      .doc-media.is-on{opacity:1}
+      .doc-media img{max-width:100%;max-height:360px;width:auto;height:auto;object-fit:contain;
+        -webkit-mask-image:radial-gradient(125% 130% at 50% 42%,#000 62%,transparent 100%);mask-image:radial-gradient(125% 130% at 50% 42%,#000 62%,transparent 100%);
+        filter:drop-shadow(0 30px 55px rgba(10,21,38,.30))}
+      .doc-media.no-img .doc-media-fallback{display:flex}
+      .doc-media-fallback{display:none;width:84%;height:74%;margin:auto auto 0;border-radius:16px;background:linear-gradient(160deg,var(--nav),var(--nav2));align-items:center;justify-content:center;box-shadow:0 30px 55px rgba(10,21,38,.30)}
+      .doc-media-fallback svg{width:56px;height:56px;fill:rgba(255,255,255,.85)}
+
+      /* Colonne A SUIVRE droite */
+      .doc-col-next{display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line);padding-left:24px}
+      .doc-next-head{color:var(--nav);font-weight:800;letter-spacing:.18em;text-transform:uppercase;font-size:12px;opacity:.75;margin-bottom:12px}
+      .doc-next-list{display:flex;flex-direction:column;gap:14px;min-width:0;will-change:opacity}
+      .doc-next-item{display:grid;grid-template-columns:auto 74px 1fr;gap:12px;align-items:center;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 0 2px;cursor:pointer;min-width:0}
+      .doc-next-item:first-child{border-top:0;padding-top:2px}
+      .doc-next-rank{color:var(--red);font-weight:900;font-size:26px;font-variant-numeric:tabular-nums;line-height:1}
+      .doc-next-thumb{position:relative;width:74px;height:52px;border-radius:9px;overflow:hidden;background:var(--nav);flex:none}
+      .doc-next-thumb img{width:100%;height:100%;object-fit:cover}
+      .doc-next-thumb::before{content:"";position:absolute;left:6px;bottom:6px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.92);z-index:1}
+      .doc-next-thumb::after{content:"";position:absolute;left:12.5px;bottom:11.5px;z-index:2;border-style:solid;border-width:4px 0 4px 7px;border-color:transparent transparent transparent #0d1b33}
+      .doc-next-txt{min-width:0}
+      .doc-next-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--nav);font-weight:800;text-transform:uppercase;font-size:12.5px;line-height:1.18}
+      .doc-next-meta{display:flex;gap:12px;color:rgba(13,27,51,.6);font-size:11px;font-weight:600;margin-top:5px}
+      .doc-next-meta span{display:inline-flex;align-items:center;gap:5px}
+      .doc-next-meta svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8}
+      .doc-next-nav{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+      .doc-mini{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--nav);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s,color .2s}
+      .doc-mini svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
+      .doc-mini:hover{background:var(--nav);color:#fff}
+
+      /* Bande d'informations */
+      .doc-band{position:relative;z-index:3;display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--line);margin-left:28px}
+      .doc-band-cell{display:flex;align-items:center;gap:16px;padding:20px 26px;color:var(--nav)}
+      .doc-band-cell+.doc-band-cell{border-left:1px solid var(--line)}
+      .doc-band-mid{background:var(--nav);color:#fff}
+      .doc-band-ic{width:38px;height:38px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;flex:none;opacity:.9}
+      .doc-band-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7}
+      .doc-band-k{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.62;font-weight:700}
+      .doc-band-v{display:block;font-size:clamp(15px,1.25vw,20px);font-weight:900;text-transform:uppercase;letter-spacing:.02em;margin-top:3px}
+
+      /* Pied : compteur + barre + capsule */
+      .doc-foot{display:flex;align-items:center;gap:22px;padding:22px 4px 0}
+      .doc-pos{color:var(--nav);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.08em;font-size:14px;flex:none}
+      .doc-bar{position:relative;flex:1;height:2px;background:rgba(13,27,51,.14);border-radius:2px}
+      .doc-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--red);border-radius:2px;transition:width var(--dur) var(--ease)}
+      .doc-bar-dot{position:absolute;top:50%;left:0;width:11px;height:11px;border-radius:50%;background:var(--red);transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(225,44,34,.18);transition:left var(--dur) var(--ease)}
+      .doc-cap{display:inline-flex;align-items:center;background:var(--nav);border-radius:30px;flex:none}
+      .doc-cap-btn{width:56px;height:46px;display:inline-flex;align-items:center;justify-content:center;background:none;border:0;color:#fff;cursor:pointer;transition:opacity .2s}
       .doc-cap-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2}
-      .doc-cap-btn:hover:not(:disabled){color:#fff;background:rgba(239,51,64,.16)}
-      .doc-cap-btn:focus-visible{outline:none;color:#fff;box-shadow:inset 0 0 0 2px var(--red)}
-      .doc-cap-btn:active:not(:disabled){color:var(--red)}
-      .doc-cap-btn:disabled{opacity:.32;cursor:default}
-      .doc-cap-sep{width:1px;background:var(--cold);margin:11px 0}
-      /* Chargement / erreur */
-      .doc-skeleton{display:grid;gap:24px}
-      .doc-sk-hero{height:clamp(340px,42vw,468px);border-radius:18px;background:#0c1730;position:relative;overflow:hidden}
-      .doc-sk-row{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-      .doc-sk-card{height:300px;border-radius:14px;background:#0c1730;position:relative;overflow:hidden}
-      .doc-sk-hero::after,.doc-sk-card::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);transform:translateX(-100%);animation:docSk 1.3s infinite}
-      @keyframes docSk{100%{transform:translateX(100%)}}
-      .doc-error{padding:40px 24px;text-align:center;color:rgba(7,16,31,.6);font-weight:600;border:1px solid rgba(7,16,31,.1);border-radius:14px}
-      /* Responsive */
+      .doc-cap-btn:hover{opacity:.7}
+      .doc-cap-sep{width:1px;height:22px;background:rgba(255,255,255,.22)}
+
+      /* ===== Animations ===== */
+      .doc-live{transition:opacity .4s var(--ease),transform .4s var(--ease)}
+      .doc-live.is-out{opacity:0;transform:translateY(-14px)}
+      .doc-live.is-in{opacity:0;transform:translateY(16px)}
+      .doc-media{transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+      .doc-media.leave-next{opacity:0;transform:translateX(-44px) scale(.94)}
+      .doc-media.leave-prev{opacity:0;transform:translateX(44px) scale(.94)}
+      .doc-media.enter-next{opacity:0;transform:translateX(54px) scale(.96)}
+      .doc-media.enter-prev{opacity:0;transform:translateX(-54px) scale(.96)}
+      .doc-bignum{transition:opacity .42s var(--ease),transform .42s var(--ease)}
+      .doc-bignum.roll-out-next{opacity:0;transform:translate(-50%,-92%)}
+      .doc-bignum.roll-out-prev{opacity:0;transform:translate(-50%,-8%)}
+      .doc-bignum.roll-in-next{opacity:0;transform:translate(-50%,-8%)}
+      .doc-bignum.roll-in-prev{opacity:0;transform:translate(-50%,-92%)}
+      .doc-next-list{transition:opacity .35s ease}
+      .doc-next-list.is-fade{opacity:0}
+
+      /* Skeleton + erreur */
+      .doc-skeleton{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--plateau);height:460px;position:relative}
+      .doc-skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.5) 50%,transparent 80%);transform:translateX(-100%);animation:doc-sk 1.4s infinite}
+      @keyframes doc-sk{to{transform:translateX(100%)}}
+      .doc-error{border:1px solid var(--line);border-radius:22px;padding:48px 24px;text-align:center;color:rgba(13,27,51,.7);font-weight:600;background:var(--plateau)}
+
+      /* ===== Responsive ===== */
       @media(max-width:1000px){
-        .doc-hero{min-height:clamp(420px,64vw,520px)}
-        .doc-hero-grad{background:linear-gradient(360deg,#060d1f 4%,rgba(6,12,28,.88) 34%,rgba(6,12,28,.32) 66%,rgba(6,12,28,.06) 100%)}
-        .doc-hero-body{justify-content:flex-end;max-width:100%}
-        .doc-num{font-size:clamp(96px,22vw,150px)}
-        .doc-track{grid-auto-columns:calc((100% - 22px)/2)}
-        .doc-sk-row{grid-template-columns:repeat(2,1fr)}
+        .doc-plateau::before{width:0}
+        .doc-grid{grid-template-columns:1.1fr 1fr;gap:22px;padding:26px 24px}
+        .doc-col-next{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);padding-left:0;padding-top:18px;margin-top:4px}
+        .doc-next-list{flex-direction:row}
+        .doc-next-item{flex:1;grid-template-columns:auto 64px 1fr;border-top:0;padding-top:2px}
+        .doc-next-thumb{width:64px;height:44px}
+        .doc-band{margin-left:0}
+        .doc-stage{min-height:288px}
+        .doc-media-layer{min-height:288px}
+        .doc-media img{max-height:300px}
       }
-      @media(max-width:600px){
-        .doc-hero-title{font-size:clamp(21px,6.4vw,28px)}
-        .doc-track{grid-auto-columns:84%}
-        .doc-sk-row{grid-template-columns:1fr}
-        .doc-cap-btn{width:48px}
-        .doc-watch,.doc-play{min-height:44px}
+      @media(max-width:640px){
+        #videos .section-head{flex-direction:column;align-items:flex-start;gap:8px}
+        #videos h2{font-size:33px}
+        .doc-grid{grid-template-columns:1fr;padding:20px 15px;gap:16px}
+        .doc-stage{order:-1;min-height:214px}
+        .doc-media-layer{min-height:214px}
+        .doc-media img{max-height:224px}
+        .doc-bignum{font-size:132px}
+        .doc-title{font-size:24px;margin:12px 0 14px}
+        .doc-next-list{flex-direction:column}
+        .doc-next-item+.doc-next-item{display:none}
+        .doc-band{grid-template-columns:1fr}
+        .doc-band-cell{padding:14px 16px}
+        .doc-band-cell+.doc-band-cell{border-left:0;border-top:1px solid var(--line)}
+        .doc-foot{flex-wrap:wrap;gap:14px 18px}
+        .doc-bar{order:3;flex-basis:100%}
+        .doc-cap-btn{width:52px;height:44px}
       }
       @media (prefers-reduced-motion: reduce){
-        .doc-hero,.doc-card,.doc-hero-media img,.doc-card-media img,.doc-bar-fill,.doc-bar-dot,.doc-card::after{transition:none!important;animation:none!important}
-        .doc-track{scroll-behavior:auto!important}
-        .doc-hero.is-swap{opacity:1!important}
-        .doc-sk-hero::after,.doc-sk-card::after{animation:none!important}
+        .doc-live,.doc-media,.doc-bignum,.doc-next-list,.doc-bar-fill,.doc-bar-dot{transition:none!important}
+        .doc-skeleton::after{animation:none}
       }
     </style>
     <script>
@@ -713,95 +758,158 @@
       function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
       var EYE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
       var CLOCK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+      var FORMAT='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 5v14"/></svg>';
       var PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
       var CHEVL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
       var CHEVR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
       var ERR='<div class="doc-error">Les documentaires ne sont pas disponibles pour le moment.</div>';
       function pad2(n){ return (n<10?'0':'')+n; }
-      function metaSpans(v){ var h=''; if(v.views) h+='<span>'+EYE+esc(v.views)+'</span>'; if(v.duration) h+='<span>'+CLOCK+esc(v.duration)+'</span>'; return h; }
-      root.innerHTML='<div class="doc-skeleton" aria-hidden="true"><div class="doc-sk-hero"></div><div class="doc-sk-row"><div class="doc-sk-card"></div><div class="doc-sk-card"></div><div class="doc-sk-card"></div></div></div>';
+      function metaHTML(v){ var h=''; if(v.views) h+='<span>'+EYE+esc(v.views)+'</span>'; if(v.views&&v.duration) h+='<span class="doc-sep" aria-hidden="true"></span>'; if(v.duration) h+='<span>'+CLOCK+esc(v.duration)+'</span>'; return h; }
+      root.innerHTML='<div class="doc-skeleton" aria-hidden="true"></div>';
       fetch(ENDPOINT,{headers:{accept:'application/json'}})
         .then(function(r){ return r.ok?r.json():null; })
         .then(function(d){
           if(!d||!d.ok||!Array.isArray(d.videos)||!d.videos.length){ root.innerHTML=ERR; return; }
           var videos=d.videos, total=videos.length;
-          var currentIndex=0;   // SOURCE DE VERITE UNIQUE : la video actuellement active
-          var swapT=0;
+          var currentIndex=0;          // SOURCE DE VERITE UNIQUE
+          var DUR=700, MID=300, isAnim=false, pend=null, activeLayer=0;
+
           root.innerHTML=
-            '<a class="doc-hero" id="doc-hero" href="#" target="_blank" rel="noopener">'
-            +'<div class="doc-hero-media" id="doc-hero-media"><img id="doc-hero-img" src="" alt=""><span class="doc-hero-grad"></span><span class="doc-hero-mist"></span></div>'
-            +'<span class="doc-num" id="doc-hero-num" aria-hidden="true">01</span>'
-            +'<div class="doc-hero-body"><span class="doc-eyebrow">Documentaire a la une</span>'
-            +'<h3 class="doc-hero-title" id="doc-hero-title"></h3>'
-            +'<div class="doc-meta" id="doc-hero-meta"></div>'
-            +'<div class="doc-cta"><span class="doc-play">'+PLAY+'</span><span class="doc-watch">Regarder le film</span></div>'
-            +'</div></a>'
-            +'<div class="doc-rail"><div class="doc-track" id="doc-track" role="group" aria-label="Prochains documentaires (cliquer pour afficher dans la carte principale)"></div></div>'
-            +'<div class="doc-controls">'
-            +'<span class="doc-pos" id="doc-pos" aria-live="polite">01 / '+pad2(total)+'</span>'
-            +'<span class="doc-bar" aria-hidden="true"><span class="doc-bar-fill" id="doc-bar-fill"></span><span class="doc-bar-dot" id="doc-bar-dot"></span></span>'
-            +'<div class="doc-cap">'
-            +'<button type="button" class="doc-cap-btn" id="doc-prev" aria-label="Documentaire precedent">'+CHEVL+'</button>'
-            +'<span class="doc-cap-sep" aria-hidden="true"></span>'
-            +'<button type="button" class="doc-cap-btn" id="doc-next" aria-label="Documentaire suivant">'+CHEVR+'</button>'
-            +'</div></div>';
-          var hero=document.getElementById('doc-hero'), heroMedia=document.getElementById('doc-hero-media'),
-              heroImg=document.getElementById('doc-hero-img'), heroNum=document.getElementById('doc-hero-num'),
-              heroTitle=document.getElementById('doc-hero-title'), heroMeta=document.getElementById('doc-hero-meta'),
-              track=document.getElementById('doc-track'), pos=document.getElementById('doc-pos'),
-              fill=document.getElementById('doc-bar-fill'), dot=document.getElementById('doc-bar-dot'),
-              prev=document.getElementById('doc-prev'), next=document.getElementById('doc-next');
-          heroImg.addEventListener('error',function(){ heroMedia.classList.add('no-img'); heroImg.style.visibility='hidden'; });
-          function makeCard(i){
-            var v=videos[i], b=document.createElement('button');
-            b.type='button'; b.className='doc-card'; b.setAttribute('data-i',i);
-            b.setAttribute('aria-label','Documentaire n '+pad2(i+1)+' : '+v.title+(v.views?', '+v.views:'')+'. Afficher dans la carte principale.');
-            var hasImg=!!v.thumbnail;
-            b.innerHTML='<div class="doc-card-media'+(hasImg?'':' no-img')+'">'+(hasImg?'<img src="'+esc(v.thumbnail)+'" alt="" loading="lazy">':'')+'</div>'
-              +'<div class="doc-card-body"><span class="doc-cnum" aria-hidden="true">'+pad2(i+1)+'</span>'
-              +'<h4 class="doc-card-title">'+esc(v.title)+'</h4>'
-              +'<div class="doc-cmeta">'+metaSpans(v)+'</div></div>';
-            var im=b.querySelector('img'); if(im) im.addEventListener('error',function(){ b.querySelector('.doc-card-media').classList.add('no-img'); im.style.display='none'; });
-            b.addEventListener('click',function(){ goTo(i); });   // clic carte -> son index reel devient currentIndex
-            return b;
+            '<div class="doc-stage-wrap">'
+            +'<div class="doc-plateau">'
+            +'<div class="doc-grid">'
+              +'<div class="doc-col-edit">'
+                +'<span class="doc-eyebrow">Documentaire a la une</span>'
+                +'<div class="doc-live" id="doc-live">'
+                  +'<h3 class="doc-title" id="doc-title"></h3>'
+                  +'<div class="doc-meta" id="doc-meta"></div>'
+                  +'<div class="doc-cta">'
+                    +'<a class="doc-play" id="doc-play" href="#" target="_blank" rel="noopener">'+PLAY+'</a>'
+                    +'<a class="doc-watch" id="doc-watch" href="#" target="_blank" rel="noopener">Regarder le film</a>'
+                  +'</div>'
+                +'</div>'
+              +'</div>'
+              +'<div class="doc-stage" id="doc-stage">'
+                +'<span class="doc-bignum" id="doc-bignum" aria-hidden="true">01</span>'
+                +'<div class="doc-media-layer">'
+                  +'<div class="doc-media" id="doc-media-a"><img alt=""><span class="doc-media-fallback" aria-hidden="true">'+PLAY+'</span></div>'
+                  +'<div class="doc-media" id="doc-media-b"><img alt=""><span class="doc-media-fallback" aria-hidden="true">'+PLAY+'</span></div>'
+                +'</div>'
+              +'</div>'
+              +'<div class="doc-col-next">'
+                +'<span class="doc-next-head">A suivre</span>'
+                +'<div class="doc-next-list" id="doc-next-list"></div>'
+                +'<div class="doc-next-nav">'
+                  +'<button type="button" class="doc-mini" id="doc-mini-prev" aria-label="Documentaire precedent">'+CHEVL+'</button>'
+                  +'<button type="button" class="doc-mini" id="doc-mini-next" aria-label="Documentaire suivant">'+CHEVR+'</button>'
+                +'</div>'
+              +'</div>'
+            +'</div>'
+            +'<div class="doc-band">'
+              +'<div class="doc-band-cell"><span class="doc-band-ic">'+FORMAT+'</span><span><span class="doc-band-k">Format</span><span class="doc-band-v">Episode</span></span></div>'
+              +'<div class="doc-band-cell doc-band-mid"><span class="doc-band-ic">'+EYE+'</span><span><span class="doc-band-k">Vues</span><span class="doc-band-v" id="doc-band-views">-</span></span></div>'
+              +'<div class="doc-band-cell"><span class="doc-band-ic">'+CLOCK+'</span><span><span class="doc-band-k">Duree</span><span class="doc-band-v" id="doc-band-dur">-</span></span></div>'
+            +'</div>'
+            +'</div>'
+            +'<div class="doc-foot">'
+              +'<span class="doc-pos" id="doc-pos" aria-live="polite">01 / '+pad2(total)+'</span>'
+              +'<span class="doc-bar" aria-hidden="true"><span class="doc-bar-fill" id="doc-bar-fill"></span><span class="doc-bar-dot" id="doc-bar-dot"></span></span>'
+              +'<div class="doc-cap">'
+                +'<button type="button" class="doc-cap-btn" id="doc-prev" aria-label="Documentaire precedent">'+CHEVL+'</button>'
+                +'<span class="doc-cap-sep" aria-hidden="true"></span>'
+                +'<button type="button" class="doc-cap-btn" id="doc-next" aria-label="Documentaire suivant">'+CHEVR+'</button>'
+              +'</div>'
+            +'</div>'
+            +'</div>';
+
+          var stage=document.getElementById('doc-stage'), bignum=document.getElementById('doc-bignum'),
+              live=document.getElementById('doc-live'), titleEl=document.getElementById('doc-title'),
+              metaEl=document.getElementById('doc-meta'), playEl=document.getElementById('doc-play'),
+              watchEl=document.getElementById('doc-watch'), nextList=document.getElementById('doc-next-list'),
+              pos=document.getElementById('doc-pos'), fill=document.getElementById('doc-bar-fill'),
+              dot=document.getElementById('doc-bar-dot'), bandViews=document.getElementById('doc-band-views'),
+              bandDur=document.getElementById('doc-band-dur'), prev=document.getElementById('doc-prev'),
+              next=document.getElementById('doc-next'), miniPrev=document.getElementById('doc-mini-prev'),
+              miniNext=document.getElementById('doc-mini-next');
+          var layers=[document.getElementById('doc-media-a'),document.getElementById('doc-media-b')];
+          layers.forEach(function(l){ var im=l.querySelector('img'); im.addEventListener('error',function(){ l.classList.add('no-img'); im.removeAttribute('src'); }); });
+
+          function href(v){ return v.url||('https://www.youtube.com/watch?v='+v.id); }
+          function ring(i,step){ return (i+step+total)%total; }
+          function setMedia(layer,v){ var im=layer.querySelector('img'); if(v.thumbnail){ layer.classList.remove('no-img'); im.src=v.thumbnail; im.alt=v.title||''; } else { layer.classList.add('no-img'); im.removeAttribute('src'); im.alt=''; } }
+          function setEditorial(v){ titleEl.textContent=v.title||''; metaEl.innerHTML=metaHTML(v); var u=href(v); playEl.setAttribute('href',u); watchEl.setAttribute('href',u); playEl.setAttribute('aria-label','Regarder « '+(v.title||'')+' » sur YouTube'); watchEl.setAttribute('aria-label','Regarder le film : « '+(v.title||'')+' » sur YouTube'); }
+          function setBand(v){ bandViews.textContent=v.views||'-'; bandDur.textContent=v.duration||'-'; }
+          function setProgress(i){ var p=((i+1)/total)*100; pos.textContent=pad2(i+1)+' / '+pad2(total); fill.style.width=p+'%'; dot.style.left=p+'%'; }
+          function buildNext(i){
+            nextList.innerHTML='';
+            for(var k=1;k<=2;k++){
+              var idx=ring(i,k), v=videos[idx], hasImg=!!v.thumbnail;
+              var b=document.createElement('button'); b.type='button'; b.className='doc-next-item';
+              b.setAttribute('aria-label','Documentaire n '+pad2(idx+1)+' : '+(v.title||'')+(v.views?', '+v.views:'')+'. Afficher dans la carte principale.');
+              b.innerHTML='<span class="doc-next-rank" aria-hidden="true">'+pad2(idx+1)+'</span>'
+                +'<span class="doc-next-thumb'+(hasImg?'':' no-img')+'">'+(hasImg?'<img src="'+esc(v.thumbnail)+'" alt="" loading="lazy">':'')+'</span>'
+                +'<span class="doc-next-txt"><span class="doc-next-title">'+esc(v.title)+'</span><span class="doc-next-meta">'+metaHTML(v)+'</span></span>';
+              (function(t){ b.addEventListener('click',function(){ goTo(t,'next'); }); })(idx);
+              nextList.appendChild(b);
+            }
           }
-          function applyHero(){
-            var v=videos[currentIndex];
-            heroNum.textContent=pad2(currentIndex+1);                    // classement reel
-            heroTitle.textContent=v.title||'';
-            heroMeta.innerHTML=metaSpans(v)+'<span class="doc-badge"'+(currentIndex===0?'':' hidden')+'>Le plus vu</span>'; // LE PLUS VU seulement si 01
-            heroMedia.classList.remove('no-img'); heroImg.style.visibility='';
-            if(v.thumbnail){ heroImg.src=v.thumbnail; } else { heroImg.removeAttribute('src'); heroMedia.classList.add('no-img'); heroImg.style.visibility='hidden'; }
-            heroImg.alt=v.title||'';
-            hero.setAttribute('href', v.url || ('https://www.youtube.com/watch?v='+v.id));
-            hero.setAttribute('aria-label','Regarder « '+(v.title||'')+' » sur YouTube');
+          function renderStatic(i){
+            var v=videos[i];
+            setEditorial(v); setBand(v); setProgress(i); buildNext(i);
+            bignum.textContent=pad2(i+1);
+            var on=layers[activeLayer], off=layers[1-activeLayer];
+            setMedia(on,v); on.classList.add('is-on'); off.classList.remove('is-on');
           }
-          // FONCTION CENTRALE UNIQUE : appelee apres chaque changement de currentIndex
-          function renderCarouselState(initial){
-            if(RM||initial){ applyHero(); }
-            else { hero.classList.add('is-swap'); window.clearTimeout(swapT); swapT=window.setTimeout(function(){ applyHero(); hero.classList.remove('is-swap'); },180); }
-            var p=((currentIndex+1)/total)*100;                          // progression = position reelle
-            pos.textContent=pad2(currentIndex+1)+' / '+pad2(total);      // compteur 01/10 -> 02/10 ...
-            fill.style.width=p+'%'; dot.style.left=p+'%';                // marqueur rouge avance
-            track.innerHTML='';                                          // les 3 cartes se repositionnent
-            for(var k=1;k<=3;k++){ var idx=currentIndex+k; if(idx<total){ track.appendChild(makeCard(idx)); } }
-            track.scrollLeft=0;
-            prev.disabled=(currentIndex<=0);                             // fleche gauche desactivee sur 01
-            next.disabled=(currentIndex>=total-1);                       // fleche droite desactivee sur la derniere
+          function goTo(target,dir){
+            if(target===currentIndex) return;
+            if(isAnim){ pend={t:target,d:dir}; return; }
+            if(RM){ currentIndex=target; renderStatic(target); return; }
+            isAnim=true;
+            var v=videos[target];
+            var leaving=layers[activeLayer], entering=layers[1-activeLayer];
+            setMedia(entering,v);
+            entering.classList.remove('is-on','leave-next','leave-prev','enter-next','enter-prev');
+            entering.classList.add(dir==='next'?'enter-next':'enter-prev');
+            void entering.offsetWidth;
+            entering.classList.add('is-on');
+            entering.classList.remove('enter-next','enter-prev');
+            leaving.classList.remove('is-on');
+            leaving.classList.add(dir==='next'?'leave-next':'leave-prev');
+            live.classList.add('is-out');
+            bignum.classList.add(dir==='next'?'roll-out-next':'roll-out-prev');
+            nextList.classList.add('is-fade');
+            setProgress(target);
+            window.setTimeout(function(){
+              setEditorial(v); setBand(v); buildNext(target); bignum.textContent=pad2(target+1);
+              live.style.transition='none'; live.classList.remove('is-out'); live.classList.add('is-in'); void live.offsetWidth;
+              live.style.transition=''; live.classList.remove('is-in');
+              bignum.classList.remove('roll-out-next','roll-out-prev'); bignum.classList.add(dir==='next'?'roll-in-next':'roll-in-prev'); void bignum.offsetWidth;
+              bignum.classList.remove('roll-in-next','roll-in-prev');
+              nextList.classList.remove('is-fade');
+            },MID);
+            window.setTimeout(function(){
+              leaving.classList.remove('leave-next','leave-prev');
+              activeLayer=1-activeLayer; currentIndex=target; isAnim=false;
+              if(pend){ var p=pend; pend=null; goTo(p.t,p.d); }
+            },DUR);
           }
-          function goTo(i){ if(i<0||i>=total||i===currentIndex) return; currentIndex=i; renderCarouselState(false); }
-          prev.addEventListener('click',function(){ goTo(currentIndex-1); });  // gauche = inverse exact
-          next.addEventListener('click',function(){ goTo(currentIndex+1); });  // droite = +1
+          function goNext(){ goTo(ring(currentIndex,1),'next'); }
+          function goPrev(){ goTo(ring(currentIndex,-1),'prev'); }
+          prev.addEventListener('click',goPrev); next.addEventListener('click',goNext);
+          miniPrev.addEventListener('click',goPrev); miniNext.addEventListener('click',goNext);
+          root.setAttribute('tabindex','0');
           root.addEventListener('keydown',function(e){
             var k=e.key;
-            if(k!=='ArrowRight'&&k!=='ArrowLeft'&&k!=='Home'&&k!=='End') return;
-            e.preventDefault();
-            if(k==='ArrowRight') goTo(currentIndex+1);
-            else if(k==='ArrowLeft') goTo(currentIndex-1);
-            else if(k==='Home') goTo(0);
-            else goTo(total-1);
+            if(k==='ArrowRight'){ e.preventDefault(); goNext(); }
+            else if(k==='ArrowLeft'){ e.preventDefault(); goPrev(); }
+            else if(k==='Home'){ e.preventDefault(); goTo(0, currentIndex===0?'next':'prev'); }
+            else if(k==='End'){ e.preventDefault(); goTo(total-1,'next'); }
           });
-          renderCarouselState(true);
+          var tsx=null;
+          stage.addEventListener('touchstart',function(e){ tsx=e.touches[0].clientX; },{passive:true});
+          stage.addEventListener('touchend',function(e){ if(tsx==null) return; var dx=e.changedTouches[0].clientX-tsx; if(Math.abs(dx)>40){ if(dx<0) goNext(); else goPrev(); } tsx=null; },{passive:true});
+
+          renderStatic(0);
         })
         .catch(function(){ root.innerHTML=ERR; });
     })();
