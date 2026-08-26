@@ -475,57 +475,127 @@
     <!-- Archives : navigation par compétition vers l'archive /articles/. Boutons dynamiques (uniquement les compétitions ayant des articles). -->
     <section class="section" id="archives">
       <div class="section-head" data-reveal><div><span class="kicker section-index">03 — Les archives</span><h2>Parcourir par compétition</h2></div><a class="see-all" href="/articles/">Voir toutes les archives →</a></div>
-      <div class="archives-layout"><nav class="archive-filters" aria-label="Filtrer les archives"><div class="arch-chips" id="arch-chips"></div></nav><a class="archive-preview" data-archive-preview hidden href="/articles/"><div class="archive-preview__grid"><div class="archive-preview__media"><img alt="" loading="lazy" data-preview-img></div><div class="archive-preview__body"><span class="archive-preview__eyebrow" data-preview-eyebrow></span><h3 class="archive-preview__title" data-preview-title></h3><div class="archive-preview__meta" data-preview-meta></div></div></div></a></div>
+      <nav class="archive-filters" aria-label="Filtrer les archives"><div class="arch-chips" id="arch-chips"></div></nav>
+      <div class="arch-out" id="arch-out" aria-live="polite"></div>
+      <div class="arch-foot"><a class="arch-all-link" href="/articles/">Voir toutes les archives →</a></div>
     </section>
     <style>
-      .arch-chips{display:flex;flex-wrap:wrap;gap:12px}
-      .arch-chip{display:inline-flex;align-items:center;text-decoration:none;font-family:Inter,system-ui,sans-serif;font-weight:700;font-size:14px;letter-spacing:.01em;color:var(--ink);background:var(--white);border:1px solid #b8bec7;border-radius:999px;padding:13px 22px;transition:transform .2s,border-color .2s,color .2s,background .2s}
-      .arch-chip:hover{border-color:var(--red);color:var(--red);transform:translateY(-2px)}
-      .arch-chip--all{background:var(--ink);color:var(--white);border-color:var(--ink)}
-      .arch-chip--all:hover{background:var(--red);border-color:var(--red);color:var(--white);transform:translateY(-2px)}
+    /* ===== Sections 02 & 03 — agrandissement + mosaïque éditoriale (TomsoFoot) ===== */
+    #derniers-articles,#archives{--max:2004px}
+    #derniers-articles .section-index,#archives .section-index{font-size:clamp(12px,1vw,16px);letter-spacing:.18em}
+    @media(min-width:901px){
+      #derniers-articles .story-grid{gap:22px}
+      #derniers-articles .story{aspect-ratio:42/46}
+      #derniers-articles .story h3{font-size:clamp(24px,2.2vw,40px)}
+      #derniers-articles .story .label{font-size:12px}
+      #derniers-articles .story .meta,#derniers-articles .story .story__read{font-size:12px}
+    }
+    /* Section 03 — chips */
+    #archives{padding-top:60px}
+    #archives .arch-chips{display:flex;flex-wrap:wrap;gap:12px;margin:6px 0 30px}
+    #archives .arch-chip{display:inline-flex;align-items:center;gap:9px;padding:12px 20px;border:1.5px solid rgba(7,16,31,.16);border-radius:999px;font-weight:700;font-size:15px;color:var(--ink);background:var(--white);text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s,color .2s,box-shadow .2s,transform .2s}
+    #archives .arch-chip:hover{border-color:var(--ink);color:var(--ink);transform:translateY(-1px)}
+    #archives .arch-chip .arch-count{margin-left:0;font-weight:800;font-size:12px;color:var(--red)}
+    #archives .arch-chip.is-active{background:var(--ink);color:var(--white);border-color:var(--ink);box-shadow:0 8px 22px rgba(7,16,31,.20)}
+    #archives .arch-chip.is-active .arch-count{color:var(--gold)}
+    /* Section 03 — mosaïque */
+    #archives .arch-out{display:grid;gap:22px}
+    #archives .arch-top{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:22px}
+    #archives .arch-top.two{grid-template-columns:3fr 2fr;grid-template-rows:1fr}
+    #archives .a-card{position:relative;display:block;overflow:hidden;text-decoration:none;color:#fff;min-height:270px;border:1px solid transparent;transition:border-color .25s,box-shadow .25s;background:#0c1a30}
+    #archives .a-card .a-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .55s ease}
+    #archives .a-card:hover .a-img{transform:scale(1.05)}
+    #archives .a-card:hover{border-color:rgba(203,181,131,.65);box-shadow:0 16px 36px rgba(7,16,31,.22)}
+    #archives .a-card .a-body{position:absolute;inset:auto 0 0 0;padding:24px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(to top,rgba(6,10,18,.95) 10%,rgba(6,10,18,.5) 58%,transparent)}
+    #archives .a-eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fff;opacity:.92}
+    #archives .a-eyebrow .genre{color:var(--gold)}
+    #archives .a-title{font-family:"Archivo Black",Inter,system-ui,sans-serif;font-weight:400;font-size:clamp(18px,1.4vw,24px);line-height:1.08;letter-spacing:-.02em;text-transform:uppercase;margin:0}
+    #archives .a-meta{font-size:12px;color:#d7dce6}
+    #archives .a-arrow{position:absolute;top:16px;right:16px;color:#fff;font-size:18px;opacity:.85;transition:transform .25s}
+    #archives .a-card:hover .a-arrow{transform:translate(4px,-4px)}
+    #archives .arch-main{grid-column:1;grid-row:1/span 2;min-height:540px}
+    #archives .arch-top.two .arch-main{grid-row:1;min-height:420px}
+    #archives .arch-sec{grid-column:2}
+    @media(min-width:901px){#archives .arch-sec{min-height:0}}
+    #archives .arch-main .a-title{font-size:clamp(26px,2.6vw,44px)}
+    #archives .arch-rest{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+    #archives .arch-rest .a-card{min-height:300px}
+    #archives .arch-single .a-card{min-height:460px}
+    #archives .arch-empty{padding:64px 0;text-align:center;color:rgba(7,16,31,.55);font-weight:600;font-size:17px}
+    #archives .arch-foot{margin-top:28px}
+    #archives .arch-all-link{display:inline-block;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:12px 22px;transition:background .2s,color .2s}
+    #archives .arch-all-link:hover{background:var(--ink);color:#fff}
+    @media(max-width:900px){
+      #archives .arch-top,#archives .arch-top.two{grid-template-columns:1fr 1fr;grid-template-rows:auto}
+      #archives .arch-main{grid-column:1/-1;grid-row:auto;min-height:360px}
+      #archives .arch-sec{grid-column:auto}
+      #archives .arch-rest{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:600px){
+      #archives .arch-top,#archives .arch-top.two{grid-template-columns:1fr}
+      #archives .arch-main{min-height:300px}
+      #archives .arch-rest{grid-template-columns:1fr}
+      #archives .a-card,#archives .arch-rest .a-card{min-height:270px}
+      #archives .arch-chip{font-size:14px;padding:10px 16px}
+    }
     </style>
     <script>
-    /* Archives — boutons par compétition (uniquement celles ayant des articles), + lien vers l'archive complète. */
+    /* Archives — mosaïque éditoriale des VRAIS articles (Supabase). Filtre par compétition,
+       « Toutes les compétitions » par défaut, ordre chronologique, max 6 avant l'archive complète.
+       Aucune donnée inventée ; mêmes requêtes que le reste du site (aucune modification backend). */
     (function(){
       var SB='https://yubndvqmglttlntkugzm.supabase.co', KEY='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
-      var host=document.getElementById('arch-chips'); if(!host) return;
-      function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+      var host=document.getElementById('arch-chips'), out=document.getElementById('arch-out');
+      if(!host||!out) return;
+      var MAX=6;
+      function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
       function sb(p){ return fetch(SB+'/rest/v1/'+p,{headers:{apikey:KEY,authorization:'Bearer '+KEY,accept:'application/json'}}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}); }
       function effA(a){ return new Date(a.published_at||a.created_at||0).getTime(); }
+      function byEff(x,y){ var d=effA(y)-effA(x); if(d) return d; var c=new Date(y.created_at||0)-new Date(x.created_at||0); if(c) return c; return String(y.id||'').localeCompare(String(x.id||'')); }
+      function metaOf(a){ var m=''; var eff=a.published_at||a.created_at; try{ if(eff) m=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Paris'}).format(new Date(eff)); }catch(e){} if(a.reading_time) m+=(m?' · ':'')+a.reading_time+' min de lecture'; return m; }
       Promise.all([
         sb('articles?select=slug,title,hero_image,hero_alt,reading_time,published_at,created_at,id,competition_id,genre_id&status=eq.published&order=published_at.desc.nullslast,created_at.desc'),
         sb('competitions?select=id,label_fr'),
         sb('editorial_genres?select=id,label_fr')
       ]).then(function(res){
-        var arts=(res[0]||[]).slice().sort(function(x,y){ var d=effA(y)-effA(x); if(d) return d; var c=new Date(y.created_at||0)-new Date(x.created_at||0); if(c) return c; return String(y.id||'').localeCompare(String(x.id||'')); }), comps=res[1]||[], label={}, genre={};
-        comps.forEach(function(c){ label[c.id]=c.label_fr; });
+        var arts=(res[0]||[]).slice().sort(byEff), label={}, genre={};
+        (res[1]||[]).forEach(function(c){ label[c.id]=c.label_fr; });
         (res[2]||[]).forEach(function(g){ genre[g.id]=g.label_fr; });
-        var byId={};
-        arts.forEach(function(a){ var id=a.competition_id; if(!id) return; if(!byId[id]) byId[id]={id:id,label:label[id]||id,count:0,latest:null}; byId[id].count++; if(!byId[id].latest) byId[id].latest=a; });
-        var list=Object.keys(byId).map(function(k){return byId[k];}).sort(function(a,b){return String(a.label).localeCompare(String(b.label),'fr');});
-        if(!list.length) return;
-        function metaOf(a){ var m=''; var eff=a.published_at||a.created_at; try{ if(eff) m=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric',timeZone:'Europe/Paris'}).format(new Date(eff)); }catch(e){} if(a.reading_time) m+=(m?' · ':'')+a.reading_time+' min de lecture'; return m; }
-        function catOf(a){ return [label[a.competition_id],genre[a.genre_id]].filter(Boolean).join(' · ')||'Article'; }
-        var out=list.map(function(c){ var L=c.latest||{}; return '<a class="arch-chip" href="/articles/?competition='+esc(c.id)+'" data-archive-filter data-title="'+esc(L.title||'')+'" data-image="'+esc(L.hero_image||'')+'" data-eyebrow="'+esc(L.title?catOf(L):'')+'" data-meta="'+esc(L.title?metaOf(L):'')+'" data-href="'+esc(L.slug?('/articles/'+L.slug):'/articles/?competition='+c.id)+'">'+esc(c.label)+'<span class="arch-count">'+c.count+'</span></a>'; }).join('');
-        out += '<a class="arch-chip arch-chip--all" href="/articles/">Toutes les compétitions →</a>';
-        host.innerHTML = out;
-        var preview=document.querySelector('[data-archive-preview]');
-        var filters=[].slice.call(host.querySelectorAll('[data-archive-filter]'));
-        function activate(f){
-          if(!f||!preview) return;
-          filters.forEach(function(it){ var on=it===f; it.classList.toggle('is-active',on); it.setAttribute('aria-current',on?'true':'false'); });
-          var img=preview.querySelector('[data-preview-img]');
-          if(f.getAttribute('data-image')){ img.src=f.getAttribute('data-image'); img.alt=f.getAttribute('data-title')||''; img.parentNode.style.display=''; }
-          else { img.removeAttribute('src'); img.parentNode.style.display='none'; }
-          preview.querySelector('[data-preview-eyebrow]').textContent=f.getAttribute('data-eyebrow')||'';
-          preview.querySelector('[data-preview-title]').textContent=f.getAttribute('data-title')||'';
-          preview.querySelector('[data-preview-meta]').textContent=f.getAttribute('data-meta')||'';
-          if(f.getAttribute('data-href')) preview.setAttribute('href',f.getAttribute('data-href'));
-          preview.hidden=false;
+        if(!arts.length){ out.innerHTML='<div class="arch-empty">Aucun article publié pour le moment.</div>'; return; }
+        arts.forEach(function(a){ a._comp=label[a.competition_id]||''; a._genre=genre[a.genre_id]||''; });
+        var counts={}, idLabel={};
+        arts.forEach(function(a){ var id=a.competition_id; if(!id) return; counts[id]=(counts[id]||0)+1; idLabel[id]=a._comp||id; });
+        var comps=Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a] || String(idLabel[a]).localeCompare(String(idLabel[b]),'fr'); });
+        var state={filter:'all'};
+        function card(a,cls){
+          var eyeHtml=esc(a._comp||'Article')+(a._genre?' · <span class="genre">'+esc(a._genre)+'</span>':'');
+          var img=a.hero_image||'';
+          return '<a class="a-card '+cls+'" href="/articles/'+esc(a.slug)+'">'
+            +(img?'<img class="a-img" src="'+esc(img)+'" alt="'+esc(a.hero_alt||a.title)+'" loading="lazy">':'')
+            +'<span class="a-arrow" aria-hidden="true">↗</span>'
+            +'<div class="a-body"><span class="a-eyebrow">'+eyeHtml+'</span>'
+            +'<h3 class="a-title">'+esc(a.title)+'</h3>'
+            +'<div class="a-meta">'+esc(metaOf(a))+'</div></div></a>';
         }
-        filters.forEach(function(f){ f.addEventListener('mouseenter',function(){activate(f);}); f.addEventListener('focus',function(){activate(f);}); });
-        if(filters.length) activate(filters[0]);
-      });})();
+        function listFor(f){ var l=(f==='all')?arts:arts.filter(function(a){return a.competition_id===f;}); return l.slice(0,MAX); }
+        function renderMosaic(){
+          var l=listFor(state.filter);
+          if(!l.length){ out.innerHTML='<div class="arch-empty">Aucun article publié dans cette compétition.</div>'; return; }
+          if(l.length===1){ out.innerHTML='<div class="arch-single">'+card(l[0],'main')+'</div>'; return; }
+          var two=(l.length===2), h='<div class="arch-top'+(two?' two':'')+'">'+card(l[0],'arch-main main');
+          l.slice(1,3).forEach(function(a){ h+=card(a,'arch-sec'); }); h+='</div>';
+          var rest=l.slice(3,MAX); if(rest.length){ h+='<div class="arch-rest">'; rest.forEach(function(a){ h+=card(a,''); }); h+='</div>'; }
+          out.innerHTML=h;
+        }
+        function renderChips(){
+          var h='<a class="arch-chip arch-chip--all'+(state.filter==='all'?' is-active':'')+'" href="/articles/" data-f="all">Toutes les compétitions <span class="arch-count">'+arts.length+'</span></a>';
+          comps.forEach(function(id){ h+='<a class="arch-chip'+(state.filter===id?' is-active':'')+'" href="/articles/?competition='+esc(id)+'" data-f="'+esc(id)+'">'+esc(idLabel[id])+' <span class="arch-count">'+counts[id]+'</span></a>'; });
+          host.innerHTML=h;
+          [].slice.call(host.querySelectorAll('.arch-chip')).forEach(function(ch){ ch.addEventListener('click',function(e){ e.preventDefault(); state.filter=ch.getAttribute('data-f'); renderChips(); renderMosaic(); }); });
+        }
+        renderChips(); renderMosaic();
+      });
+    })();
     </script>
 
     <section class="section" id="videos">
@@ -539,9 +609,9 @@
           <span class="kicker" data-cms="magazine.surtitre">Le magazine · N°12</span>
           <h2 data-cms="magazine.titre">Un numéro qui se feuillette</h2>
           <p data-cms="magazine.texte">Chaque numéro est mis en page comme une revue, puis publié ici en lecture page à page. Sur ordinateur, la double page. Sur téléphone, une page à la fois. Aucune application à installer.</p>
-          <div class="cta-row"><a class="btn primary" style="border-color:white;background:white;color:var(--ink)" data-cms="magazine.bouton" data-cms-href="magazine.lien" href="lecteur.html?pdf=numeros/n12.pdf">Ouvrir le numéro 12</a></div>
+          <div class="cta-row"><a class='btn primary' data-cms-href='magazine.lien' data-cms='magazine.bouton' href='/lecteur?pdf=numeros/n12.pdf' style='border-color:white;background:white;color:var(--ink)'>Ouvrir le numéro 12</a></div>
         </div>
-        <a class="issue-cover" data-cms-href="magazine.lien" href="lecteur.html?pdf=numeros/n12.pdf" aria-label="Ouvrir le numéro 12">
+        <a aria-label='Ouvrir le numéro 12' class='issue-cover' data-cms-href='magazine.lien' href='/lecteur?pdf=numeros/n12.pdf'>
           <span data-cms="magazine.pastille">N°12</span>
           <img data-cms-src="magazine.couverture" src="images/couverture-n12.jpg" alt="Couverture du numéro">
         </a>
