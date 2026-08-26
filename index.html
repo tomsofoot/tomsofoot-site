@@ -599,157 +599,221 @@
     </script>
 
     <section class="section" id="videos">
-      <div class="section-head" data-reveal><div><span class="kicker section-index">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne →</a></div>
+      <div class="section-head" data-reveal><div><span class="kicker section-index">La chaîne</span><h2>Les documentaires</h2></div><a class="see-all" href="https://www.youtube.com/@Tomso-Foot" target="_blank" rel="noopener">Voir la chaîne &rarr;</a></div>
       <div id="docs-root" class="docs" aria-live="polite"></div>
     </section>
     <style id="docs-css">
-      /* ===== Section « Les documentaires » — reconstruite (données YouTube réelles) ===== */
-      #videos{--max:2004px}
+      /* ===== Section « Les documentaires » — direction ultra-premium + carrousel (donnees YouTube reelles) ===== */
+      #videos{--max:2004px;--nav:#0b1730;--graphite:rgba(255,255,255,.09);--cold:rgba(255,255,255,.15)}
       #videos .section-index{font-size:clamp(12px,1vw,16px);letter-spacing:.18em}
-      .docs{display:grid;gap:22px}
-      /* Grande carte 01 — DOCUMENTAIRE À LA UNE */
-      .doc-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
-        min-height:420px;border-radius:16px;overflow:hidden;text-decoration:none;color:#fff;
-        background:linear-gradient(180deg,#0a1330,#070f24);border:1px solid rgba(255,255,255,.06);
-        transition:box-shadow .3s,border-color .3s}
-      .doc-hero:hover,.doc-hero:focus-visible{outline:none;border-color:rgba(203,181,131,.45);box-shadow:0 22px 50px rgba(6,12,30,.45)}
-      .doc-num{position:absolute;left:clamp(14px,2.2vw,40px);top:clamp(6px,1.6vw,26px);z-index:1;
-        font-family:"Archivo Black",Inter,sans-serif;font-size:clamp(120px,15vw,230px);line-height:.8;
-        color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.10);pointer-events:none;user-select:none}
-      .doc-hero-body{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;
-        gap:16px;padding:clamp(24px,3vw,52px);max-width:640px}
-      .doc-eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--red);
-        display:inline-flex;align-items:center;gap:12px}
+      .docs{display:grid;gap:24px;min-height:120px}
+      /* Grande carte cinematographique */
+      .doc-hero{position:relative;display:grid;align-items:stretch;min-height:clamp(340px,42vw,468px);border-radius:18px;overflow:hidden;
+        text-decoration:none;color:#fff;background:#070f24;border:1px solid var(--graphite);
+        box-shadow:0 30px 60px -24px rgba(4,9,22,.75);transition:box-shadow .22s ease,border-color .22s ease,opacity .2s ease}
+      .doc-hero.is-swap{opacity:0}
+      .doc-hero:hover,.doc-hero:focus-visible{outline:none;border-color:rgba(203,181,131,.42);box-shadow:0 36px 72px -22px rgba(4,9,22,.82)}
+      .doc-hero-media{position:absolute;inset:0;z-index:0;overflow:hidden}
+      .doc-hero-media img{width:100%;height:100%;object-fit:cover;object-position:center 20%;transition:transform .5s ease}
+      .doc-hero:hover .doc-hero-media img{transform:scale(1.035)}
+      .doc-hero-media.no-img{background:linear-gradient(135deg,#12213f,#070f24)}
+      .doc-hero-grad{position:absolute;inset:0;background:linear-gradient(90deg,#060d1f 0%,rgba(6,12,28,.94) 27%,rgba(6,12,28,.56) 54%,rgba(6,12,28,.12) 100%)}
+      .doc-hero-mist{position:absolute;inset:0;pointer-events:none;background:radial-gradient(130% 90% at 12% 32%,rgba(8,15,33,.4),transparent 62%)}
+      .doc-num{position:absolute;left:clamp(14px,2vw,34px);top:clamp(0px,.8vw,12px);z-index:1;
+        font-family:"Archivo Black",Inter,sans-serif;font-size:clamp(120px,15vw,228px);line-height:.8;
+        color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.09);pointer-events:none;user-select:none}
+      .doc-hero-body{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:15px;padding:clamp(26px,3vw,52px);max-width:min(620px,66%)}
+      .doc-eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--red);display:inline-flex;align-items:center;gap:12px}
       .doc-eyebrow::after{content:"";width:34px;height:2px;background:var(--red);opacity:.9}
-      .doc-hero-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;letter-spacing:-.01em;
-        text-transform:uppercase;line-height:1.02;margin:0;font-size:clamp(26px,3vw,46px)}
-      .doc-meta{display:flex;flex-wrap:wrap;align-items:center;gap:18px;color:#c9d3e6;font-size:14px;font-weight:600}
+      .doc-hero-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;letter-spacing:-.015em;text-transform:uppercase;line-height:1.02;margin:0;font-size:clamp(24px,3vw,44px);text-shadow:0 2px 18px rgba(3,8,20,.55)}
+      .doc-meta{display:flex;flex-wrap:wrap;align-items:center;gap:16px;color:#d3dcec;font-size:14px;font-weight:600}
       .doc-meta span{display:inline-flex;align-items:center;gap:7px}
       .doc-meta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;opacity:.85}
       .doc-badge{color:var(--red);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
-      .doc-cta{display:flex;align-items:center;gap:16px;margin-top:6px}
-      .doc-play{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;
-        border:1.5px solid rgba(255,255,255,.55);flex:0 0 auto;transition:background .2s,border-color .2s,transform .2s}
+      .doc-badge[hidden]{display:none}
+      .doc-cta{display:flex;align-items:center;gap:16px;margin-top:8px}
+      .doc-play{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);flex:0 0 auto;transition:background .2s,border-color .2s,transform .2s}
       .doc-play svg{width:18px;height:18px;fill:#fff;margin-left:2px}
-      .doc-hero:hover .doc-play{background:var(--red);border-color:var(--red);transform:scale(1.05)}
-      .doc-watch{display:inline-flex;align-items:center;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
-        font-size:13px;color:#fff;border:2px solid rgba(255,255,255,.6);border-radius:999px;padding:13px 22px;transition:background .2s,color .2s,border-color .2s}
+      .doc-hero:hover .doc-play{background:var(--red);border-color:var(--red);transform:scale(1.06)}
+      .doc-watch{display:inline-flex;align-items:center;font-weight:800;letter-spacing:.09em;text-transform:uppercase;font-size:13px;color:#fff;border:2px solid rgba(255,255,255,.62);border-radius:999px;padding:13px 22px;transition:background .2s,color .2s,border-color .2s}
       .doc-hero:hover .doc-watch{background:#fff;color:var(--ink);border-color:#fff}
-      .doc-hero-media{position:relative;overflow:hidden}
-      .doc-hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
-      .doc-hero:hover .doc-hero-media img{transform:scale(1.04)}
-      .doc-hero-grad{position:absolute;inset:0;background:linear-gradient(90deg,#070f24 2%,rgba(7,15,36,.55) 32%,rgba(7,15,36,0) 70%)}
-      /* Cartes secondaires 02–04 */
-      .doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-      .doc-card{position:relative;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;text-decoration:none;
-        background:#0b1730;border:1px solid rgba(255,255,255,.06);transition:transform .25s,box-shadow .25s,border-color .25s}
-      .doc-card:hover,.doc-card:focus-visible{outline:none;transform:translateY(-3px);border-color:rgba(203,181,131,.5);box-shadow:0 16px 34px rgba(6,12,30,.4)}
+      /* Cartes secondaires */
+      .doc-rail{position:relative}
+      .doc-track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 44px)/3);gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:10px 2px 14px}
+      .doc-track::-webkit-scrollbar{display:none}
+      .doc-card{position:relative;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;text-align:left;text-decoration:none;
+        background:var(--nav);border:1px solid var(--graphite);cursor:pointer;scroll-snap-align:start;font:inherit;color:inherit;padding:0;
+        box-shadow:0 16px 30px -20px rgba(4,9,22,.7);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+      .doc-card:hover{transform:translateY(-3px);border-color:rgba(203,181,131,.4);box-shadow:0 22px 42px -20px rgba(4,9,22,.82)}
+      .doc-card:focus-visible{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(203,181,131,.5)}
+      .doc-card.is-active{border-color:rgba(203,181,131,.7)}
       .doc-card-media{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0c1a30}
-      .doc-card-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
-      .doc-card:hover .doc-card-media img{transform:scale(1.06)}
-      .doc-card-body{position:relative;flex:1;display:flex;flex-direction:column;gap:8px;padding:20px 20px 22px}
-      .doc-cnum{position:absolute;right:14px;top:-6px;font-family:"Archivo Black",Inter,sans-serif;font-size:64px;line-height:1;
-        color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.12);pointer-events:none}
-      .doc-card-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:-.01em;
-        line-height:1.1;color:#fff;font-size:clamp(15px,1.15vw,18px);margin:0;padding-right:54px}
+      .doc-card-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}
+      .doc-card:hover .doc-card-media img{transform:scale(1.05)}
+      .doc-card-media.no-img{background:linear-gradient(135deg,#12213f,#0a1526)}
+      .doc-card-body{position:relative;flex:1;display:flex;flex-direction:column;gap:8px;padding:18px 18px 20px}
+      .doc-cnum{position:absolute;right:12px;top:-10px;font-family:"Archivo Black",Inter,sans-serif;font-size:64px;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.11);pointer-events:none}
+      .doc-card.is-active .doc-cnum{-webkit-text-stroke-color:rgba(203,181,131,.5)}
+      .doc-card-title{font-family:"Archivo Black",Inter,sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:-.01em;line-height:1.12;color:#fff;font-size:clamp(14px,1.05vw,17px);margin:0;padding-right:50px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
       .doc-cmeta{display:flex;flex-wrap:wrap;gap:14px;color:#aeb9d0;font-size:12.5px;font-weight:600;margin-top:auto}
       .doc-cmeta span{display:inline-flex;align-items:center;gap:6px}
       .doc-cmeta svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;opacity:.85}
-      .doc-arrow{position:absolute;right:16px;bottom:16px;color:#fff;opacity:.8;transition:transform .25s,opacity .25s}
-      .doc-arrow svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
-      .doc-card:hover .doc-arrow{transform:translateX(4px);opacity:1}
-      .doc-card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--red);transform:scaleX(.28);transform-origin:left;transition:transform .3s}
-      .doc-card:hover::after,.doc-card:focus-visible::after{transform:scaleX(1)}
-      /* Indicateur 01 / 04 + barre */
-      .doc-progress{display:flex;align-items:center;gap:18px;margin-top:6px}
-      .doc-pos{font-family:"Archivo Black",Inter,sans-serif;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
-      .doc-bar{position:relative;flex:1;height:2px;background:rgba(7,16,31,.14);border-radius:2px;overflow:hidden}
-      .doc-bar>span{position:absolute;left:0;top:0;bottom:0;background:var(--red);border-radius:2px;transition:width .3s,left .3s}
-      /* ---- Responsive ---- */
+      .doc-card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+      .doc-card.is-active::after{transform:scaleX(1)}
+      /* Controles : indicateur + barre (gauche), capsule fleches (droite) */
+      .doc-controls{display:flex;align-items:center;gap:18px;margin-top:4px}
+      .doc-pos{font-family:"Archivo Black",Inter,sans-serif;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;flex:0 0 auto}
+      .doc-bar{position:relative;flex:1 1 auto;min-width:40px;height:2px;background:rgba(7,16,31,.16);border-radius:2px}
+      .doc-bar-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--red);border-radius:2px;transition:width .25s ease}
+      .doc-bar-dot{position:absolute;top:50%;left:0;width:9px;height:9px;border-radius:50%;background:var(--red);transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(239,51,64,.18);transition:left .25s ease}
+      .doc-cap{display:inline-flex;align-items:stretch;flex:0 0 auto;background:var(--nav);border:1px solid var(--cold);border-radius:999px;overflow:hidden;box-shadow:0 12px 24px -16px rgba(4,9,22,.8)}
+      .doc-cap-btn{display:grid;place-items:center;width:52px;height:44px;background:transparent;border:0;color:#c6d0e2;cursor:pointer;transition:color .2s,background .2s}
+      .doc-cap-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2}
+      .doc-cap-btn:hover:not(:disabled){color:#fff;background:rgba(239,51,64,.16)}
+      .doc-cap-btn:focus-visible{outline:none;color:#fff;box-shadow:inset 0 0 0 2px var(--red)}
+      .doc-cap-btn:active:not(:disabled){color:var(--red)}
+      .doc-cap-btn:disabled{opacity:.32;cursor:default}
+      .doc-cap-sep{width:1px;background:var(--cold);margin:11px 0}
+      /* Chargement / erreur */
+      .doc-skeleton{display:grid;gap:24px}
+      .doc-sk-hero{height:clamp(340px,42vw,468px);border-radius:18px;background:#0c1730;position:relative;overflow:hidden}
+      .doc-sk-row{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+      .doc-sk-card{height:300px;border-radius:14px;background:#0c1730;position:relative;overflow:hidden}
+      .doc-sk-hero::after,.doc-sk-card::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);transform:translateX(-100%);animation:docSk 1.3s infinite}
+      @keyframes docSk{100%{transform:translateX(100%)}}
+      .doc-error{padding:40px 24px;text-align:center;color:rgba(7,16,31,.6);font-weight:600;border:1px solid rgba(7,16,31,.1);border-radius:14px}
+      /* Responsive */
       @media(max-width:1000px){
-        .doc-hero{grid-template-columns:1fr;min-height:0}
-        .doc-hero-media{order:-1;aspect-ratio:16/9}
-        .doc-hero-media img{position:absolute}
-        .doc-hero-grad{background:linear-gradient(0deg,#070f24 6%,rgba(7,15,36,.35) 45%,rgba(7,15,36,0) 75%)}
-        .doc-grid{grid-template-columns:1fr 1fr}
+        .doc-hero{min-height:clamp(420px,64vw,520px)}
+        .doc-hero-grad{background:linear-gradient(360deg,#060d1f 4%,rgba(6,12,28,.88) 34%,rgba(6,12,28,.32) 66%,rgba(6,12,28,.06) 100%)}
+        .doc-hero-body{justify-content:flex-end;max-width:100%}
+        .doc-num{font-size:clamp(96px,22vw,150px)}
+        .doc-track{grid-auto-columns:calc((100% - 22px)/2)}
+        .doc-sk-row{grid-template-columns:repeat(2,1fr)}
       }
       @media(max-width:600px){
-        .doc-hero-title{font-size:clamp(22px,7vw,30px)}
-        .doc-num{font-size:96px;-webkit-text-stroke-width:1.5px}
-        /* Cartes secondaires en carrousel horizontal (scroll-snap), une carte lisible par écran */
-        .doc-grid{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:86%;
-          overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
-          scrollbar-width:none;padding-bottom:4px;margin:0 calc(var(--pad)*-1);padding-left:var(--pad);padding-right:var(--pad)}
-        .doc-grid::-webkit-scrollbar{display:none}
-        .doc-card{scroll-snap-align:start}
+        .doc-hero-title{font-size:clamp(21px,6.4vw,28px)}
+        .doc-track{grid-auto-columns:84%}
+        .doc-sk-row{grid-template-columns:1fr}
+        .doc-cap-btn{width:48px}
         .doc-watch,.doc-play{min-height:44px}
-        .doc-play{width:48px;height:48px}
+      }
+      @media (prefers-reduced-motion: reduce){
+        .doc-hero,.doc-card,.doc-hero-media img,.doc-card-media img,.doc-bar-fill,.doc-bar-dot,.doc-card::after{transition:none!important;animation:none!important}
+        .doc-track{scroll-behavior:auto!important}
+        .doc-hero.is-swap{opacity:1!important}
+        .doc-sk-hero::after,.doc-sk-card::after{animation:none!important}
       }
     </style>
     <script>
     (function(){
       var root=document.getElementById('docs-root'); if(!root) return;
       var ENDPOINT='/.netlify/functions/youtube-documentaries';
+      var RM=!!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
       var EYE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
       var CLOCK='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
       var PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
-      var ARROW='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-      function metaSpans(v){
-        var h='';
-        if(v.views) h+='<span>'+EYE+esc(v.views)+'</span>';
-        if(v.duration) h+='<span>'+CLOCK+esc(v.duration)+'</span>';
-        return h;
-      }
-      function hero(v){
-        return '<a class="doc-hero" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
-          +'<span class="doc-num" aria-hidden="true">01</span>'
-          +'<div class="doc-hero-body">'
-          +'<span class="doc-eyebrow">Documentaire à la une</span>'
-          +'<h3 class="doc-hero-title">'+esc(v.title)+'</h3>'
-          +'<div class="doc-meta">'+metaSpans(v)+'<span class="doc-badge">Le plus vu</span></div>'
-          +'<div class="doc-cta"><span class="doc-play">'+PLAY+'</span><span class="doc-watch">Regarder le film</span></div>'
-          +'</div>'
-          +'<div class="doc-hero-media">'+(v.thumbnail?'<img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy">':'')+'<span class="doc-hero-grad"></span></div>'
-          +'</a>';
-      }
-      function card(v,label){
-        return '<a class="doc-card" href="'+esc(v.url)+'" target="_blank" rel="noopener">'
-          +'<div class="doc-card-media">'+(v.thumbnail?'<img src="'+esc(v.thumbnail)+'" alt="'+esc(v.title)+'" loading="lazy">':'')+'</div>'
-          +'<div class="doc-card-body"><span class="doc-cnum" aria-hidden="true">'+label+'</span>'
-          +'<h4 class="doc-card-title">'+esc(v.title)+'</h4>'
-          +'<div class="doc-cmeta">'+metaSpans(v)+'</div>'
-          +'<span class="doc-arrow">'+ARROW+'</span></div></a>';
-      }
+      var CHEVL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+      var CHEVR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
       function pad2(n){ return (n<10?'0':'')+n; }
+      function metaSpans(v){ var h=''; if(v.views) h+='<span>'+EYE+esc(v.views)+'</span>'; if(v.duration) h+='<span>'+CLOCK+esc(v.duration)+'</span>'; return h; }
+      root.innerHTML='<div class="doc-skeleton" aria-hidden="true"><div class="doc-sk-hero"></div><div class="doc-sk-row"><div class="doc-sk-card"></div><div class="doc-sk-card"></div><div class="doc-sk-card"></div></div></div>';
       fetch(ENDPOINT,{headers:{accept:'application/json'}})
         .then(function(r){ return r.ok?r.json():null; })
         .then(function(d){
-          if(!d||!d.ok||!Array.isArray(d.videos)||!d.videos.length){ root.style.display='none'; return; }
-          var vs=d.videos.slice(0,4);
-          var html=hero(vs[0]);
-          if(vs.length>1){
-            html+='<div class="doc-grid" id="docs-grid">';
-            for(var i=1;i<vs.length;i++) html+=card(vs[i], pad2(i+1));
-            html+='</div>';
+          if(!d||!d.ok||!Array.isArray(d.videos)||!d.videos.length){ root.innerHTML='<div class="doc-error">Les documentaires ne sont pas disponibles pour le moment.</div>'; return; }
+          var vs=d.videos, total=vs.length, state={sel:0,t:0};
+          root.innerHTML=
+            '<a class="doc-hero" id="doc-hero" href="#" target="_blank" rel="noopener">'
+            +'<div class="doc-hero-media" id="doc-hero-media"><img id="doc-hero-img" src="" alt=""><span class="doc-hero-grad"></span><span class="doc-hero-mist"></span></div>'
+            +'<span class="doc-num" id="doc-hero-num" aria-hidden="true">01</span>'
+            +'<div class="doc-hero-body">'
+            +'<span class="doc-eyebrow">Documentaire a la une</span>'
+            +'<h3 class="doc-hero-title" id="doc-hero-title"></h3>'
+            +'<div class="doc-meta" id="doc-hero-meta"></div>'
+            +'<div class="doc-cta"><span class="doc-play">'+PLAY+'</span><span class="doc-watch">Regarder le film</span></div>'
+            +'</div></a>'
+            +'<div class="doc-rail"><div class="doc-track" id="doc-track" role="group" aria-label="Documentaires de la playlist, classes par nombre de vues"></div></div>'
+            +'<div class="doc-controls">'
+            +'<span class="doc-pos" id="doc-pos" aria-live="polite">01 / '+pad2(total)+'</span>'
+            +'<span class="doc-bar" aria-hidden="true"><span class="doc-bar-fill" id="doc-bar-fill"></span><span class="doc-bar-dot" id="doc-bar-dot"></span></span>'
+            +'<div class="doc-cap">'
+            +'<button type="button" class="doc-cap-btn" id="doc-prev" aria-label="Documentaire precedent" aria-controls="doc-track">'+CHEVL+'</button>'
+            +'<span class="doc-cap-sep" aria-hidden="true"></span>'
+            +'<button type="button" class="doc-cap-btn" id="doc-next" aria-label="Documentaire suivant" aria-controls="doc-track">'+CHEVR+'</button>'
+            +'</div></div>';
+          var hero=document.getElementById('doc-hero'), heroMedia=document.getElementById('doc-hero-media'),
+              heroImg=document.getElementById('doc-hero-img'), heroNum=document.getElementById('doc-hero-num'),
+              heroTitle=document.getElementById('doc-hero-title'), heroMeta=document.getElementById('doc-hero-meta'),
+              track=document.getElementById('doc-track'), pos=document.getElementById('doc-pos'),
+              fill=document.getElementById('doc-bar-fill'), dot=document.getElementById('doc-bar-dot'),
+              prev=document.getElementById('doc-prev'), next=document.getElementById('doc-next');
+          heroImg.addEventListener('error',function(){ heroMedia.classList.add('no-img'); heroImg.style.visibility='hidden'; });
+          var cards=vs.map(function(v,i){
+            var b=document.createElement('button');
+            b.type='button'; b.className='doc-card'; b.setAttribute('data-i',i); b.tabIndex=(i===0?0:-1);
+            b.setAttribute('aria-label','Documentaire n '+pad2(i+1)+' : '+v.title+(v.views?', '+v.views:'')+'. Afficher dans la carte principale.');
+            b.setAttribute('aria-pressed', i===0?'true':'false');
+            var hasImg=!!v.thumbnail;
+            b.innerHTML='<div class="doc-card-media'+(hasImg?'':' no-img')+'">'+(hasImg?'<img src="'+esc(v.thumbnail)+'" alt="" loading="lazy">':'')+'</div>'
+              +'<div class="doc-card-body"><span class="doc-cnum" aria-hidden="true">'+pad2(i+1)+'</span>'
+              +'<h4 class="doc-card-title">'+esc(v.title)+'</h4>'
+              +'<div class="doc-cmeta">'+metaSpans(v)+'</div></div>';
+            var im=b.querySelector('img');
+            if(im) im.addEventListener('error',function(){ var m=b.querySelector('.doc-card-media'); m.classList.add('no-img'); im.style.display='none'; });
+            b.addEventListener('click',function(){ select(i,false); });
+            track.appendChild(b);
+            return b;
+          });
+          function fillHero(v,i){
+            heroNum.textContent=pad2(i+1);
+            heroTitle.textContent=v.title||'';
+            heroMeta.innerHTML=metaSpans(v)+'<span class="doc-badge"'+(i===0?'':' hidden')+'>Le plus vu</span>';
+            heroMedia.classList.remove('no-img'); heroImg.style.visibility='';
+            if(v.thumbnail){ heroImg.src=v.thumbnail; } else { heroImg.removeAttribute('src'); heroMedia.classList.add('no-img'); heroImg.style.visibility='hidden'; }
+            heroImg.alt=v.title||'';
+            hero.setAttribute('href', v.url || ('https://www.youtube.com/watch?v='+v.id));
+            hero.setAttribute('aria-label','Regarder « '+(v.title||'')+' » sur YouTube');
           }
-          var total=vs.length;
-          html+='<div class="doc-progress"><span class="doc-pos" id="docs-pos">01 / '+pad2(total)+'</span>'
-              +'<span class="doc-bar"><span id="docs-bar" style="width:'+(100/total)+'%"></span></span></div>';
-          root.innerHTML=html;
-          // Indicateur réel : suit le carrousel des cartes secondaires (mobile)
-          var grid=document.getElementById('docs-grid'), pos=document.getElementById('docs-pos'), bar=document.getElementById('docs-bar');
-          if(grid&&pos&&bar){
-            grid.addEventListener('scroll',function(){
-              var cards=grid.children, best=0, bestd=Infinity, gl=grid.getBoundingClientRect().left;
-              for(var i=0;i<cards.length;i++){ var d=Math.abs(cards[i].getBoundingClientRect().left-gl); if(d<bestd){bestd=d;best=i;} }
-              var current=best+2; // 01 = hero ; le 1er de la grille = 02
-              pos.textContent=pad2(current)+' / '+pad2(total);
-              bar.style.width=(100/total)+'%'; bar.style.left=((current-1)*100/total)+'%';
-            },{passive:true});
+          function updateProgress(i){ var p=((i+1)/total)*100; pos.textContent=pad2(i+1)+' / '+pad2(total); fill.style.width=p+'%'; dot.style.left=p+'%'; }
+          function updateActive(i){ cards.forEach(function(c,ci){ var on=ci===i; c.classList.toggle('is-active',on); c.setAttribute('aria-pressed',on?'true':'false'); }); }
+          function setRoving(i){ cards.forEach(function(c,ci){ c.tabIndex=(ci===i?0:-1); }); }
+          function scrollIntoView(i){
+            var c=cards[i]; if(!c) return;
+            var cl=c.offsetLeft, cw=c.offsetWidth, sl=track.scrollLeft, vw=track.clientWidth, beh=RM?'auto':'smooth';
+            if(cl<sl) track.scrollTo({left:Math.max(0,cl-8),behavior:beh});
+            else if(cl+cw>sl+vw) track.scrollTo({left:cl+cw-vw+8,behavior:beh});
           }
+          function select(i,fromKey){
+            if(i<0||i>=total) return;
+            state.sel=i;
+            if(RM){ fillHero(vs[i],i); }
+            else { hero.classList.add('is-swap'); window.clearTimeout(state.t); state.t=window.setTimeout(function(){ fillHero(vs[i],i); hero.classList.remove('is-swap'); },190); }
+            updateActive(i); updateProgress(i); setRoving(i); scrollIntoView(i);
+            if(fromKey){ var c=cards[i]; if(c) c.focus(); }
+          }
+          function stepPx(){ if(cards[1]) return cards[1].offsetLeft-cards[0].offsetLeft; return (cards[0]?cards[0].offsetWidth:0)+22; }
+          function step(dir){ track.scrollBy({left:dir*stepPx(),behavior:RM?'auto':'smooth'}); }
+          function updateArrows(){ var max=track.scrollWidth-track.clientWidth; prev.disabled=track.scrollLeft<=4; next.disabled=track.scrollLeft>=max-4; }
+          prev.addEventListener('click',function(){ step(-1); });
+          next.addEventListener('click',function(){ step(1); });
+          track.addEventListener('scroll',updateArrows,{passive:true});
+          window.addEventListener('resize',function(){ updateArrows(); });
+          track.addEventListener('keydown',function(e){
+            var i=cards.indexOf(document.activeElement); if(i<0) return;
+            var n=null;
+            if(e.key==='ArrowRight'||e.key==='ArrowDown') n=Math.min(total-1,i+1);
+            else if(e.key==='ArrowLeft'||e.key==='ArrowUp') n=Math.max(0,i-1);
+            else if(e.key==='Home') n=0;
+            else if(e.key==='End') n=total-1;
+            else return;
+            e.preventDefault(); setRoving(n); cards[n].focus(); scrollIntoView(n);
+          });
+          fillHero(vs[0],0); updateActive(0); updateProgress(0); track.scrollLeft=0; updateArrows();
+          window.setTimeout(updateArrows,350);
         })
-        .catch(function(){ root.style.display='none'; });
+        .catch(function(){ root.innerHTML='<div class="doc-error">Les documentaires ne sont pas disponibles pour le moment.</div>'; });
     })();
     </script>
 
