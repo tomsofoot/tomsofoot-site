@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Régie — Automatisation X · TomsoFoot</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0b1a33;--navy:#071426;--panel:#0d1f3d;--panel-2:#0a1a34;--red:#ff334d;--muted:#8ba0be;
+    --line:rgba(140,170,220,.18);--line-2:rgba(140,170,220,.10);--field:#0c1730;--white:#eef4fc;
+    --xblack:#15202b;--ok:#38d39f;--ok-bg:rgba(56,211,159,.14);--warn:#ffb454;--warn-bg:rgba(255,180,84,.14);
+    --err:#ff6b7a;--err-bg:rgba(255,107,122,.14)}
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(255,51,77,.10),transparent 60%),
+      var(--navy);
+    color:var(--white);font-family:"Inter",system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:#9fc2ff}
+  h1,h2,h3,.k,.brand{font-family:"Barlow Condensed","Inter",sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 18px 90px}
+
+  /* Topbar */
+  .top{display:flex;align-items:center;gap:14px;padding:10px 0 20px;border-bottom:1px solid var(--line);margin-bottom:26px;flex-wrap:wrap}
+  .brand{font-family:"Archivo Black";font-style:italic;font-size:20px;letter-spacing:.01em}
+  .brand b{color:var(--red)}
+  .crumb{color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12.5px}
+  .top .sp{flex:1}
+  .back{color:var(--muted);text-decoration:none;font-weight:600;font-size:14px}
+  .back:hover{color:var(--white)}
+
+  .head h1{font-size:clamp(28px,5vw,40px);font-weight:800;text-transform:uppercase;letter-spacing:.01em;margin:6px 0 6px;line-height:1}
+  .head .sub{color:var(--muted);max-width:60ch;margin:0}
+  .xbadge{display:inline-flex;align-items:center;justify-content:center;background:var(--xblack);color:#fff;
+    width:30px;height:30px;border-radius:8px;font-weight:800;vertical-align:middle}
+
+  /* Layout */
+  .grid{display:grid;gap:16px;margin-top:26px}
+  @media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);
+    border-radius:16px;padding:20px 22px}
+  .card h2{font-size:15px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 14px;font-weight:700}
+  .card h2 .n{color:var(--red)}
+
+  .pill{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:12.5px;padding:5px 12px;border-radius:999px}
+  .pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+  .pill.ok{color:var(--ok);background:var(--ok-bg)}
+  .pill.warn{color:var(--warn);background:var(--warn-bg)}
+  .pill.err{color:var(--err);background:var(--err-bg)}
+  .pill.off{color:var(--muted);background:rgba(140,170,220,.12)}
+
+  .btn{appearance:none;border:1px solid var(--line);background:rgba(140,170,220,.08);color:var(--white);
+    font-family:"Barlow Condensed";font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:14px;
+    padding:11px 18px;border-radius:11px;cursor:pointer;transition:.15s}
+  .btn:hover{border-color:rgba(140,170,220,.4)}
+  .btn--primary{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 8px 20px rgba(255,51,77,.28)}
+  .btn--primary:hover{filter:brightness(1.06)}
+  .btn--x{background:var(--xblack);border-color:#2b3946;color:#fff}
+  .btn--ghost{background:none}
+  .btn--danger{color:var(--err);border-color:rgba(255,107,122,.4)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.sm{padding:7px 12px;font-size:12.5px;border-radius:9px}
+
+  /* Account */
+  .acc{display:flex;align-items:center;gap:14px}
+  .acc .av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--red),#0b1a33);flex:none;
+    background-size:cover;background-position:center;border:2px solid var(--line)}
+  .acc .nm{font-weight:700;font-size:17px}
+  .acc .hn{color:var(--muted);font-size:14px}
+  .acc-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .disconnected{color:var(--muted)}
+
+  /* Toggle */
+  .row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--line-2)}
+  .row:first-of-type{border-top:none}
+  .row .lbl{font-weight:600}
+  .row .desc{color:var(--muted);font-size:13px;margin-top:2px}
+  .sw{--w:52px;position:relative;width:var(--w);height:30px;flex:none}
+  .sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .sw .track{position:absolute;inset:0;background:rgba(140,170,220,.22);border-radius:999px;transition:.2s}
+  .sw .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
+  .sw input:checked + .track{background:var(--ok)}
+  .sw input:checked + .track + .knob{left:25px}
+  .sw input:focus-visible + .track{outline:2px solid var(--white);outline-offset:2px}
+
+  .perms{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+  .perms li{font-family:"Barlow Condensed";font-weight:700;letter-spacing:.04em;font-size:12.5px;
+    background:rgba(140,170,220,.10);border:1px solid var(--line);border-radius:8px;padding:4px 9px;color:#bcd0ea}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+
+  /* X preview */
+  .xpost{background:var(--xblack);border:1px solid #24313d;border-radius:16px;padding:15px 16px;font-size:14.5px;line-height:1.5;color:#e7e9ea}
+  .xpost .hd{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .xpost .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--red),#0b1a33);flex:none;background-size:cover;background-position:center}
+  .xpost .nm{font-weight:700;color:#fff;line-height:1.05}
+  .xpost .hn{color:#8b98a5;font-size:12.5px}
+  .xpost .body{white-space:pre-wrap;word-break:break-word}
+  .xpost .lnk{color:#6cb2ff}
+  .xpost .media{margin-top:11px;border:1px solid rgba(255,255,255,.13);border-radius:14px;aspect-ratio:16/9;
+    background-size:cover;background-position:center;background-color:#20344f}
+  .xcount{display:flex;justify-content:flex-end;margin-top:8px;color:var(--muted);font-size:12.5px;
+    font-variant-numeric:tabular-nums}
+
+  .callout{border:1px solid var(--line);border-left:3px solid var(--warn);background:var(--warn-bg);border-radius:12px;padding:14px 16px;font-size:14px}
+  .callout.err{border-left-color:var(--err);background:var(--err-bg)}
+  .callout.ok{border-left-color:var(--ok);background:var(--ok-bg)}
+  .callout .k{display:block;text-transform:uppercase;letter-spacing:.08em;font-weight:700;font-size:12px;margin-bottom:3px}
+
+  /* History table */
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin-top:14px}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:13.5px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+  thead th{font-family:"Barlow Condensed";text-transform:uppercase;letter-spacing:.06em;font-size:12px;color:var(--muted);
+    background:rgba(140,170,220,.06)}
+  tbody tr:last-child td{border-bottom:none}
+  .tnum{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .rowact{display:flex;gap:6px;flex-wrap:wrap}
+  .empty{color:var(--muted);text-align:center;padding:26px}
+
+  /* Gate */
+  .gate{position:fixed;inset:0;background:rgba(4,10,20,.92);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .gate.on{display:flex}
+  .gate .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;max-width:400px;width:100%}
+  .gate h3{margin:0 0 6px;font-size:22px}
+  .gate input{width:100%;margin:12px 0;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--white);font-size:15px}
+
+  /* Toast */
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;
+    background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--ok);border-radius:12px;
+    padding:12px 18px;font-weight:600;font-size:14px;pointer-events:none;transition:.25s;z-index:60;max-width:90vw}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{border-left-color:var(--err)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){.spin{animation:none}.toast{transition:none}}
+  @media(max-width:560px){.card h2{flex-wrap:wrap;gap:8px 10px}.wrap{padding:18px 14px 90px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <span class="brand">TOMSO<b>FOOT</b></span>
+    <span class="crumb">Régie · Automatisation</span>
+    <span class="sp"></span>
+    <a class="back" href="regie.html">← Retour à la régie</a>
+  </div>
+
+  <div class="head">
+    <p class="crumb" style="color:var(--red)">Diffusion sociale</p>
+    <h1><span class="xbadge">𝕏</span> Automatisation X</h1>
+    <p class="sub">Chaque article publié est automatiquement diffusé sur X, <strong>10&nbsp;minutes</strong> après sa publication — image, titre, chapô et lien vers l'article.</p>
+  </div>
+
+  <div id="cfgAlert"></div>
+
+  <div class="grid two">
+    <!-- Compte -->
+    <div class="card">
+      <h2><span class="n">◆</span> Compte connecté</h2>
+      <div id="accBox"><p class="muted">Chargement…</p></div>
+    </div>
+
+    <!-- Réglages -->
+    <div class="card">
+      <h2><span class="n">◆</span> Réglages</h2>
+      <div class="row">
+        <div><div class="lbl">Publication automatique sur X</div><div class="desc">Diffuse chaque nouvel article publié</div></div>
+        <label class="sw"><input type="checkbox" id="swAuto" aria-label="Publication automatique sur X"><span class="track"></span><span class="knob"></span></label>
+      </div>
+      <div class="row">
+        <div><div class="lbl">Délai avant publication</div><div class="desc" id="delayDesc">10 minutes après la publication</div></div>
+        <span class="pill off" id="delayPill">10 min</span>
+      </div>
+      <ul class="perms" aria-label="Permissions demandées">
+        <li>tweet.read</li><li>tweet.write</li><li>users.read</li><li>media.write</li><li>offline.access</li>
+      </ul>
+      <p class="muted small" style="margin:12px 0 0">Permissions strictement nécessaires. Le compte reste connecté par renouvellement automatique du jeton.</p>
+    </div>
+  </div>
+
+  <div class="grid two" style="margin-top:16px">
+    <!-- Aperçu -->
+    <div class="card">
+      <h2><span class="n">◆</span> Aperçu du futur post</h2>
+      <div class="xpost">
+        <div class="hd"><span class="av" id="pvAv"></span><div><div class="nm" id="pvNm">TomsoFoot</div><div class="hn" id="pvHn">@TomsoFoot</div></div></div>
+        <div class="body" id="pvBody">🔴 NOUVEL ARTICLE
+Titre de l'article
+Chapô raccourci proprement, sans couper un mot…
+Lire l'article 👇
+<span class="lnk">tomsofoot.fr/articles/slug</span></div>
+        <div class="media" id="pvMedia"></div>
+        <div class="xcount"><span id="pvCount">— / 280</span></div>
+      </div>
+      <p class="muted small" style="margin:12px 0 0">Image principale réelle en média natif · texte alternatif = titre · comptage pondéré (règles X).</p>
+    </div>
+
+    <!-- Coûts -->
+    <div class="card">
+      <h2><span class="n">◆</span> Coûts &amp; protection</h2>
+      <div class="callout">
+        <span class="k">API X payante</span>
+        L'API X est payante (modèle 2026 : ~0,20&nbsp;$ par post contenant un lien, ou forfait <em>Basic</em> existant). <strong>Confirme le tarif dans ta console X</strong> et fixe un <strong>plafond de dépense</strong> avant activation.
+      </div>
+      <ul class="perms" style="margin-top:14px">
+        <li id="modePill">Mode simulation</li>
+        <li>Plafond conseillé</li>
+        <li>1 seul test réel</li>
+      </ul>
+      <p class="muted small" style="margin:12px 0 0">En mode simulation, aucun crédit n'est consommé : le post est généré et prévisualisé, sans publication réelle.</p>
+    </div>
+  </div>
+
+  <!-- Historique -->
+  <div class="card" style="margin-top:16px">
+    <h2 style="display:flex;align-items:center;gap:12px"><span class="n">◆</span> Historique des diffusions
+      <span style="flex:1"></span>
+      <button class="btn sm btn--ghost" id="btnRun" title="Déclenche le worker maintenant (utile en simulation / preview)">Lancer maintenant</button>
+      <button class="btn sm btn--ghost" id="btnReload">Rafraîchir</button>
+    </h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Article</th><th>Prévu</th><th>Réel</th><th>Statut</th><th>Tent.</th><th>Post</th><th></th></tr></thead>
+        <tbody id="histBody"><tr><td colspan="7" class="empty">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Gate -->
+<div class="gate" id="gate"><div class="box">
+  <h3 id="gateTitle">Connexion régie</h3>
+  <p class="muted small" id="gateMsg">Connecte-toi avec ton compte administrateur.</p>
+  <input type="email" id="gateEmail" placeholder="ton e-mail admin" autocomplete="email">
+  <button class="btn btn--primary" id="gateSend" style="width:100%">Recevoir le lien de connexion</button>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  "use strict";
+  var SB_URL='https://yubndvqmglttlntkugzm.supabase.co';
+  var SB_ANON='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+  var sb = window.supabase && window.supabase.createClient(SB_URL, SB_ANON, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  var isProd = /(^|\.)tomsofoot\.fr$/.test(location.hostname);
+  var token=null, admin=false;
+
+  var $=function(id){return document.getElementById(id);};
+  function toast(msg,type){var t=$('toast');t.textContent=msg;t.className='toast show'+(type==='err'?' err':'');clearTimeout(t._t);t._t=setTimeout(function(){t.className='toast';},2600);}
+  function gate(msg,on){$('gateMsg').textContent=msg||'';$('gate').className='gate'+(on?' on':'');}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  async function api(path, opts){
+    opts = opts||{};
+    var headers = Object.assign({'content-type':'application/json'}, opts.headers||{});
+    if(token) headers.authorization = 'Bearer '+token;
+    var r = await fetch('/.netlify/functions/'+path, {method:opts.method||'GET', headers, body:opts.body?JSON.stringify(opts.body):undefined});
+    var d = await r.json().catch(function(){return {};});
+    return {status:r.status, data:d};
+  }
+
+  // ---------- Rendu ----------
+  var STATUS = {
+    scheduled:{cls:'off',label:'Programmé'}, processing:{cls:'warn',label:'En cours'},
+    published:{cls:'ok',label:'Publié'}, failed:{cls:'err',label:'Échec'}, cancelled:{cls:'off',label:'Annulé'}
+  };
+  function statusPill(s,dry){var m=STATUS[s]||{cls:'off',label:s};return '<span class="pill '+m.cls+'">'+m.label+(dry&&s==='published'?' · simulé':'')+'</span>';}
+  function fmt(dt){ if(!dt) return '—'; try{ return new Date(dt).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return dt;} }
+
+  function renderAccount(a, cfg){
+    var box=$('accBox');
+    if(a && a.status==='connected'){
+      box.innerHTML =
+        '<div class="acc"><span class="av" style="'+(a.avatar_url?'background-image:url('+esc(a.avatar_url)+')':'')+'"></span>'+
+        '<div><div class="nm">'+esc(a.name||a.username||'Compte X')+'</div>'+
+        '<div class="hn">@'+esc(a.username||'—')+'</div>'+
+        '<div style="margin-top:6px">'+statusPill('published')+'</div></div></div>'+
+        '<div class="acc-actions"><button class="btn sm btn--danger" id="btnDisc">Déconnecter</button></div>';
+      $('btnDisc').onclick=disconnect;
+      $('pvNm').textContent=a.name||a.username||'TomsoFoot';
+      $('pvHn').textContent='@'+(a.username||'TomsoFoot');
+      if(a.avatar_url){$('pvAv').style.backgroundImage='url('+a.avatar_url+')';}
+    } else if(a && a.status==='reconnect_needed'){
+      box.innerHTML='<span class="pill err">Reconnexion nécessaire</span>'+
+        '<p class="muted small" style="margin:12px 0 0">L\'autorisation a expiré ou été révoquée. Reconnecte le compte pour reprendre les envois.</p>'+
+        '<div class="acc-actions"><button class="btn btn--x" id="btnConn">Reconnecter le compte X</button></div>';
+      $('btnConn').onclick=connect;
+    } else {
+      box.innerHTML='<p class="disconnected">Aucun compte X connecté.</p>'+
+        '<div class="acc-actions"><button class="btn btn--x" id="btnConn">Connecter le compte X</button></div>';
+      $('btnConn').onclick=connect;
+    }
+    if(cfg){ $('btnConn'==null); }
+  }
+
+  function renderPreview(){
+    var title="Mbappé, le poids d'une nation";
+    var deck="Le prodige français porte des attentes immenses avant le tournoi, récit d'une pression pas comme les autres.";
+    var body='🔴 NOUVEL ARTICLE\n'+title+'\n'+deck+'\nLire l\'article 👇\n<span class="lnk">tomsofoot.fr/articles/mbappe-poids-nation</span>';
+    $('pvBody').innerHTML=body;
+    // comptage pondéré local (URL=23, emoji/CJK=2)
+    var plain='🔴 NOUVEL ARTICLE\n'+title+'\n'+deck+'\nLire l\'article 👇\nhttps://tomsofoot.fr/articles/mbappe-poids-nation';
+    $('pvCount').textContent=weighted(plain)+' / 280';
+    $('pvMedia').style.backgroundImage='url(/images/beckham-simeone.jpg)';
+  }
+  function weighted(t){var urls=(t.match(/\bhttps?:\/\/[^\s]+/gi)||[]).length;var s=t.replace(/\bhttps?:\/\/[^\s]+/gi,'');var w=0;for(var i=0;i<s.length;i++){var cp=s.codePointAt(i);if(cp>0xFFFF)i++;w+=((cp>=0&&cp<=4351)||(cp>=8192&&cp<=8205)||(cp>=8208&&cp<=8223)||(cp>=8242&&cp<=8247))?1:2;}return w+urls*23;}
+
+  function renderHistory(posts){
+    var b=$('histBody');
+    if(!posts||!posts.length){ b.innerHTML='<tr><td colspan="7" class="empty">Aucune diffusion pour le moment.</td></tr>'; return; }
+    b.innerHTML=posts.map(function(p){
+      var art=p.articles||{};
+      var actions='';
+      if(p.status==='scheduled') actions='<button class="btn sm" data-act="publish_now" data-id="'+p.id+'">Publier</button><button class="btn sm btn--ghost" data-act="cancel" data-id="'+p.id+'">Annuler</button>';
+      else if(p.status==='failed') actions='<button class="btn sm" data-act="retry" data-id="'+p.id+'">Réessayer</button>';
+      var link = p.x_post_url?'<a href="'+esc(p.x_post_url)+'" target="_blank" rel="noopener">Voir sur X ↗</a>':(p.dry_run&&p.status==='published'?'<span class="muted">simulé</span>':'—');
+      return '<tr><td>'+esc(art.title||'(article)')+
+        (p.last_error?'<div class="muted small" style="margin-top:3px">'+esc(p.last_error)+'</div>':'')+'</td>'+
+        '<td class="tnum">'+fmt(p.scheduled_at)+'</td>'+
+        '<td class="tnum">'+fmt(p.published_at)+'</td>'+
+        '<td>'+statusPill(p.status,p.dry_run)+'</td>'+
+        '<td class="tnum">'+(p.attempt_count||0)+'</td>'+
+        '<td>'+link+'</td>'+
+        '<td><div class="rowact">'+actions+'</div></td></tr>';
+    }).join('');
+    Array.prototype.forEach.call(b.querySelectorAll('button[data-act]'),function(btn){
+      btn.onclick=function(){ postAction(btn.getAttribute('data-act'), btn.getAttribute('data-id'), btn); };
+    });
+  }
+
+  function renderConfig(cfg){
+    var host=$('cfgAlert'); var msgs=[];
+    if(cfg && cfg.dry_run){ $('modePill').textContent='Simulation (DRY RUN)'; msgs.push(['ok','Mode simulation actif','Aucune publication réelle ni crédit consommé. Idéal pour valider avant le premier vrai test.']); }
+    else { $('modePill').textContent='Mode réel'; }
+    if(cfg && (!cfg.has_client_id || !cfg.has_service_role || !cfg.has_enc_key)){
+      var missing=[]; if(!cfg.has_client_id)missing.push('X_CLIENT_ID'); if(!cfg.has_service_role)missing.push('SUPABASE_SERVICE_ROLE'); if(!cfg.has_enc_key)missing.push('X_TOKEN_ENC_KEY');
+      msgs.push(['warn','Configuration serveur incomplète','Variables manquantes : '+missing.join(', ')+'. La connexion et l\'envoi resteront indisponibles tant qu\'elles ne sont pas ajoutées dans Netlify.']);
+    }
+    host.innerHTML = msgs.map(function(m){return '<div class="callout '+m[0]+'" style="margin-bottom:12px"><span class="k">'+m[1]+'</span>'+m[2]+'</div>';}).join('');
+  }
+
+  // ---------- Actions ----------
+  async function connect(){
+    toast('Ouverture de X…');
+    var r = await api('x-oauth-start');
+    if(r.status===200 && r.data.url){ location.href=r.data.url; }
+    else { toast(r.data.message||'Connexion impossible (config serveur ?)','err'); }
+  }
+  async function disconnect(){
+    var r = await api('x-account',{method:'POST',body:{action:'disconnect'}});
+    if(r.data.ok){ toast('Compte déconnecté'); load(); } else toast('Échec','err');
+  }
+  async function toggleAuto(on){
+    var r = await api('x-account',{method:'POST',body:{action:'toggle',enabled:on}});
+    if(r.data.ok){ toast(on?'Publication automatique activée':'Publication automatique désactivée'); } else { toast('Échec','err'); $('swAuto').checked=!on; }
+  }
+  async function postAction(action,id,btn){
+    if(btn){ btn.disabled=true; btn.innerHTML='<span class="spin"></span>'; }
+    var r = await api('social-admin',{method:'POST',body:{action:action,id:id}});
+    if(r.data.ok){ toast(action==='publish_now'?'Traité':(action==='cancel'?'Annulé':'Relancé')); loadHistory(); }
+    else { toast('Échec de l\'action','err'); if(btn) btn.disabled=false; }
+  }
+  async function runWorker(){
+    var btn=$('btnRun'); btn.disabled=true; var old=btn.textContent; btn.innerHTML='<span class="spin"></span> Traitement';
+    var r = await api('social-admin',{method:'POST',body:{action:'run_worker'}});
+    btn.disabled=false; btn.textContent=old;
+    if(r.data.ok){ toast('Worker exécuté'+(r.data.dry_run?' (simulation)':'')); loadHistory(); }
+    else toast('Échec du worker','err');
+  }
+
+  // ---------- Chargement ----------
+  async function load(){
+    var r = await api('x-account');
+    if(r.status===403){ gate('Ce compte n\'est pas administrateur.',true); return; }
+    if(r.data.ok){
+      renderConfig(r.data.config);
+      renderAccount(r.data.account, r.data.config);
+      var set=r.data.settings||{};
+      $('swAuto').checked=!!set.x_enabled;
+      $('delayPill').textContent=(set.delay_minutes||10)+' min';
+      $('delayDesc').textContent=(set.delay_minutes||10)+' minutes après la publication';
+    }
+    renderPreview();
+    loadHistory();
+  }
+  async function loadHistory(){
+    var r = await api('social-admin');
+    if(r.data.ok) renderHistory(r.data.posts);
+  }
+
+  // ---------- Boot / auth ----------
+  async function boot(){
+    if(!sb){ toast('Supabase indisponible','err'); return; }
+    var session=(await sb.auth.getSession()).data.session;
+    if(session){ token=session.access_token; try{ admin=(await sb.rpc('is_current_user_admin')).data===true; }catch(e){} }
+    if(isProd){
+      if(!session){ gate('Connecte-toi à ta régie (compte admin).',true); return; }
+      if(!admin){ gate('Ce compte n\'est pas administrateur.',true); return; }
+    } else if(session){ /* preview : session facultative */ }
+    // toast retour OAuth
+    var q=new URLSearchParams(location.search);
+    if(q.get('x')==='connected') toast('Compte X connecté ✓');
+    else if(q.get('x')==='error') toast('Connexion X échouée : '+(q.get('reason')||''),'err');
+    if(q.get('x')) history.replaceState({},'',location.pathname);
+    load();
+  }
+  sb && sb.auth.onAuthStateChange(function(_e,s){ if(s){ token=s.access_token; } });
+  $('gateSend').onclick=async function(){
+    var email=($('gateEmail').value||'').trim(); if(!email) return;
+    try{ var res=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href}}); if(res.error) throw res.error; toast('Lien envoyé — vérifie tes e-mails'); }
+    catch(e){ toast('Envoi impossible','err'); }
+  };
+  $('swAuto').onchange=function(){ toggleAuto($('swAuto').checked); };
+  $('btnReload').onclick=loadHistory;
+  $('btnRun').onclick=runWorker;
+
+  boot();
+})();
+</script>
+</body>
+</html>

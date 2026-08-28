@@ -313,6 +313,11 @@ body:not(.media-open) .rb-media{display:none}
           <div class="full"><label class="rb-l">Description SEO</label><textarea class="rb-i" data-h="seo" placeholder="Description pour Google et les réseaux (≈150 caractères)"></textarea></div>
         </div>
       </div>
+
+      <div class="rb-sec" id="rbSocialX">
+        <p class="rb-sec__t">Diffusion sur X</p>
+        <div id="socialXBody"><p style="color:#8ba0be;font-size:13px;margin:0">Publie l'article pour programmer sa diffusion automatique sur X (10&nbsp;min après).</p></div>
+      </div>
     </div>
 
     <!-- ======================= PREVIEW ======================= -->
@@ -1105,6 +1110,7 @@ autosave(true); update();
       setPill();
       const slug=buildArticle().slug;
       toast('Publié ✓ — en ligne sur /articles/'+slug+(featured?' · à la une':''),'ok');
+      setTimeout(()=>{ try{ if(window.__afterLoad) window.__afterLoad(currentUuid); }catch(e){} }, 900);
     }catch(e){ toast('Échec publication : '+(e.message||e),'err'); }
   }
   const _openPublish=TSF.openPublish;
@@ -1218,6 +1224,36 @@ autosave(true); update();
       toast('Article chargé : '+currentEditorialId+' ('+statusLabel(currentStatus)+')','ok');
     }catch(e){ toast('Échec du chargement : '+(e.message||e),'err'); }
   }
+
+  // ---------- Diffusion sur X (par article) : lit l'état de la tâche sociale ----------
+  async function xFetch(path, opts){ opts=opts||{}; const h=Object.assign({'content-type':'application/json'}, opts.headers||{}); if(token) h.authorization='Bearer '+token; const r=await fetch('/.netlify/functions/'+path,{method:opts.method||'GET',headers:h,body:opts.body?JSON.stringify(opts.body):undefined}); let d={}; try{d=await r.json();}catch(e){} return {status:r.status,data:d}; }
+  function xPill(s,dry){ const M={scheduled:['#8ba0be','Programmé'],processing:['#ffb454','En cours'],published:['#38d39f','Publié'+(dry?' · simulé':'')],failed:['#ff6b7a','Échec'],cancelled:['#8ba0be','Annulé']}; const m=M[s]||['#8ba0be',s]; return '<span style="display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;color:'+m[0]+'"><span style="width:8px;height:8px;border-radius:50%;background:currentColor"></span>'+m[1]+'</span>'; }
+  function xFmt(dt){ if(!dt)return '—'; try{return new Date(dt).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return dt;} }
+  function xEsc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  async function loadSocialX(articleId){
+    const box=gid('socialXBody'); if(!box) return;
+    if(!articleId){ box.innerHTML='<p style="color:#8ba0be;font-size:13px;margin:0">Publie l\'article pour programmer sa diffusion sur X.</p>'; return; }
+    if(!token){ box.innerHTML='<p style="color:#8ba0be;font-size:13px;margin:0">Connecte-toi pour voir la diffusion X.</p>'; return; }
+    let r; try{ r=await xFetch('social-admin?article_id='+encodeURIComponent(articleId)); }catch(e){ return; }
+    const p=r.data&&r.data.post;
+    if(!p){ box.innerHTML='<p style="color:#8ba0be;font-size:13px;margin:0">Aucune diffusion X programmée pour cet article.</p>'; return; }
+    const prev=p.preview||{};
+    let actions='';
+    if(p.status==='scheduled') actions='<button class="btn" data-xact="publish_now" style="padding:7px 12px;font-size:12.5px">Publier maintenant</button><button class="btn" data-xact="cancel" style="padding:7px 12px;font-size:12.5px">Annuler</button>';
+    else if(p.status==='failed') actions='<button class="btn" data-xact="retry" style="padding:7px 12px;font-size:12.5px">Réessayer</button>';
+    const link = p.x_post_url?'<a href="'+xEsc(p.x_post_url)+'" target="_blank" rel="noopener" style="color:#9fc2ff;font-size:13px">Voir sur X ↗</a>':'';
+    box.innerHTML =
+      '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px">'+xPill(p.status,p.dry_run)+
+      '<span style="color:#8ba0be;font-size:13px">Prévu : '+xFmt(p.scheduled_at)+(p.published_at?' · Réel : '+xFmt(p.published_at):'')+'</span>'+
+      '<span style="flex:1"></span>'+link+'</div>'+
+      (prev.text?'<pre style="white-space:pre-wrap;background:#0c1730;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:inherit;font-size:13px;line-height:1.5;margin:0 0 10px">'+xEsc(prev.text)+'</pre>':'')+
+      (prev.weighted?'<div style="text-align:right;color:#8ba0be;font-size:12px;margin:-4px 0 10px">'+prev.weighted+' / 280</div>':'')+
+      (p.last_error?'<p style="color:#ff9aa5;font-size:12.5px;margin:0 0 10px">'+xEsc(p.last_error)+'</p>':'')+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+actions+'</div>';
+    Array.prototype.forEach.call(box.querySelectorAll('button[data-xact]'),function(b){ b.onclick=async function(){ b.disabled=true; const rr=await xFetch('social-admin',{method:'POST',body:{action:b.getAttribute('data-xact'),id:p.id}}); if(rr.data&&rr.data.ok){ toast('Diffusion X mise à jour','ok'); loadSocialX(articleId);} else { toast('Échec de l\'action X','err'); b.disabled=false; } }; });
+  }
+  window.__afterLoad = loadSocialX;
+
   gid('btnLoad').onclick=()=>loadArticle(gid('loadId').value);
   gid('loadId').addEventListener('keydown',e=>{ if(e.key==='Enter')loadArticle(gid('loadId').value); });
   gid('btnNew').onclick=()=>{ if(!confirm('Créer un nouvel article vierge ? (le brouillon en cours doit déjà être enregistré)'))return; location.reload(); };
