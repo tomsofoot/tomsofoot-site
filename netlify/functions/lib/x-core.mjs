@@ -13,7 +13,9 @@ export const SITE          = process.env.SITE_ORIGIN || 'https://tomsofoot.fr';
 export const SUPABASE_URL  = process.env.SUPABASE_URL || 'https://yubndvqmglttlntkugzm.supabase.co';
 export const SERVICE_ROLE  = process.env.SUPABASE_SERVICE_ROLE || '';
 export const ANON          = process.env.SUPABASE_ANON || '';
-export const DRY_RUN       = String(process.env.SOCIAL_DRY_RUN || 'true').toLowerCase() !== 'false'; // simulation par défaut
+// DRY RUN (simulation) : vérifié EXCLUSIVEMENT côté serveur (process.env, jamais le navigateur
+// ni un paramètre d'URL). Nom principal X_DRY_RUN ; SOCIAL_DRY_RUN accepté en repli. Défaut = true.
+export const DRY_RUN       = String(process.env.X_DRY_RUN ?? process.env.SOCIAL_DRY_RUN ?? 'true').toLowerCase() !== 'false';
 export const X_CLIENT_ID   = process.env.X_CLIENT_ID || '';
 export const X_CLIENT_SECRET = process.env.X_CLIENT_SECRET || '';
 export const X_SCOPES      = 'tweet.read tweet.write users.read media.write offline.access';
