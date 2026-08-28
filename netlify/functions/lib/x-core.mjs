@@ -10,8 +10,13 @@
 import crypto from 'node:crypto';
 
 export const SITE          = process.env.SITE_ORIGIN || 'https://tomsofoot.fr';
-export const SUPABASE_URL  = process.env.SUPABASE_URL || 'https://yubndvqmglttlntkugzm.supabase.co';
+// SUPABASE_URL : AUCUN repli automatique. Absente = aucune connexion (fail-closed, cf. assertDbSafe).
+export const SUPABASE_URL  = process.env.SUPABASE_URL || '';
 export const SERVICE_ROLE  = process.env.SUPABASE_SERVICE_ROLE || '';
+// Contexte de déploiement Netlify : 'production' | 'deploy-preview' | 'branch-deploy' | 'dev'
+export const NETLIFY_CONTEXT = process.env.CONTEXT || '';
+// Référence du projet Supabase de PRODUCTION (sous-domaine public, pas un secret).
+export const PROD_PROJECT_REF = 'yubndvqmglttlntkugzm';
 export const ANON          = process.env.SUPABASE_ANON || '';
 // DRY RUN (simulation) : vérifié EXCLUSIVEMENT côté serveur (process.env, jamais le navigateur
 // ni un paramètre d'URL). Nom principal X_DRY_RUN ; SOCIAL_DRY_RUN accepté en repli. Défaut = true.
@@ -59,7 +64,29 @@ export function decrypt(b64) {
 // ---------------------------------------------------------------------------
 // Supabase REST (service_role → contourne la RLS, server-only)
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// GARDE-FOU « fail-closed » : jamais de retour silencieux vers la production.
+//   * SUPABASE_URL absente            → aucune connexion (config_error).
+//   * contexte ≠ production ET URL = projet de PROD → écriture/lecture refusée.
+//   * fonction PURE dbSafety() pour tests déterministes ; assertDbSafe() lit l'env.
+// ---------------------------------------------------------------------------
+export function projectRef(url) {
+  const m = /https?:\/\/([a-z0-9-]+)\.supabase\.co/i.exec(url || '');
+  return m ? m[1] : '';
+}
+export function dbSafety(url, ctx) {
+  if (!url) { const e = new Error('config_error: SUPABASE_URL manquant (fail-closed, aucune connexion)'); e.status = 500; e.code = 'NO_SUPABASE_URL'; throw e; }
+  const ref = projectRef(url);
+  if (ctx && ctx !== 'production' && ref === PROD_PROJECT_REF) {
+    const e = new Error('config_error: base de PRODUCTION ciblée en contexte « ' + ctx + ' » — accès refusé (fail-closed)');
+    e.status = 500; e.code = 'PROD_IN_NON_PROD'; throw e;
+  }
+  return { ref, ctx: ctx || '(inconnu)' };
+}
+export function assertDbSafe() { return dbSafety(SUPABASE_URL, NETLIFY_CONTEXT); }
+
 export async function sbAdmin(path, { method = 'GET', body, prefer } = {}) {
+  assertDbSafe(); // refuse toute requête si config non sûre (fail-closed)
   const headers = {
     apikey: SERVICE_ROLE,
     authorization: 'Bearer ' + SERVICE_ROLE,
@@ -82,6 +109,7 @@ export async function rpcAdmin(fn, args) {
 // Renvoie { userId } ou lève une erreur { status:401|403 }.
 // ---------------------------------------------------------------------------
 export async function requireAdmin(req) {
+  assertDbSafe(); // même garde-fou fail-closed avant toute vérification serveur
   const auth = req.headers.get('authorization') || '';
   const token = auth.replace(/^Bearer\s+/i, '').trim();
   if (!token) { const e = new Error('no_token'); e.status = 401; throw e; }

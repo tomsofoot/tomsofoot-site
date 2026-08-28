@@ -22,7 +22,7 @@ export async function reconcile() {
   const since = new Date(Date.now() - 25 * 60 * 1000).toISOString();
   const arts = await sbAdmin(
     'articles?status=eq.published&published_at=gte.' + since +
-    '&published_at=lte.' + nowISO() + '&select=id,published_at&order=published_at.desc&limit=50'
+    '&published_at=lte.' + nowISO() + '&select=id,published_at,title,slug&order=published_at.desc&limit=50'
   );
   if (!Array.isArray(arts) || !arts.length) return { enqueued: 0 };
   const settings = await getSettings();
@@ -34,7 +34,8 @@ export async function reconcile() {
     try {
       await sbAdmin('social_posts', {
         method: 'POST', prefer: 'resolution=ignore-duplicates,return=minimal',
-        body: { article_id: a.id, platform: 'x', status: 'scheduled', scheduled_at: scheduledAt },
+        body: { article_id: a.id, platform: 'x', status: 'scheduled', scheduled_at: scheduledAt,
+                article_title: a.title, article_slug: a.slug },
       });
       n++;
     } catch { /* doublon → ignoré (contrainte d'unicité) */ }
@@ -94,6 +95,8 @@ export async function processOne(id) {
     const built = buildPost({ title: a.title, deck: a.deck, url });
     const imageUrl = a.og_image || a.hero_image || FALLBACK_SOCIAL_IMAGE;
     const preview = { text: built.text, weighted: built.weighted, image: imageUrl, alt: a.title, url };
+    // Snapshot minimal : conserve l'identité de l'article dans social_posts (survit à sa suppression).
+    const snap = { article_title: a.title, article_slug: a.slug, article_url: url };
 
     // Interrupteur global coupé → on n'envoie pas (la tâche reste en attente)
     if (!settings.x_enabled) {
@@ -107,6 +110,7 @@ export async function processOne(id) {
     if (DRY_RUN || !account || account.status !== 'connected') {
       const reason = DRY_RUN ? 'DRY RUN' : 'compte X non connecté';
       return await finalize(post, 'published', {
+        ...snap,
         dry_run: true, published_at: nowISO(), x_post_id: 'SIMULATION',
         x_post_url: null, preview: { ...preview, simulated: true, reason },
         last_error: null,
@@ -157,6 +161,7 @@ export async function processOne(id) {
     const handle = account.username ? '@' + account.username : 'i';
     const xUrl = 'https://x.com/' + (account.username || 'i') + '/status/' + created.id;
     return await finalize(post, 'published', {
+      ...snap,
       dry_run: false, published_at: nowISO(), x_post_id: created.id, x_post_url: xUrl,
       preview: { ...preview, handle }, last_error: null,
     });
