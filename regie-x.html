@@ -242,11 +242,32 @@ Lire l'article 👇
 <script>
 (function(){
   "use strict";
-  var SB_URL='https://yubndvqmglttlntkugzm.supabase.co';
-  var SB_ANON='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
-  var sb = window.supabase && window.supabase.createClient(SB_URL, SB_ANON, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  // Client Supabase créé APRÈS lecture de /public-config, pour que le navigateur pointe
+  // vers le MÊME projet que le serveur (jamais le client sur prod et le serveur sur staging).
+  var PROD_SB_URL='https://yubndvqmglttlntkugzm.supabase.co';
+  var PROD_SB_ANON='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
   var isProd = /(^|\.)tomsofoot\.fr$/.test(location.hostname);
+  var sb = null;
   var token=null, admin=false;
+  // Initialise le client Supabase depuis public-config (contexte serveur). Fail-closed en preview.
+  async function initClient(){
+    var url=null, anon=null;
+    try{
+      var r = await fetch('/.netlify/functions/public-config');
+      var d = await r.json().catch(function(){return {};});
+      if(r.ok && d && d.ok && d.supabaseUrl && d.supabaseAnon){ url=d.supabaseUrl; anon=d.supabaseAnon; }
+    }catch(e){ /* réseau */ }
+    if(!url){
+      // Pas de config serveur : sur la prod, on retombe sur les valeurs de prod (sûr, même projet).
+      // En Deploy Preview, on NE retombe PAS sur la prod (fail-closed) : on signale l'erreur.
+      if(isProd){ url=PROD_SB_URL; anon=PROD_SB_ANON; }
+      else { return false; }
+    }
+    if(!window.supabase) return false;
+    sb = window.supabase.createClient(url, anon, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    sb.auth.onAuthStateChange(function(_e,s){ if(s){ token=s.access_token; } });
+    return true;
+  }
   var CFG={}, ACCOUNT=null;
   // Simulation si DRY RUN serveur OU aucun compte X réellement connecté.
   function simMode(){ return !!CFG.dry_run || !(ACCOUNT && ACCOUNT.status==='connected'); }
@@ -446,6 +467,13 @@ Lire l'article 👇
       $('swAuto').checked=!!set.x_enabled;
       $('delayPill').textContent=(set.delay_minutes||10)+' min';
       $('delayDesc').textContent=(set.delay_minutes||10)+' minutes après la publication';
+      // Point 5 : rend visible un éventuel échec de programmation sociale (trigger d'enqueue).
+      if(set.last_enqueue_error){
+        var host=$('cfgAlert');
+        host.innerHTML += '<div class="callout err" style="margin-bottom:12px"><span class="k">Programmation sociale en échec</span>'+
+          esc(set.last_enqueue_error)+(set.last_enqueue_error_at?' — '+fmt(set.last_enqueue_error_at):'')+
+          '. La publication de l\'article n\'a pas été bloquée.</div>';
+      }
     }
     // Bouton de traitement manuel : libellé sans ambiguïté selon le mode.
     var br=$('btnRun'); if(br){ br.textContent = simMode()?'Lancer la simulation':'Lancer le traitement'; }
@@ -459,7 +487,12 @@ Lire l'article 👇
 
   // ---------- Boot / auth ----------
   async function boot(){
-    if(!sb){ toast('Supabase indisponible','err'); return; }
+    var ready = await initClient();
+    if(!ready || !sb){
+      // Fail-closed : en Deploy Preview sans config serveur, on n'utilise JAMAIS la prod.
+      gate(isProd ? 'Supabase indisponible.' : 'Configuration serveur du preview absente (SUPABASE_URL/ANON non définies pour ce Deploy Preview). Le client ne se rabat pas sur la production.', true);
+      return;
+    }
     var session=(await sb.auth.getSession()).data.session;
     if(session){ token=session.access_token; try{ admin=(await sb.rpc('is_current_user_admin')).data===true; }catch(e){} }
     if(isProd){
@@ -473,8 +506,8 @@ Lire l'article 👇
     if(q.get('x')) history.replaceState({},'',location.pathname);
     load();
   }
-  sb && sb.auth.onAuthStateChange(function(_e,s){ if(s){ token=s.access_token; } });
   $('gateSend').onclick=async function(){
+    if(!sb){ toast('Client non initialisé','err'); return; }
     var email=($('gateEmail').value||'').trim(); if(!email) return;
     try{ var res=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href}}); if(res.error) throw res.error; toast('Lien envoyé — vérifie tes e-mails'); }
     catch(e){ toast('Envoi impossible','err'); }
