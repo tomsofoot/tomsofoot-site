@@ -12,7 +12,7 @@ export default async (req) => {
   try {
     if (req.method === 'GET') {
       const acc = await sbAdmin('x_account_public?select=*');
-      const set = await sbAdmin('social_settings?id=eq.true&select=x_enabled,delay_minutes');
+      const set = await sbAdmin('social_settings?id=eq.true&select=x_enabled,delay_minutes,last_enqueue_error,last_enqueue_error_at');
       return json(200, {
         ok: true,
         account: (Array.isArray(acc) && acc[0]) || { status: 'disconnected' },

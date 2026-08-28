@@ -22,7 +22,10 @@ export default async (req) => {
     const rows = await sbAdmin('x_oauth_state?state=eq.' + encodeURIComponent(state) + '&select=*');
     const st = Array.isArray(rows) && rows[0];
     if (!st) return back(origin, { x: 'error', reason: 'state' });
+    // Usage UNIQUE : on consomme (supprime) l'état immédiatement.
     await sbAdmin('x_oauth_state?state=eq.' + encodeURIComponent(state), { method: 'DELETE' });
+    // Expiration courte : un état périmé est refusé.
+    if (st.expires_at && new Date(st.expires_at) < new Date()) return back(origin, { x: 'error', reason: 'state_expired' });
 
     // Échange code → jetons
     const basic = Buffer.from(X_CLIENT_ID + ':' + X_CLIENT_SECRET).toString('base64');

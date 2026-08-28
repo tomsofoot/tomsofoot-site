@@ -19,7 +19,11 @@ export default async (req) => {
     const codeChallenge = b64url(crypto.createHash('sha256').update(codeVerifier).digest());
     const state = b64url(crypto.randomBytes(20));
 
+    // Nettoyage des états expirés (usage unique + TTL court) avant d'en créer un neuf.
+    try { await sbAdmin('x_oauth_state?expires_at=lt.' + new Date().toISOString(), { method: 'DELETE', prefer: 'return=minimal' }); } catch { /* best-effort */ }
+
     // On stocke l'état PKCE côté serveur (service_role, jamais exposé au navigateur).
+    // expires_at par défaut = now()+10 min (défini en base) : validité courte.
     await sbAdmin('x_oauth_state', {
       method: 'POST',
       prefer: 'resolution=merge-duplicates',
