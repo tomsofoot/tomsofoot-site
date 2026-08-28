@@ -157,7 +157,7 @@
   <div class="grid two">
     <!-- Compte -->
     <div class="card">
-      <h2><span class="n">◆</span> Compte connecté</h2>
+      <h2><span class="n">◆</span> <span id="accTitle">Compte X</span></h2>
       <div id="accBox"><p class="muted">Chargement…</p></div>
     </div>
 
@@ -182,7 +182,7 @@
   <div class="grid two" style="margin-top:16px">
     <!-- Aperçu -->
     <div class="card">
-      <h2><span class="n">◆</span> Aperçu du futur post</h2>
+      <h2><span class="n">◆</span> Aperçu du futur post <span id="pvSimTag" class="pill warn" style="margin-left:6px">Simulation</span></h2>
       <div class="xpost">
         <div class="hd"><span class="av" id="pvAv"></span><div><div class="nm" id="pvNm">TomsoFoot</div><div class="hn" id="pvHn">@TomsoFoot</div></div></div>
         <div class="body" id="pvBody">🔴 NOUVEL ARTICLE
@@ -201,7 +201,7 @@ Lire l'article 👇
       <h2><span class="n">◆</span> Coûts &amp; protection</h2>
       <div class="callout">
         <span class="k">API X payante</span>
-        L'API X est payante (modèle 2026 : ~0,20&nbsp;$ par post contenant un lien, ou forfait <em>Basic</em> existant). <strong>Confirme le tarif dans ta console X</strong> et fixe un <strong>plafond de dépense</strong> avant activation.
+        Tarif indicatif actuel : environ <strong>0,20&nbsp;$ par publication contenant une URL</strong>. <strong>Vérifie le tarif dans ta console X avant activation</strong> et fixe un <strong>plafond de dépense</strong>.
       </div>
       <ul class="perms" style="margin-top:14px">
         <li id="modePill">Mode simulation</li>
@@ -247,6 +247,27 @@ Lire l'article 👇
   var sb = window.supabase && window.supabase.createClient(SB_URL, SB_ANON, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   var isProd = /(^|\.)tomsofoot\.fr$/.test(location.hostname);
   var token=null, admin=false;
+  var CFG={}, ACCOUNT=null;
+  // Simulation si DRY RUN serveur OU aucun compte X réellement connecté.
+  function simMode(){ return !!CFG.dry_run || !(ACCOUNT && ACCOUNT.status==='connected'); }
+  // Confirmation explicite non bloquante (pas de window.confirm). Renvoie une promesse booléenne.
+  function confirmDo(opts){
+    return new Promise(function(resolve){
+      var ov=document.createElement('div'); ov.className='gate on';
+      ov.innerHTML='<div class="box"><h3>'+esc(opts.title||'Confirmer')+'</h3>'+
+        '<p class="muted small" style="margin:6px 0 0">'+esc(opts.msg||'')+'</p>'+
+        '<div style="display:flex;gap:10px;margin-top:18px">'+
+        '<button class="btn btn--ghost" style="flex:1" data-x="0">Annuler</button>'+
+        '<button class="btn '+(opts.danger?'btn--danger':'btn--primary')+'" style="flex:1" data-x="1">'+esc(opts.ok||'Confirmer')+'</button>'+
+        '</div></div>';
+      document.body.appendChild(ov);
+      ov.addEventListener('click',function(e){
+        var v=e.target&&e.target.getAttribute&&e.target.getAttribute('data-x');
+        if(v==null) return;
+        if(ov.parentNode) document.body.removeChild(ov); resolve(v==='1');
+      });
+    });
+  }
 
   var $=function(id){return document.getElementById(id);};
   function toast(msg,type){var t=$('toast');t.textContent=msg;t.className='toast show'+(type==='err'?' err':'');clearTimeout(t._t);t._t=setTimeout(function(){t.className='toast';},2600);}
@@ -267,17 +288,29 @@ Lire l'article 👇
     scheduled:{cls:'off',label:'Programmé'}, processing:{cls:'warn',label:'En cours'},
     published:{cls:'ok',label:'Publié'}, failed:{cls:'err',label:'Échec'}, cancelled:{cls:'off',label:'Annulé'}
   };
-  function statusPill(s,dry){var m=STATUS[s]||{cls:'off',label:s};return '<span class="pill '+m.cls+'">'+m.label+(dry&&s==='published'?' · simulé':'')+'</span>';}
+  function statusPill(s,dry){
+    if(dry && s==='published') return '<span class="pill warn">Simulée</span>';
+    var m=STATUS[s]||{cls:'off',label:s};
+    return '<span class="pill '+m.cls+'">'+m.label+'</span>';
+  }
   function fmt(dt){ if(!dt) return '—'; try{ return new Date(dt).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return dt;} }
 
   function renderAccount(a, cfg){
     var box=$('accBox');
+    var sim=simMode();
+    // Titre de la carte : sans ambiguïté selon l'état réel.
+    $('accTitle').textContent = (a && a.status==='connected') ? (sim?'Compte simulé':'Compte connecté') : 'Compte simulé';
     if(a && a.status==='connected'){
+      // Un compte X réel est lié. En DRY RUN, rien n'est publié : on l'affiche clairement.
+      var connPill = sim
+        ? '<span class="pill warn">Simulation active</span>'
+        : '<span class="pill ok">Connecté</span>';
       box.innerHTML =
         '<div class="acc"><span class="av" style="'+(a.avatar_url?'background-image:url('+esc(a.avatar_url)+')':'')+'"></span>'+
         '<div><div class="nm">'+esc(a.name||a.username||'Compte X')+'</div>'+
         '<div class="hn">@'+esc(a.username||'—')+'</div>'+
-        '<div style="margin-top:6px">'+statusPill('published')+'</div></div></div>'+
+        '<div style="margin-top:6px">'+connPill+'</div></div></div>'+
+        (sim?'<p class="muted small" style="margin:12px 0 0">Mode simulation : aucune publication réelle sur X, aucun crédit consommé.</p>':'')+
         '<div class="acc-actions"><button class="btn sm btn--danger" id="btnDisc">Déconnecter</button></div>';
       $('btnDisc').onclick=disconnect;
       $('pvNm').textContent=a.name||a.username||'TomsoFoot';
@@ -288,12 +321,16 @@ Lire l'article 👇
         '<p class="muted small" style="margin:12px 0 0">L\'autorisation a expiré ou été révoquée. Reconnecte le compte pour reprendre les envois.</p>'+
         '<div class="acc-actions"><button class="btn btn--x" id="btnConn">Reconnecter le compte X</button></div>';
       $('btnConn').onclick=connect;
+      $('pvNm').textContent='Compte simulé'; $('pvHn').textContent='@simulation';
     } else {
-      box.innerHTML='<p class="disconnected">Aucun compte X connecté.</p>'+
+      box.innerHTML=
+        '<div style="margin-bottom:8px"><span class="pill warn">Simulation active</span></div>'+
+        '<p class="lbl" style="margin:0">Aucune connexion réelle à X</p>'+
+        '<p class="muted small" style="margin:6px 0 0">Aucun compte X n\'est connecté. Les diffusions sont uniquement <strong>simulées</strong> : rien n\'est envoyé, aucun crédit n\'est consommé.</p>'+
         '<div class="acc-actions"><button class="btn btn--x" id="btnConn">Connecter le compte X</button></div>';
       $('btnConn').onclick=connect;
+      $('pvNm').textContent='Compte simulé'; $('pvHn').textContent='@simulation';
     }
-    if(cfg){ $('btnConn'==null); }
   }
 
   function renderPreview(){
@@ -305,6 +342,7 @@ Lire l'article 👇
     var plain='🔴 NOUVEL ARTICLE\n'+title+'\n'+deck+'\nLire l\'article 👇\nhttps://tomsofoot.fr/articles/mbappe-poids-nation';
     $('pvCount').textContent=weighted(plain)+' / 280';
     $('pvMedia').style.backgroundImage='url(/images/beckham-simeone.jpg)';
+    var tag=$('pvSimTag'); if(tag){ tag.hidden=!simMode(); }
   }
   function weighted(t){var urls=(t.match(/\bhttps?:\/\/[^\s]+/gi)||[]).length;var s=t.replace(/\bhttps?:\/\/[^\s]+/gi,'');var w=0;for(var i=0;i<s.length;i++){var cp=s.codePointAt(i);if(cp>0xFFFF)i++;w+=((cp>=0&&cp<=4351)||(cp>=8192&&cp<=8205)||(cp>=8208&&cp<=8223)||(cp>=8242&&cp<=8247))?1:2;}return w+urls*23;}
 
@@ -314,7 +352,8 @@ Lire l'article 👇
     b.innerHTML=posts.map(function(p){
       var art=p.articles||{};
       var actions='';
-      if(p.status==='scheduled') actions='<button class="btn sm" data-act="publish_now" data-id="'+p.id+'">Publier</button><button class="btn sm btn--ghost" data-act="cancel" data-id="'+p.id+'">Annuler</button>';
+      var sim=simMode();
+      if(p.status==='scheduled') actions='<button class="btn sm" data-act="publish_now" data-id="'+p.id+'">'+(sim?'Simuler l\'envoi':'Publier maintenant')+'</button><button class="btn sm btn--ghost" data-act="cancel" data-id="'+p.id+'">Annuler</button>';
       else if(p.status==='failed') actions='<button class="btn sm" data-act="retry" data-id="'+p.id+'">Réessayer</button>';
       var link = p.x_post_url?'<a href="'+esc(p.x_post_url)+'" target="_blank" rel="noopener">Voir sur X ↗</a>':(p.dry_run&&p.status==='published'?'<span class="muted">simulé</span>':'—');
       return '<tr><td>'+esc(art.title||'(article)')+
@@ -350,17 +389,40 @@ Lire l'article 👇
     else { toast(r.data.message||'Connexion impossible (config serveur ?)','err'); }
   }
   async function disconnect(){
+    var ok=await confirmDo({title:'Déconnecter le compte X ?',
+      msg:'Les jetons chiffrés seront effacés. Aucune diffusion ne pourra avoir lieu tant qu\'un compte n\'est pas reconnecté.',
+      ok:'Déconnecter', danger:true});
+    if(!ok) return;
     var r = await api('x-account',{method:'POST',body:{action:'disconnect'}});
     if(r.data.ok){ toast('Compte déconnecté'); load(); } else toast('Échec','err');
   }
   async function toggleAuto(on){
+    // Désactivation = action sensible → confirmation explicite. Activation = directe.
+    if(!on){
+      var ok=await confirmDo({title:'Désactiver l\'automatisation X ?',
+        msg:'Plus aucun nouvel article ne sera diffusé sur X tant que l\'automatisation restera désactivée.',
+        ok:'Désactiver', danger:true});
+      if(!ok){ $('swAuto').checked=true; return; }
+    }
     var r = await api('x-account',{method:'POST',body:{action:'toggle',enabled:on}});
     if(r.data.ok){ toast(on?'Publication automatique activée':'Publication automatique désactivée'); } else { toast('Échec','err'); $('swAuto').checked=!on; }
   }
   async function postAction(action,id,btn){
+    var sim=simMode();
+    if(action==='publish_now'){
+      var ok=await confirmDo(sim
+        ? {title:'Simuler l\'envoi maintenant ?', msg:'Mode simulation : le post sera généré et marqué « Simulée ». Rien ne sera envoyé sur X, aucun crédit consommé.', ok:'Lancer la simulation'}
+        : {title:'Publier maintenant sur X ?', msg:'Cette action publie RÉELLEMENT le post sur ton compte X, immédiatement, et peut consommer du crédit.', ok:'Publier sur X', danger:true});
+      if(!ok) return;
+    } else if(action==='retry'){
+      var ok2=await confirmDo(sim
+        ? {title:'Relancer la simulation ?', msg:'Mode simulation : la tâche sera reprogrammée et rejouée en simulation. Aucun envoi réel.', ok:'Relancer'}
+        : {title:'Réessayer la publication réelle ?', msg:'La tâche sera reprogrammée et pourra publier RÉELLEMENT sur X.', ok:'Réessayer', danger:true});
+      if(!ok2) return;
+    }
     if(btn){ btn.disabled=true; btn.innerHTML='<span class="spin"></span>'; }
     var r = await api('social-admin',{method:'POST',body:{action:action,id:id}});
-    if(r.data.ok){ toast(action==='publish_now'?'Traité':(action==='cancel'?'Annulé':'Relancé')); loadHistory(); }
+    if(r.data.ok){ toast(action==='publish_now'?(sim?'Simulé':'Traité'):(action==='cancel'?'Annulé':'Relancé')); loadHistory(); }
     else { toast('Échec de l\'action','err'); if(btn) btn.disabled=false; }
   }
   async function runWorker(){
@@ -376,13 +438,17 @@ Lire l'article 👇
     var r = await api('x-account');
     if(r.status===403){ gate('Ce compte n\'est pas administrateur.',true); return; }
     if(r.data.ok){
-      renderConfig(r.data.config);
-      renderAccount(r.data.account, r.data.config);
+      CFG = r.data.config || {};
+      ACCOUNT = r.data.account || null;
+      renderConfig(CFG);
+      renderAccount(ACCOUNT, CFG);
       var set=r.data.settings||{};
       $('swAuto').checked=!!set.x_enabled;
       $('delayPill').textContent=(set.delay_minutes||10)+' min';
       $('delayDesc').textContent=(set.delay_minutes||10)+' minutes après la publication';
     }
+    // Bouton de traitement manuel : libellé sans ambiguïté selon le mode.
+    var br=$('btnRun'); if(br){ br.textContent = simMode()?'Lancer la simulation':'Lancer le traitement'; }
     renderPreview();
     loadHistory();
   }
