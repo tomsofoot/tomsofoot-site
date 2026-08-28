@@ -72,7 +72,12 @@
   // (champ `eligible` calculé au build selon l'étoile). Tout le reste — recherche,
   // comparaison, autocomplétion — continue d'utiliser PLAYERS en entier.
   // Repli : si aucun joueur n'est marqué eligible (ancienne base sans étoiles), tout est tirable.
-  const POOL = PLAYERS.some((p) => p.eligible) ? PLAYERS.filter((p) => p.eligible) : PLAYERS;
+  // Pool « facile » : joueurs bien connus uniquement (eligible + valeur marchande elevee).
+  // Repli progressif si le seuil vide le pool : eligible seuls, puis tous les joueurs.
+  const EASY_MIN_VALUE = 40000000; // seuil de notoriete (valeur marchande) pour le joueur du jour
+  const ELIGIBLE = PLAYERS.filter((p) => p.eligible);
+  const EASY = ELIGIBLE.filter((p) => (p.marketValue || 0) >= EASY_MIN_VALUE);
+  const POOL = EASY.length ? EASY : (ELIGIBLE.length ? ELIGIBLE : PLAYERS);
   const ORDER = POOL.map((_, i) => i);
   (function shuffle() {
     const rand = mulberry32(0x7031d1e);
