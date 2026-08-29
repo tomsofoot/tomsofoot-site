@@ -85,14 +85,20 @@ export function dbSafety(url, ctx) {
 }
 export function assertDbSafe() { return dbSafety(SUPABASE_URL, NETLIFY_CONTEXT); }
 
+// Une clé Supabase service_role LÉGACY est un JWT (commence par « ey… ») ; une nouvelle
+// clé secrète « sb_secret_… » ne l'est PAS. PostgREST/Kong autorise le rôle via l'en-tête
+// `apikey` ; on n'ajoute `Authorization: Bearer` QUE pour un JWT (sinon un sb_secret_ en
+// Bearer peut être rejeté). Les deux formats de clé fonctionnent ainsi.
+function isJwt(k) { return typeof k === 'string' && /^ey[A-Za-z0-9_\-]+\./.test(k); }
+
 export async function sbAdmin(path, { method = 'GET', body, prefer } = {}) {
   assertDbSafe(); // refuse toute requête si config non sûre (fail-closed)
   const headers = {
     apikey: SERVICE_ROLE,
-    authorization: 'Bearer ' + SERVICE_ROLE,
     'content-type': 'application/json',
     accept: 'application/json',
   };
+  if (isJwt(SERVICE_ROLE)) headers.authorization = 'Bearer ' + SERVICE_ROLE;
   if (prefer) headers.prefer = prefer;
   const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
   const txt = await r.text();

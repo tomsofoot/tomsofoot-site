@@ -95,8 +95,14 @@ export async function processOne(id) {
     const built = buildPost({ title: a.title, deck: a.deck, url });
     const imageUrl = a.og_image || a.hero_image || FALLBACK_SOCIAL_IMAGE;
     const preview = { text: built.text, weighted: built.weighted, image: imageUrl, alt: a.title, url };
-    // Snapshot minimal : conserve l'identité de l'article dans social_posts (survit à sa suppression).
-    const snap = { article_title: a.title, article_slug: a.slug, article_url: url };
+    // article_version : id de la dernière version publiée (snapshot) de l'article.
+    let articleVersion = null;
+    try {
+      const vers = await sbAdmin('article_versions?article_id=eq.' + post.article_id + '&select=id&order=created_at.desc&limit=1');
+      articleVersion = (Array.isArray(vers) && vers[0] && vers[0].id) || null;
+    } catch { /* facultatif : reste null si indisponible */ }
+    // Snapshot : identité + URL canonique + version. Renseigné dans le PATCH de finalisation (transactionnel).
+    const snap = { article_title: a.title, article_slug: a.slug, article_url: url, article_version: articleVersion };
 
     // Interrupteur global coupé → on n'envoie pas (la tâche reste en attente)
     if (!settings.x_enabled) {
@@ -146,6 +152,14 @@ export async function processOne(id) {
       mediaId = await xUploadMedia(accessToken, bytes, mime);
     } catch (e) {
       return await retryOrFail(post, 'Image indisponible : ' + (e.message || 'inconnue'));
+    }
+
+    // (e) RE-VÉRIFICATION juste avant l'appel externe : l'article est-il TOUJOURS public ?
+    // (protège contre une dépublication/suppression survenue pendant le traitement/upload média)
+    const recheck = await sbAdmin('articles?id=eq.' + post.article_id + '&select=status,published_at');
+    const ra = Array.isArray(recheck) && recheck[0];
+    if (!ra || ra.status !== 'published' || !ra.published_at || new Date(ra.published_at) > new Date()) {
+      return await finalize(post, 'cancelled', { ...snap, last_error: 'Article non public juste avant l\'envoi — annulé' });
     }
 
     // Publication
