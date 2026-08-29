@@ -1,4 +1,4 @@
--- 0007_tests.sql — Suite de validation de l'automatisation X (corrigée v2).
+-- 0007_tests.sql — Suite de validation E2E de l'automatisation X (v3 : + T14 supp. apres publi X reelle).
 -- À exécuter sur le STAGING après application de 0007 (v2). Ne crée que des données de test,
 -- qu'il nettoie à la fin. Renvoie une table (test, attendu, obtenu, PASS/FAIL).
 -- N'exécute AUCUN appel réseau / aucun appel à X : tout est au niveau base.
@@ -9,8 +9,14 @@ create temp table _res(k int, test text, attendu text, obtenu text, pass boolean
 do $$
 declare
   a1 uuid; a2 uuid; n int; s text; sa1 timestamptz; sa2 timestamptz; ver uuid;
+  init_enabled boolean; init_delay int; init_err text; init_err_at timestamptz;
 begin
-  -- Réglages : automatisation ACTIVE, délai 10 min, pas d'erreur résiduelle
+  -- Mémorise les réglages INITIAUX pour les restaurer à la fin (aucun effet de bord).
+  select x_enabled, delay_minutes, last_enqueue_error, last_enqueue_error_at
+    into init_enabled, init_delay, init_err, init_err_at
+    from public.social_settings where id=true;
+
+  -- Réglages de test : automatisation ACTIVE, délai 10 min, une erreur résiduelle (pour tester T12)
   update public.social_settings set x_enabled=true, delay_minutes=10, last_enqueue_error='ancienne erreur', last_enqueue_error_at=now() where id=true;
 
   -- T1 : publication -> 1 tâche 'scheduled' à published_at + 10 min
@@ -45,8 +51,10 @@ begin
   insert into _res values (4,'T4 republi. apres annulation: 1 ligne re-armee','1/scheduled', n::text||'/'||s, n=1 and s='scheduled');
 
   -- T5 : republication apres echec 'failed' -> re-armee
+  -- NB: now() est constant dans la transaction ; on force une date DISTINCTE pour
+  --     simuler une VRAIE republication (sinon le trigger ne detecte aucun changement).
   update public.social_posts set status='failed', attempt_count=3, last_error='x' where article_id=a1;
-  update public.articles set published_at = now() where id=a1;
+  update public.articles set published_at = now() + interval '2 hours' where id=a1;
   select status::text, attempt_count into s, n from public.social_posts where article_id=a1;
   insert into _res values (5,'T5 republi. apres echec: re-armee + compteur reset','scheduled/0', s||'/'||n::text, s='scheduled' and n=0);
 
@@ -95,10 +103,34 @@ begin
     where routine_schema='public' and routine_name='social_cancel' and grantee='anon' and privilege_type='EXECUTE';
   insert into _res values (13,'T13b social_cancel non executable par anon','0', n::text, n=0);
 
+  -- T14 : suppression APRES publication REELLE -> conserve x_post_id, x_post_url, article_url ; article_id null
+  insert into public.articles(slug,title,status,published_at) values('t-e2e-5','E2E 5 titre','published', now()) returning id into a2;
+  update public.social_posts set status='published', dry_run=false,
+       x_post_id='1234567890', x_post_url='https://x.com/tomsofoot/status/1234567890',
+       article_title='E2E 5 titre', article_slug='t-e2e-5', article_url='https://tomsofoot.fr/articles/t-e2e-5',
+       published_at=now()
+     where article_id=a2;
+  delete from public.articles where id=a2;
+  insert into _res values (14,'T14 supp. apres publi X reelle: x_post_id/x_post_url/article_url conserves, article_id null',
+     '1234567890 / url X / url article / null',
+     coalesce((select x_post_id from public.social_posts where article_slug='t-e2e-5'),'null')||' / '||
+     coalesce((select x_post_url from public.social_posts where article_slug='t-e2e-5'),'null')||' / '||
+     coalesce((select article_url from public.social_posts where article_slug='t-e2e-5'),'null')||' / '||
+     coalesce((select article_id::text from public.social_posts where article_slug='t-e2e-5'),'null'),
+     (select x_post_id from public.social_posts where article_slug='t-e2e-5')='1234567890'
+       and (select x_post_url from public.social_posts where article_slug='t-e2e-5')='https://x.com/tomsofoot/status/1234567890'
+       and (select article_url from public.social_posts where article_slug='t-e2e-5')='https://tomsofoot.fr/articles/t-e2e-5'
+       and (select article_id from public.social_posts where article_slug='t-e2e-5') is null);
+
   -- Nettoyage des donnees de test
   delete from public.social_posts where article_slug like 't-e2e-%' or article_id in (a1,a2);
   delete from public.articles where slug like 't-e2e-%';
-  update public.social_settings set last_enqueue_error=null, last_enqueue_error_at=null where id=true;
+
+  -- RESTAURE les réglages initiaux exactement (ne laisse PAS x_enabled=true involontairement).
+  update public.social_settings
+     set x_enabled=init_enabled, delay_minutes=init_delay,
+         last_enqueue_error=init_err, last_enqueue_error_at=init_err_at
+   where id=true;
 end $$;
 
 -- Résultats

@@ -205,18 +205,23 @@ alter table public.social_settings enable row level security;
 alter table public.x_account       enable row level security;
 alter table public.x_oauth_state   enable row level security;
 
+-- social_posts : le NAVIGATEUR n'a que la LECTURE (admin). Aucune écriture directe :
+--   insert/update/delete passent par les fonctions serveur (service_role, hors RLS) ou la RPC social_cancel.
 drop policy if exists social_posts_read_admin   on public.social_posts;
 create policy social_posts_read_admin   on public.social_posts for select to authenticated using (public.is_current_user_admin());
 drop policy if exists social_posts_write_admin  on public.social_posts;   -- ancienne policy ALL (incluait DELETE) : retirée
-drop policy if exists social_posts_insert_admin on public.social_posts;
-create policy social_posts_insert_admin on public.social_posts for insert to authenticated with check (public.is_current_user_admin());
-drop policy if exists social_posts_update_admin on public.social_posts;
-create policy social_posts_update_admin on public.social_posts for update to authenticated using (public.is_current_user_admin()) with check (public.is_current_user_admin());
--- AUCUNE policy DELETE : la suppression d'historique est refusée pour anon/authenticated (navigateur).
+drop policy if exists social_posts_insert_admin on public.social_posts;   -- retirée : pas d'insertion via le navigateur
+drop policy if exists social_posts_update_admin on public.social_posts;   -- retirée : pas de modification via le navigateur
+-- AUCUNE policy INSERT / UPDATE / DELETE pour authenticated : tâches et historique non modifiables via le navigateur.
 
-drop policy if exists social_settings_rw_admin on public.social_settings;
-create policy social_settings_rw_admin on public.social_settings for all to authenticated
+-- social_settings : LECTURE admin + MISE À JOUR contrôlée admin. Aucune insertion, aucune suppression.
+drop policy if exists social_settings_rw_admin     on public.social_settings;   -- ancienne policy FOR ALL (permettait delete/insert) : retirée
+drop policy if exists social_settings_read_admin   on public.social_settings;
+create policy social_settings_read_admin   on public.social_settings for select to authenticated using (public.is_current_user_admin());
+drop policy if exists social_settings_update_admin on public.social_settings;
+create policy social_settings_update_admin on public.social_settings for update to authenticated
   using (public.is_current_user_admin()) with check (public.is_current_user_admin());
+-- AUCUNE policy INSERT (le singleton existe déjà) ni DELETE (singleton non supprimable).
 
 -- x_account / x_oauth_state : AUCUNE policy → tout refusé (service_role only).
 revoke all on public.x_account_public from anon, authenticated;
@@ -238,6 +243,14 @@ revoke all on function public.tg_articles_social_on_delete() from public, anon, 
 revoke all on function public.tg_touch_updated_at_social()   from public, anon, authenticated;
 revoke all on function public.social_cancel(uuid) from public, anon;
 grant execute on function public.social_cancel(uuid) to authenticated;
+
+-- 8bis) GRANT / REVOKE explicites sur les TABLES (moindre privilège ; complète les policies RLS).
+--   Le navigateur (anon/authenticated) n'écrit JAMAIS en direct : tout passe par les fonctions
+--   serveur (service_role, hors RLS) ou la RPC social_cancel. Les triggers sont SECURITY DEFINER.
+revoke all on public.social_posts, public.social_settings, public.x_account, public.x_oauth_state from anon, authenticated;
+grant select         on public.social_posts    to authenticated;   -- lecture seule (RLS -> admin)
+grant select, update on public.social_settings to authenticated;   -- lecture + MAJ contrôlée (RLS -> admin) ; ni insert ni delete
+-- x_account / x_oauth_state : AUCUN grant navigateur (service_role uniquement).
 
 -- NOTE (h) article_url / article_version :
 --   Le TRIGGER ne connaît pas l'origine publique (SITE_ORIGIN est une variable Netlify, pas en base)

@@ -53,6 +53,29 @@ async function getAccount() {
 }
 
 // ---------------------------------------------------------------------------
+// Contrôle « au plus près » d'une action externe : l'envoi est-il TOUJOURS légitime ?
+//   * automatisation active (x_enabled) ;
+//   * tâche encore 'processing' (ni annulée ni retirée entre-temps) ;
+//   * article rattaché, existant, publié et published_at <= now.
+// Appelé DEUX fois : juste avant l'upload média ET juste avant la création du post.
+// Relit l'article_id DEPUIS la tâche : si l'article a été supprimé, la FK est passée à null
+// (ON DELETE SET NULL) et le contrôle échoue → aucune donnée envoyée à X.
+// ---------------------------------------------------------------------------
+async function stillSendable(post) {
+  const settings = await getSettings();
+  if (!settings.x_enabled) return { ok: false, reason: 'automatisation X désactivée' };
+  const rows = await sbAdmin('social_posts?id=eq.' + post.id + '&select=status,article_id');
+  const cur = Array.isArray(rows) && rows[0];
+  if (!cur || cur.status !== 'processing') return { ok: false, reason: 'tâche non traitable (' + (cur ? cur.status : 'absente') + ')' };
+  if (!cur.article_id) return { ok: false, reason: 'article détaché (supprimé)' };
+  const arts = await sbAdmin('articles?id=eq.' + cur.article_id + '&select=status,published_at');
+  const a = Array.isArray(arts) && arts[0];
+  if (!a || a.status !== 'published' || !a.published_at || new Date(a.published_at) > new Date())
+    return { ok: false, reason: 'article non public (' + (a ? a.status : 'supprimé') + ')' };
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
 // Traite toutes les tâches dues (scheduled & scheduled_at <= now)
 // ---------------------------------------------------------------------------
 export async function processDue(limit = 5) {
@@ -141,6 +164,11 @@ export async function processOne(id) {
       }});
     }
 
+    // (e1) RE-VÉRIFICATION #1 — IMMÉDIATEMENT AVANT l'upload média : article + statut + tâche + x_enabled.
+    //      AUCUN octet n'est envoyé à X si le contrôle échoue (media.write jamais appelé).
+    let chk = await stillSendable(post);
+    if (!chk.ok) return await finalize(post, 'cancelled', { ...snap, last_error: 'Annulé avant upload média — ' + chk.reason });
+
     // Média : image publique réelle (repli image sociale officielle si indisponible)
     let mediaId = null;
     try {
@@ -154,13 +182,11 @@ export async function processOne(id) {
       return await retryOrFail(post, 'Image indisponible : ' + (e.message || 'inconnue'));
     }
 
-    // (e) RE-VÉRIFICATION juste avant l'appel externe : l'article est-il TOUJOURS public ?
-    // (protège contre une dépublication/suppression survenue pendant le traitement/upload média)
-    const recheck = await sbAdmin('articles?id=eq.' + post.article_id + '&select=status,published_at');
-    const ra = Array.isArray(recheck) && recheck[0];
-    if (!ra || ra.status !== 'published' || !ra.published_at || new Date(ra.published_at) > new Date()) {
-      return await finalize(post, 'cancelled', { ...snap, last_error: 'Article non public juste avant l\'envoi — annulé' });
-    }
+    // (e2) RE-VÉRIFICATION #2 — IMMÉDIATEMENT AVANT la création du post. Protège contre une
+    //      dépublication / suppression / désactivation survenue PENDANT l'upload média : le tweet
+    //      n'est jamais créé si l'article n'est plus public (même si le média a déjà été téléversé).
+    chk = await stillSendable(post);
+    if (!chk.ok) return await finalize(post, 'cancelled', { ...snap, last_error: 'Annulé avant publication — ' + chk.reason });
 
     // Publication
     let created;

@@ -28,7 +28,7 @@ begin
       security definer
       set search_path = ''
       as $body$
-        select pg_catalog.coalesce(
+        select coalesce(
           ( (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin' ),
           false
         )
