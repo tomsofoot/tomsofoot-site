@@ -115,6 +115,9 @@
     background:rgba(140,170,220,.06)}
   tbody tr:last-child td{border-bottom:none}
   .tnum{font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr[data-pv]{cursor:pointer}
+  tr[data-pv]:hover>td{background:rgba(140,170,220,.06)}
+  tr.pv-on>td{background:rgba(140,170,220,.13)!important}
   .rowact{display:flex;gap:6px;flex-wrap:wrap}
   .empty{color:var(--muted);text-align:center;padding:26px}
 
@@ -193,7 +196,7 @@ Lire l'article 👇
         <div class="media" id="pvMedia"></div>
         <div class="xcount"><span id="pvCount">— / 280</span></div>
       </div>
-      <p class="muted small" style="margin:12px 0 0">Image principale réelle en média natif · texte alternatif = titre · comptage pondéré (règles X).</p>
+      <p class="muted small" style="margin:12px 0 0">Rendu réel du prochain post programmé · clique une ligne de l'historique pour prévisualiser un autre post · image principale réelle en média natif · comptage pondéré (règles X).</p>
     </div>
 
     <!-- Coûts -->
@@ -354,22 +357,112 @@ Lire l'article 👇
     }
   }
 
-  function renderPreview(){
-    var title="Mbappé, le poids d'une nation";
-    var deck="Le prodige français porte des attentes immenses avant le tournoi, récit d'une pression pas comme les autres.";
-    var body='🔴 NOUVEL ARTICLE\n'+title+'\n'+deck+'\nLire l\'article 👇\n<span class="lnk">tomsofoot.fr/articles/mbappe-poids-nation</span>';
-    $('pvBody').innerHTML=body;
-    // comptage pondéré local (URL=23, emoji/CJK=2)
-    var plain='🔴 NOUVEL ARTICLE\n'+title+'\n'+deck+'\nLire l\'article 👇\nhttps://tomsofoot.fr/articles/mbappe-poids-nation';
-    $('pvCount').textContent=weighted(plain)+' / 280';
-    $('pvMedia').style.backgroundImage='url(/images/beckham-simeone.jpg)';
+  // ---------- Aperçu dynamique du futur post ----------
+  // La carte « Aperçu » affiche le RENDU RÉEL du prochain post programmé (ou du post
+  // sélectionné dans l'historique), reconstruit avec les mêmes règles que le serveur.
+  var SITE_PV = 'https://tomsofoot.fr';
+  var FALLBACK_IMG = '/images/tomsofoot-home-master.png';
+  var ARTCACHE = {};
+  var CURRENT_PREVIEW = null;
+
+  function canonUrl(slug){ return SITE_PV + '/articles/' + (slug||''); }
+
+  function trimWords(text, maxWeight){
+    if(!text) return {text:'', truncated:false};
+    if(weighted(text) <= maxWeight) return {text:text, truncated:false};
+    var budget = Math.max(0, maxWeight - 1); // réserve pour «…»
+    var words = String(text).trim().split(/\s+/);
+    var out='';
+    for(var i=0;i<words.length;i++){
+      var candidate = out ? out+' '+words[i] : words[i];
+      if(weighted(candidate) > budget) break;
+      out = candidate;
+    }
+    out = out.replace(/[\s,;:.!?–—-]+$/u, '');
+    return {text:(out?out+'…':'…'), truncated:true};
+  }
+  // Reproduit fidèlement buildPost() du serveur (x-core.mjs) : header, titre prioritaire,
+  // chapô sur la place restante, CTA + URL. Comptage pondéré (URL=23, emoji/CJK=2).
+  function buildPostParts(title, deck, url){
+    var HEADER='🔴 NOUVEL ARTICLE', CTA='Lire l\'article 👇';
+    title=(title||'').trim(); deck=(deck||'').trim(); url=(url||'').trim();
+    var fixed = weighted(HEADER)+weighted(CTA)+weighted(url)+3;
+    var budgetTitle = 280 - fixed;
+    var outTitle = title;
+    if(weighted(title) > budgetTitle){ outTitle = trimWords(title, budgetTitle).text; deck=''; }
+    var outDeck='';
+    if(deck){
+      var used = weighted(HEADER)+weighted(outTitle)+weighted(CTA)+weighted(url)+4;
+      var remaining = 280 - used;
+      if(remaining >= 12) outDeck = trimWords(deck, remaining).text;
+    }
+    var lines=[HEADER, outTitle];
+    if(outDeck) lines.push(outDeck);
+    lines.push(CTA, url);
+    return {url:url, lines:lines, text:lines.join('\n')};
+  }
+
+  // Récupère titre/chapô/images des articles (clé publique, articles publiés) — mis en cache.
+  async function fetchArticleMeta(slugs){
+    var need=[]; for(var i=0;i<slugs.length;i++){ var s=slugs[i]; if(s && !(s in ARTCACHE)) need.push(s); }
+    if(need.length && sb){
+      try{
+        var res = await sb.from('articles').select('title,deck,slug,og_image,hero_image').in('slug', need);
+        (res.data||[]).forEach(function(a){ ARTCACHE[a.slug]=a; });
+      }catch(e){ /* réseau/RLS : on retombe sur le snapshot de la tâche */ }
+      need.forEach(function(s){ if(!(s in ARTCACHE)) ARTCACHE[s]=null; });
+    }
+    return ARTCACHE;
+  }
+
+  function previewPlaceholder(){
+    $('pvBody').innerHTML = '<span style="color:#8b98a5">Aucun post à prévisualiser pour le moment. Dès qu\'un article est programmé, son rendu exact apparaît ici.</span>';
+    $('pvCount').textContent='— / 280';
+    $('pvMedia').style.backgroundImage='';
     var tag=$('pvSimTag'); if(tag){ tag.hidden=!simMode(); }
+  }
+
+  async function previewPost(post){
+    if(!post){ previewPlaceholder(); return; }
+    CURRENT_PREVIEW = post.id || null;
+    var art = post.articles || {};
+    var slug = post.article_slug || art.slug || '';
+    var title = art.title || post.article_title || '';
+    var deck='', img=null;
+    if(slug){
+      await fetchArticleMeta([slug]);
+      var a = ARTCACHE[slug];
+      if(a){ title=a.title||title; deck=a.deck||''; img=a.og_image||a.hero_image||null; }
+    }
+    // La tâche a pu être sélectionnée entre-temps ailleurs : garde le dernier choix.
+    if(CURRENT_PREVIEW !== (post.id||null)) return;
+    var parts = buildPostParts(title, deck, canonUrl(slug));
+    var html = parts.lines.map(function(ln){
+      if(ln===parts.url){ return '<span class="lnk">'+esc('tomsofoot.fr/articles/'+slug)+'</span>'; }
+      return esc(ln);
+    }).join('\n');
+    $('pvBody').innerHTML = html;
+    $('pvCount').textContent = weighted(parts.text) + ' / 280';
+    $('pvMedia').style.backgroundImage = 'url("'+ String(img || FALLBACK_IMG).replace(/"/g,'%22') +'")';
+    var b=$('histBody'); if(b){ Array.prototype.forEach.call(b.querySelectorAll('tr[data-pv]'),function(tr){ tr.classList.toggle('pv-on', tr.getAttribute('data-pv')===String(post.id)); }); }
+    var tag=$('pvSimTag'); if(tag){ tag.hidden=!simMode(); }
+  }
+
+  // Choix du post prévisualisé : sélection courante si toujours présente,
+  // sinon le prochain post programmé, sinon le plus récent.
+  function pickPreviewPost(posts){
+    if(!posts || !posts.length) return null;
+    if(CURRENT_PREVIEW){ var cur=posts.filter(function(p){return p.id===CURRENT_PREVIEW;})[0]; if(cur) return cur; }
+    var sched=posts.filter(function(p){return p.status==='scheduled';});
+    return sched.length ? sched[0] : posts[0];
   }
   function weighted(t){var urls=(t.match(/\bhttps?:\/\/[^\s]+/gi)||[]).length;var s=t.replace(/\bhttps?:\/\/[^\s]+/gi,'');var w=0;for(var i=0;i<s.length;i++){var cp=s.codePointAt(i);if(cp>0xFFFF)i++;w+=((cp>=0&&cp<=4351)||(cp>=8192&&cp<=8205)||(cp>=8208&&cp<=8223)||(cp>=8242&&cp<=8247))?1:2;}return w+urls*23;}
 
+  var LASTPOSTS=null;
   function renderHistory(posts){
+    LASTPOSTS = posts || [];
     var b=$('histBody');
-    if(!posts||!posts.length){ b.innerHTML='<tr><td colspan="7" class="empty">Aucune diffusion pour le moment.</td></tr>'; return; }
+    if(!posts||!posts.length){ b.innerHTML='<tr><td colspan="7" class="empty">Aucune diffusion pour le moment.</td></tr>'; previewPlaceholder(); return; }
     b.innerHTML=posts.map(function(p){
       var art=p.articles||{};
       var actions='';
@@ -377,7 +470,7 @@ Lire l'article 👇
       if(p.status==='scheduled') actions='<button class="btn sm" data-act="publish_now" data-id="'+p.id+'">'+(sim?'Simuler l\'envoi':'Publier maintenant')+'</button><button class="btn sm btn--ghost" data-act="cancel" data-id="'+p.id+'">Annuler</button>';
       else if(p.status==='failed') actions='<button class="btn sm" data-act="retry" data-id="'+p.id+'">Réessayer</button>';
       var link = p.x_post_url?'<a href="'+esc(p.x_post_url)+'" target="_blank" rel="noopener">Voir sur X ↗</a>':(p.dry_run&&p.status==='published'?'<span class="muted">simulé</span>':'—');
-      return '<tr><td>'+esc(art.title||'(article)')+
+      return '<tr data-pv="'+p.id+'" title="Cliquer pour prévisualiser ce post"><td>'+esc(art.title||p.article_title||'(article)')+
         (p.last_error?'<div class="muted small" style="margin-top:3px">'+esc(p.last_error)+'</div>':'')+'</td>'+
         '<td class="tnum">'+fmt(p.scheduled_at)+'</td>'+
         '<td class="tnum">'+fmt(p.published_at)+'</td>'+
@@ -387,8 +480,18 @@ Lire l'article 👇
         '<td><div class="rowact">'+actions+'</div></td></tr>';
     }).join('');
     Array.prototype.forEach.call(b.querySelectorAll('button[data-act]'),function(btn){
-      btn.onclick=function(){ postAction(btn.getAttribute('data-act'), btn.getAttribute('data-id'), btn); };
+      btn.onclick=function(e){ e.stopPropagation(); postAction(btn.getAttribute('data-act'), btn.getAttribute('data-id'), btn); };
     });
+    // Chaque ligne prévisualise son post (sauf clic sur un bouton/lien d'action).
+    Array.prototype.forEach.call(b.querySelectorAll('tr[data-pv]'),function(tr){
+      tr.addEventListener('click', function(e){
+        if(e.target.closest('button') || e.target.closest('a')) return;
+        var id=tr.getAttribute('data-pv');
+        var post=(LASTPOSTS||[]).filter(function(p){return String(p.id)===id;})[0];
+        if(post) previewPost(post);
+      });
+    });
+    previewPost(pickPreviewPost(posts));
   }
 
   function renderConfig(cfg){
@@ -477,7 +580,7 @@ Lire l'article 👇
     }
     // Bouton de traitement manuel : libellé sans ambiguïté selon le mode.
     var br=$('btnRun'); if(br){ br.textContent = simMode()?'Lancer la simulation':'Lancer le traitement'; }
-    renderPreview();
+    previewPlaceholder();
     loadHistory();
   }
   async function loadHistory(){
