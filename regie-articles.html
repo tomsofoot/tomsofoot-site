@@ -241,6 +241,18 @@ body:not(.media-open) .rb-media{display:none}
   body:not(.media-open) .rb-media{display:none}
   .rb-colorpop{width:min(250px,92vw)}
 }
+/* ---------- Aperçu tweet X en direct (carte, lecture seule) ---------- */
+.xtp{background:#15202b;border:1px solid #2b3a48;border-radius:14px;padding:13px 14px;color:#e7e9ea;font-size:14px;line-height:1.5;margin-bottom:10px}
+.xtp-hd{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.xtp-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ff334d,#0b1a33);flex:none}
+.xtp-nm{font-weight:700;color:#fff;line-height:1.05;font-size:13.5px}
+.xtp-hn{color:#8b98a5;font-size:12px}
+.xtp-tag{margin-left:auto;font-size:11px;color:#8b98a5;border:1px solid #2b3a48;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.xtp-body{white-space:pre-wrap;word-break:break-word}
+.xtp-lnk{color:#6cb2ff}
+.xtp-muted{color:#8b98a5}
+.xtp-media{margin-top:10px;border:1px solid rgba(255,255,255,.13);border-radius:12px;aspect-ratio:16/9;background-size:cover;background-position:center;background-color:#0b1620}
+.xtp-count{display:flex;justify-content:flex-end;margin-top:7px;color:#8b98a5;font-size:12px;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -316,6 +328,13 @@ body:not(.media-open) .rb-media{display:none}
 
       <div class="rb-sec" id="rbSocialX">
         <p class="rb-sec__t">Diffusion sur X</p>
+        <div id="xtpCard" class="xtp">
+          <div class="xtp-hd"><span class="xtp-av"></span><div><div class="xtp-nm">TomsoFoot</div><div class="xtp-hn">@tomsofoot</div></div><span class="xtp-tag">Aperçu en direct</span></div>
+          <div class="xtp-body" id="xtpBody"><span class="xtp-muted">Renseigne le titre et le chapô : l'aperçu du tweet s'affiche ici en direct.</span></div>
+          <div class="xtp-media" id="xtpMedia"></div>
+          <div class="xtp-count"><span id="xtpCount">— / 280</span></div>
+        </div>
+        <p class="rb-hint" style="margin:8px 0 0">Aperçu du tweet publié ~10&nbsp;min après la mise en ligne — actualisé en direct pendant que tu écris. La diffusion réelle est programmée à la publication.</p>
         <div id="socialXBody"><p style="color:#8ba0be;font-size:13px;margin:0">Publie l'article pour programmer sa diffusion automatique sur X (10&nbsp;min après).</p></div>
       </div>
     </div>
@@ -890,7 +909,7 @@ function previewHTML(){
 }
 /* ---------- aperçu STABLE : iframe initialisé une fois, puis patch ciblé (correction #3) ---------- */
 let upT, pvReady=false;
-function update(force){ clearTimeout(upT); upT=setTimeout(()=>doUpdate(force),90); }
+function update(force){ clearTimeout(upT); upT=setTimeout(()=>{ doUpdate(force); try{ xtpRender(); }catch(e){} },90); }
 function doUpdate(force){
   const pv=$('#pv'); const doc=pv.contentDocument;
   if(force || !pvReady || !doc || !doc.querySelector('.body')){
@@ -975,6 +994,40 @@ addBlock('paragraph',{text:'Hugo Broos avait choisi la prudence. En face, le Mex
 addBlock('stats',{rows:[{k:'Possession',v:'61%'},{k:'Tirs',v:'16'},{k:'Buts',v:'2'},{k:'Exclusion',v:'1'}]});
 addBlock('quote',{text:"Certains moments méritent davantage de reconnaissance que d'exubérance.",cite:'Notre envoyé spécial'});
 autosave(true); update();
+
+/* ---------- Aperçu tweet X en direct (lecture seule, additif — ne modifie rien de l'éditeur) ----------
+   Reconstruit le rendu exact du futur tweet (mêmes règles que le serveur x-core.mjs :
+   header + titre prioritaire + chapô sur la place restante + CTA + URL ; comptage pondéré
+   URL=23, emoji/CJK=2). Lit l'état courant de l'article (titre / chapô / slug / image). */
+function xtpEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function xtpWeighted(t){var urls=(t.match(/\bhttps?:\/\/[^\s]+/gi)||[]).length;var s=t.replace(/\bhttps?:\/\/[^\s]+/gi,'');var w=0;for(var i=0;i<s.length;i++){var cp=s.codePointAt(i);if(cp>0xFFFF)i++;w+=((cp>=0&&cp<=4351)||(cp>=8192&&cp<=8205)||(cp>=8208&&cp<=8223)||(cp>=8242&&cp<=8247))?1:2;}return w+urls*23;}
+function xtpTrim(text,maxWeight){if(!text)return{text:''};if(xtpWeighted(text)<=maxWeight)return{text:text};var budget=Math.max(0,maxWeight-1);var words=String(text).trim().split(/\s+/);var out='';for(var i=0;i<words.length;i++){var c=out?out+' '+words[i]:words[i];if(xtpWeighted(c)>budget)break;out=c;}out=out.replace(/[\s,;:.!?–—-]+$/u,'');return{text:(out?out+'…':'…')};}
+function xtpBuild(title,deck,url){var H='🔴 NOUVEL ARTICLE',C='Lire l\'article 👇';title=(title||'').trim();deck=(deck||'').trim();url=(url||'').trim();var fixed=xtpWeighted(H)+xtpWeighted(C)+xtpWeighted(url)+3;var bT=280-fixed;var oT=title;if(xtpWeighted(title)>bT){oT=xtpTrim(title,bT).text;deck='';}var oD='';if(deck){var used=xtpWeighted(H)+xtpWeighted(oT)+xtpWeighted(C)+xtpWeighted(url)+4;var rem=280-used;if(rem>=12)oD=xtpTrim(deck,rem).text;}var lines=[H,oT];if(oD)lines.push(oD);lines.push(C,url);return{url:url,lines:lines,text:lines.join('\n')};}
+function xtpRender(){
+  var body=document.getElementById('xtpBody'); if(!body) return;
+  var h=(typeof state!=='undefined'&&state&&state.header)||{};
+  var title=(h.title||'').trim();
+  var deck=(h.deck||'').trim();
+  var slug=(h.slug||'').trim() || (title?slugify(title):'');
+  var hero=(h.hero||'').trim();
+  var countEl=document.getElementById('xtpCount');
+  var mediaEl=document.getElementById('xtpMedia');
+  if(!title && !deck){
+    body.innerHTML='<span class="xtp-muted">Renseigne le titre et le chapô : l\'aperçu du tweet s\'affiche ici en direct.</span>';
+    if(countEl)countEl.textContent='— / 280';
+    if(mediaEl)mediaEl.style.backgroundImage='';
+    return;
+  }
+  var url='https://tomsofoot.fr/articles/'+(slug||'…');
+  var parts=xtpBuild(title,deck,url);
+  body.innerHTML=parts.lines.map(function(ln){
+    if(ln===parts.url){ return '<span class="xtp-lnk">'+xtpEsc('tomsofoot.fr/articles/'+(slug||'…'))+'</span>'; }
+    return xtpEsc(ln);
+  }).join('\n');
+  if(countEl)countEl.textContent=xtpWeighted(parts.text)+' / 280';
+  if(mediaEl){ var img=hero||'/images/tomsofoot-home-master.png'; mediaEl.style.backgroundImage='url("'+String(img).replace(/"/g,'%22')+'")'; }
+}
+try{ xtpRender(); }catch(e){}
 </script>
 
 <!-- ===================== INTÉGRATION SUPABASE + LANGUAGETOOL ===================== -->
