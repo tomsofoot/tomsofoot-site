@@ -53,19 +53,39 @@ export default async (req) => {
 
     const html = await r.text();
 
-    // Noms des joueurs : cellule "hauptlink" (le nom du joueur) contenant un lien vers /profil/spieler/<id>.
-    // La cellule de valeur marchande est "rechts hauptlink" (deux classes) => exclue par le motif exact.
+    // On parse LIGNE PAR LIGNE la table effectif pour récupérer, par joueur :
+    //   - le nom (cellule "hauptlink" + lien /profil/spieler/<id>) ;
+    //   - le poste (2e ligne de l'inline-table) ;
+    //   - la nationalité (1er drapeau "flaggenrahmen", attribut title).
+    // La date de naissance n'est pas exposée de façon fiable dans cette vue → laissée vide.
+    const POSMAP = { 'Gardien de but': 'Gardien' };
     const players = [];
     const seen = new Set();
-    // Tolérant aux balises imbriquées dans le lien (icône capitaine, etc.) : on capture tout
-    // jusqu'à </a> puis on retire les balises.
-    const re = /<td class="hauptlink">\s*<a\b[^>]*\/profil\/spieler\/\d+[^>]*>([\s\S]*?)<\/a>/g;
-    let m;
-    while ((m = re.exec(html)) !== null) {
-      const name = decodeEntities(m[1].replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+    const ti = html.indexOf('<table class="items"');
+    const block = ti >= 0 ? html.slice(ti) : html;
+    const rows = block.split(/<tr class="(?:odd|even)">/).slice(1);
+    for (const row of rows) {
+      const nameM = row.match(/<td class="hauptlink">\s*<a\b[^>]*\/profil\/spieler\/\d+[^>]*>([\s\S]*?)<\/a>/);
+      if (!nameM) continue;
+      const name = decodeEntities(nameM[1].replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
       if (!name || seen.has(name)) continue;
       seen.add(name);
-      players.push(name);
+      const posM = row.match(/<\/tr>\s*<tr>\s*<td>([^<]+)<\/td>/);
+      let position = posM ? decodeEntities(posM[1]).replace(/\s+/g, ' ').trim() : '';
+      position = POSMAP[position] || position;
+      const flagM = row.match(/<img[^>]*\bflaggenrahmen\b[^>]*>/);
+      const natM = flagM ? flagM[0].match(/title="([^"]+)"/) : null;
+      const country = natM ? decodeEntities(natM[1]).replace(/\s+/g, ' ').trim() : '';
+      players.push({ name, position, country });
+    }
+    // Repli : si le format a changé et qu'on n'a rien, on retente en mode "noms seuls".
+    if (!players.length) {
+      const re = /<td class="hauptlink">\s*<a\b[^>]*\/profil\/spieler\/\d+[^>]*>([\s\S]*?)<\/a>/g;
+      let m;
+      while ((m = re.exec(html)) !== null) {
+        const name = decodeEntities(m[1].replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+        if (name && !seen.has(name)) { seen.add(name); players.push({ name, position: '', country: '' }); }
+      }
     }
 
     // Nom du club (depuis le <title> : "Paris Saint-Germain - Effectif détaillé …").
