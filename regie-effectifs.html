@@ -84,6 +84,7 @@
           <label>E-mail administrateur</label>
           <input type="email" id="gate-email" placeholder="ton-email@exemple.com" autocomplete="email">
         </div>
+        <div id="cf-turnstile" style="margin:2px 0"></div>
         <button class="primary" id="gate-login">Recevoir mon lien de connexion</button>
         <div class="hint" id="gate-login-msg"></div>
       </div>
@@ -160,12 +161,15 @@
   </div>
 </div>
 
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   "use strict";
   var SUPABASE_URL = 'https://yubndvqmglttlntkugzm.supabase.co';
   var SUPABASE_ANON = 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+  // Clé de site Turnstile (PUBLIQUE) — anti-robot exigé par Supabase Auth sur le lien magique.
+  var TURNSTILE_SITE_KEY = '0x4AAAAAAENjYPshXARDoToV';
   var LEAGUES = ['Premier League','Ligue 1','Bundesliga','Serie A','Liga','Süper Lig','Liga Portugal','Eredivisie'];
   var CONFEDS = ['UEFA','CONMEBOL','CAF','AFC','CONCACAF','OFC'];
   var POSITIONS = ['Gardien','Défenseur central','Arrière droit','Arrière gauche','Milieu défensif',
@@ -481,10 +485,17 @@
   }
 
   // ---------- Connexion ----------
+  var twId = null;
+  function renderTurnstile(){
+    if(twId !== null) return;
+    if(!(window.turnstile && window.turnstile.render)){ setTimeout(renderTurnstile, 300); return; }
+    try{ twId = window.turnstile.render('#cf-turnstile', { sitekey: TURNSTILE_SITE_KEY, theme:'dark' }); }catch(e){}
+  }
   function gate(msg, showLogin){
     $('gate-spin').style.display = showLogin?'none':'';
     $('gate-msg').textContent = msg;
     $('gate-actions').style.display = showLogin?'':'none';
+    if(showLogin) renderTurnstile();
   }
   async function boot(){
     if(!sb) return gate('Service de connexion indisponible. Réessaie.', true);
@@ -505,12 +516,18 @@
   $('gate-login').addEventListener('click', async function(){
     var email=($('gate-email').value||'').trim();
     if(!/.+@.+\..+/.test(email)){ $('gate-login-msg').textContent='E-mail invalide.'; return; }
+    var token = (window.turnstile && twId!==null) ? window.turnstile.getResponse(twId) : '';
+    if(!token){ $('gate-login-msg').textContent='Patiente une seconde : la protection anti-robot finit de charger, puis reclique.'; renderTurnstile(); return; }
     $('gate-login').disabled=true; $('gate-login-msg').textContent='Envoi…';
     try{
-      var r=await sb.auth.signInWithOtp({email:email, options:{emailRedirectTo:location.href}});
+      var r=await sb.auth.signInWithOtp({email:email, options:{emailRedirectTo:location.href, captchaToken:token}});
       if(r.error) throw r.error;
       $('gate-login-msg').textContent='📩 Lien envoyé ! Ouvre ton e-mail, clique le lien, tu reviendras ici connecté.';
-    }catch(e){ $('gate-login-msg').textContent='Erreur : '+(e.message||e); $('gate-login').disabled=false; }
+    }catch(e){
+      $('gate-login-msg').textContent='Erreur : '+(e.message||e);
+      $('gate-login').disabled=false;
+      if(window.turnstile && twId!==null){ try{ window.turnstile.reset(twId); }catch(_){} }
+    }
   });
   $('logout').addEventListener('click', async function(){ await sb.auth.signOut(); location.reload(); });
   $('club').addEventListener('change', toggleNewClub);
