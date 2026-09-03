@@ -119,6 +119,15 @@
         <input type="text" id="newclub" placeholder="Ex. AFC Sunderland">
       </div>
       <div>
+        <label>Import express — colle une URL Transfermarkt de l'effectif du club</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="tm-url" spellcheck="false" autocapitalize="off" autocomplete="off"
+                 placeholder="https://www.transfermarkt.fr/…/kader/verein/583/saison_id/2026" style="flex:1;min-width:240px">
+          <button id="tm-load">⤵ Charger depuis Transfermarkt</button>
+        </div>
+        <div class="hint" id="tm-msg">Ouvre la fiche du club sur Transfermarkt (onglet « Effectif »), copie l'URL et colle-la ici. En cas de blocage, tu peux toujours coller la liste à la main ci-dessous.</div>
+      </div>
+      <div>
         <label>Effectif à jour — un joueur par ligne (nom, ou « Nom Prénom »)</label>
         <textarea id="paste" spellcheck="false" placeholder="Colle ici la liste des joueurs actuellement au club…&#10;Ex.&#10;Robin Roefs&#10;Omar Alderete&#10;Granit Xhaka&#10;Enzo Le Fée&#10;Habib Diarra"></textarea>
         <div class="hint">La liste sert à <b>déplacer</b> vers ce club les joueurs déjà connus du jeu. Les joueurs actuellement au club mais <b>absents</b> de la liste seront signalés comme « partis ». Les noms inconnus pourront être <b>créés</b>.</div>
@@ -459,6 +468,26 @@
   function showMsg(kind,html){ var m=$('msg'); m.className='msg show '+kind; m.innerHTML=html; }
   function hideMsg(){ var m=$('msg'); m.className='msg'; }
 
+  // ---------- Import Transfermarkt (assistant serveur + repli collage) ----------
+  async function loadFromTM(){
+    var url=($('tm-url').value||'').trim();
+    if(!/transfermarkt\./i.test(url)){ $('tm-msg').innerHTML='Colle une URL Transfermarkt valide (fiche « Effectif » d\'un club).'; return; }
+    var btn=$('tm-load'); btn.disabled=true; var old=btn.textContent; btn.textContent='Chargement…';
+    $('tm-msg').textContent='Lecture de la page Transfermarkt…';
+    try{
+      var r=await fetch('/.netlify/functions/tm-squad?url='+encodeURIComponent(url));
+      var j=await r.json();
+      if(!j.ok) throw new Error(j.message||('HTTP '+r.status));
+      $('paste').value=(j.players||[]).join('\n');
+      $('tm-msg').innerHTML='✅ '+j.count+' joueurs chargés'+(j.club?(' — <b>'+esc(j.club)+'</b>'):'')+
+        '. Vérifie le club sélectionné ci-dessus, puis clique « Prévisualiser ».';
+      $('apply').disabled=true;
+    }catch(e){
+      $('tm-msg').innerHTML='⚠️ Transfermarkt n\'a pas pu être lu automatiquement ('+esc(e.message||e)+
+        ').<br>Ouvre la page, copie la liste des joueurs et colle-la dans la zone ci-dessous.';
+    }finally{ btn.disabled=false; btn.textContent=old; }
+  }
+
   // ---------- Sélecteurs championnat / club ----------
   function fillLeagues(){
     $('league').innerHTML = LEAGUES.map(function(l){return '<option>'+l+'</option>';}).join('');
@@ -540,6 +569,8 @@
   $('club').addEventListener('change', toggleNewClub);
   $('preview').addEventListener('click', function(){ var p=computePlan(); if(p) renderPlan(p); });
   $('apply').addEventListener('click', apply);
+  $('tm-load').addEventListener('click', loadFromTM);
+  $('tm-url').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); loadFromTM(); } });
   // recalcul si on change de club après un aperçu
   ['league','club'].forEach(function(id){ $(id).addEventListener('change', function(){ $('apply').disabled=true; }); });
 
