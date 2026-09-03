@@ -135,6 +135,7 @@
       <div class="actions">
         <button class="primary" id="preview">Prévisualiser les changements</button>
         <button class="primary" id="apply" disabled>Appliquer</button>
+        <button class="ghost" id="relegate" style="border-color:var(--gone);color:#fda4af">Retirer ce club du jeu (relégué)…</button>
         <span class="hint" id="roster-info"></span>
       </div>
     </div>
@@ -191,7 +192,9 @@
   var roster = [];              // tous les joueurs {id,name,short_name,club,league,...}
   var byId = {};                // id -> joueur
   var nameIndex = {};           // clé normalisée -> [joueurs]
+  var confByCountry = {};       // "Brésil" -> "CONMEBOL" (déduit du roster existant)
   var lastPlan = null;          // dernier aperçu calculé
+  var relegateArmed = null;     // club en attente de confirmation de retrait
 
   // ---------- Normalisation des noms ----------
   var SPECIAL = {'ø':'o','æ':'ae','œ':'oe','ł':'l','đ':'d','ð':'d','ı':'i','ß':'ss','þ':'th','ħ':'h','ĸ':'k','ŀ':'l','ŉ':'n'};
@@ -233,9 +236,10 @@
 
   // ---------- Index ----------
   function buildIndex(){
-    byId={}; nameIndex={};
+    byId={}; nameIndex={}; confByCountry={};
     roster.forEach(function(p){
       byId[p.id]=p;
+      if(p.country && p.confederation && !confByCountry[p.country]) confByCountry[p.country]=p.confederation;
       var keys = new Set();
       keys.add(fullKey(p.name));
       if(p.short_name) keys.add(fullKey(p.short_name));
@@ -351,17 +355,21 @@
   }
 
   function createRow(name, kind, i){
-    var posOpts = POSITIONS.map(function(p){return '<option>'+p+'</option>';}).join('');
-    var confOpts = CONFEDS.map(function(c){return '<option>'+c+'</option>';}).join('');
+    var tm = (window.tmAttr||{})[fullKey(name)] || {};
+    var pos = tm.position||'', country = tm.country||'';
+    var conf = (country && confByCountry[country]) ? confByCountry[country] : '';
+    var pre = !!(pos || country);   // pré-rempli depuis Transfermarkt
+    var posOpts = POSITIONS.map(function(p){return '<option'+(p===pos?' selected':'')+'>'+p+'</option>';}).join('');
+    var confOpts = CONFEDS.map(function(c){return '<option'+(c===conf?' selected':'')+'>'+c+'</option>';}).join('');
     return '<div class="line" data-'+kind+'="'+i+'" style="align-items:flex-start;flex-direction:column;gap:8px">'+
       '<div style="display:flex;gap:10px;align-items:center;width:100%">'+
-        '<label style="margin:0"><input type="checkbox" class="mk-create" data-kind="'+kind+'" data-i="'+i+'"> créer</label>'+
-        '<span class="nm">'+esc(name)+'</span></div>'+
-      '<div class="crf" style="display:none;gap:8px;flex-wrap:wrap;width:100%">'+
+        '<label style="margin:0"><input type="checkbox" class="mk-create" data-kind="'+kind+'" data-i="'+i+'"'+(pre?' checked':'')+'> créer</label>'+
+        '<span class="nm">'+esc(name)+'</span>'+(pre?' <span class="meta">(pré-rempli via Transfermarkt)</span>':'')+'</div>'+
+      '<div class="crf" style="'+(pre?'display:flex;':'display:none;')+'gap:8px;flex-wrap:wrap;width:100%">'+
         '<select class="cr-pos" title="Poste">'+posOpts+'</select>'+
         '<select class="cr-conf" title="Confédération">'+confOpts+'</select>'+
-        '<input type="text" class="cr-country" placeholder="Nationalité (ex. France)" style="flex:1">'+
-        '<input type="text" class="cr-birth" placeholder="Naissance AAAA-MM-JJ" style="max-width:170px">'+
+        '<input type="text" class="cr-country" placeholder="Nationalité (ex. France)" value="'+esc(country)+'" style="flex:1">'+
+        '<input type="text" class="cr-birth" placeholder="Naissance AAAA-MM-JJ (optionnel)" style="max-width:190px">'+
       '</div></div>';
   }
 
@@ -465,8 +473,33 @@
     }
   }
 
-  function showMsg(kind,html){ var m=$('msg'); m.className='msg show '+kind; m.innerHTML=html; }
+  function showMsg(kind,html){ var m=$('msg'); m.className='msg show '+kind; m.innerHTML=html; $('result').style.display=''; }
   function hideMsg(){ var m=$('msg'); m.className='msg'; }
+
+  // ---------- Retrait d'un club (relégation) : sort ses joueurs du pool mystère ----------
+  async function relegateClub(){
+    var club=targetClub();
+    if(!club){ showMsg('err','Choisis d\'abord le club à retirer (relégué).'); return; }
+    var victims=roster.filter(function(p){ return p.club===club; });
+    if(!victims.length){ showMsg('info','Aucun joueur trouvé pour « '+esc(club)+' ».'); return; }
+    if(relegateArmed!==club){
+      relegateArmed=club;
+      showMsg('info','⚠️ Retirer « <b>'+esc(club)+'</b> » du jeu : <b>'+victims.length+'</b> joueurs sortiront du pool mystère '+
+        '(ils ne pourront plus être le joueur à trouver) mais restent dans le jeu, avec leur vrai club. '+
+        'Reclique « Retirer ce club » pour <b>confirmer</b>.');
+      return;
+    }
+    relegateArmed=null;
+    var ops=victims.map(function(p){ return {op:'update', id:p.id, eligible:false, in_mystery_pool:false}; });
+    showMsg('info','Retrait en cours…');
+    try{
+      var res=await sb.rpc('jog_apply_squad_changes',{p_ops:ops,p_dry_run:false});
+      if(res.error) throw res.error;
+      var t=res.data.totals;
+      showMsg('good','✅ « '+esc(club)+' » retiré du pool mystère : '+t.updated+' joueurs mis hors pool (club conservé). Le reste du jeu est inchangé.');
+      await loadRoster();
+    }catch(e){ showMsg('err','Erreur : '+(e.message||e)); }
+  }
 
   // ---------- Import Transfermarkt (assistant serveur + repli collage) ----------
   async function loadFromTM(){
@@ -478,9 +511,13 @@
       var r=await fetch('/.netlify/functions/tm-squad?url='+encodeURIComponent(url));
       var j=await r.json();
       if(!j.ok) throw new Error(j.message||('HTTP '+r.status));
-      $('paste').value=(j.players||[]).join('\n');
+      var arr=j.players||[];
+      // Mémorise poste + nationalité par joueur (pour pré-remplir la création éventuelle).
+      window.tmAttr={};
+      arr.forEach(function(p){ if(p&&p.name){ window.tmAttr[fullKey(p.name)]={position:p.position||'', country:p.country||''}; } });
+      $('paste').value=arr.map(function(p){return (p&&p.name)||'';}).filter(Boolean).join('\n');
       $('tm-msg').innerHTML='✅ '+j.count+' joueurs chargés'+(j.club?(' — <b>'+esc(j.club)+'</b>'):'')+
-        '. Vérifie le club sélectionné ci-dessus, puis clique « Prévisualiser ».';
+        ' (avec poste & nationalité). Vérifie le club sélectionné ci-dessus, puis clique « Prévisualiser ».';
       $('apply').disabled=true;
     }catch(e){
       $('tm-msg').innerHTML='⚠️ Transfermarkt n\'a pas pu être lu automatiquement ('+esc(e.message||e)+
@@ -571,8 +608,9 @@
   $('apply').addEventListener('click', apply);
   $('tm-load').addEventListener('click', loadFromTM);
   $('tm-url').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); loadFromTM(); } });
-  // recalcul si on change de club après un aperçu
-  ['league','club'].forEach(function(id){ $(id).addEventListener('change', function(){ $('apply').disabled=true; }); });
+  $('relegate').addEventListener('click', relegateClub);
+  // recalcul si on change de club après un aperçu ; on désarme aussi le retrait de club.
+  ['league','club'].forEach(function(id){ $(id).addEventListener('change', function(){ $('apply').disabled=true; relegateArmed=null; }); });
 
   // réagir au retour de magic-link
   if(sb) sb.auth.onAuthStateChange(function(evt){ if(evt==='SIGNED_IN'){ boot(); } });
