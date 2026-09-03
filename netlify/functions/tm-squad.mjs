@@ -38,8 +38,20 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'bad_url', message: 'URL Transfermarkt attendue (ex. .../kader/verein/583/saison_id/2026).' }), { status: 400, headers: H });
   }
 
+  // "Lien intelligent" : on extrait l'ID du club (/verein/<id>) de N'IMPORTE quelle URL
+  // Transfermarkt, et on reconstruit nous-mêmes l'adresse de l'effectif de la SAISON EN COURS
+  // sur le domaine .fr (libellés français). La saison de foot bascule en juillet.
+  const idM = url.match(/\/verein\/(\d+)/);
+  if (!idM) {
+    return new Response(JSON.stringify({ error: 'bad_url', message: 'Lien d\'un club Transfermarkt attendu (il doit contenir /verein/<id>).' }), { status: 400, headers: H });
+  }
+  const vid = idM[1];
+  const now = new Date();
+  const season = (now.getUTCMonth() >= 6) ? now.getUTCFullYear() : now.getUTCFullYear() - 1; // juillet = mois 6
+  const target = 'https://www.transfermarkt.fr/x/kader/verein/' + vid + '/saison_id/' + season;
+
   try {
-    const r = await fetch(url, {
+    const r = await fetch(target, {
       redirect: 'follow',
       headers: {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -97,7 +109,7 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'no_players', message: 'Aucun joueur trouvé (page probablement bloquée ou format inattendu).' }), { status: 502, headers: H });
     }
 
-    return new Response(JSON.stringify({ ok: true, club, count: players.length, players }), { headers: H });
+    return new Response(JSON.stringify({ ok: true, club, season, count: players.length, players, source: target }), { headers: H });
   } catch (e) {
     return new Response(JSON.stringify({ error: 'fetch_failed', message: String(e).slice(0, 200) }), { status: 502, headers: H });
   }
