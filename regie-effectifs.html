@@ -476,9 +476,17 @@
 
   // ---------- Roster ----------
   async function loadRoster(){
-    var r = await sb.rpc('jog_admin_players');
-    if(r.error) throw r.error;
-    roster = r.data||[];
+    // Supabase plafonne chaque réponse (souvent 1000 lignes) : on pagine pour tout charger.
+    var all=[], from=0, SIZE=1000;
+    for(var guard=0; guard<50; guard++){
+      var r = await sb.rpc('jog_admin_players').range(from, from+SIZE-1);
+      if(r.error) throw r.error;
+      var chunk = r.data||[];
+      all = all.concat(chunk);
+      if(chunk.length < SIZE) break;
+      from += SIZE;
+    }
+    roster = all;
     buildIndex();
     $('roster-info').textContent = roster.length+' joueurs chargés · '+
       Array.from(new Set(roster.map(function(p){return p.club;}))).length+' clubs';
