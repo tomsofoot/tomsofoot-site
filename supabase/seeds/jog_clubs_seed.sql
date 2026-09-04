@@ -64,7 +64,7 @@ insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 
 insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 'OGC Nice','Ligue 1',84 where not exists (select 1 from public.jog_clubs where apisports_team_id=84);
 insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 'Olympique de Marseille','Ligue 1',81 where not exists (select 1 from public.jog_clubs where apisports_team_id=81);
 insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 'PSV Eindhoven','Eredivisie',197 where not exists (select 1 from public.jog_clubs where apisports_team_id=197);
-insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 'Paris FC','Ligue 1',85 where not exists (select 1 from public.jog_clubs where apisports_team_id=85);
+insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 'Paris FC','Ligue 1',114 where not exists (select 1 from public.jog_clubs where apisports_team_id=114);
 insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 'Parma Calcio 1913','Serie A',523 where not exists (select 1 from public.jog_clubs where apisports_team_id=523);
 insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 'RB Leipzig','Bundesliga',173 where not exists (select 1 from public.jog_clubs where apisports_team_id=173);
 insert into public.jog_clubs (canonical_name, league, apisports_team_id) select 'RC Lens','Ligue 1',116 where not exists (select 1 from public.jog_clubs where apisports_team_id=116);
