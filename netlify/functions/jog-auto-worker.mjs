@@ -98,9 +98,18 @@ export default async (req) => {
         await sbAdmin(`jog_auto_proposals?batch_id=eq.${batchId}&decision=eq.en_attente&player_ext_id=in.(${extIds.join(',')})`, { method: 'DELETE' });
       }
       if (proposals.length) {
+        // N'insérer QUE les colonnes réelles de jog_auto_proposals : le moteur ajoute des
+        // champs de travail (is_new, position, country, birth_date, is_departure) qui ne sont
+        // PAS des colonnes → sinon PostgREST rejette tout le paquet (erreur 400).
+        const PROP_COLS = ['player_id','player_ext_id','player_name','movement_type','club_from','club_to','league_from','league_to','confidence','source','evidence_url','observed_at','second_source','reason'];
+        const rows = proposals.map(p => {
+          const row = { batch_id: batchId };
+          for (const c of PROP_COLS) if (p[c] !== undefined && p[c] !== null) row[c] = p[c];
+          return row;
+        });
         await sbAdmin('jog_auto_proposals', {
           method: 'POST',
-          body: proposals.map(p => ({ ...p, batch_id: batchId })),
+          body: rows,
           prefer: 'return=minimal',
         });
       }
