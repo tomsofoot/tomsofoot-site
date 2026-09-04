@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Régie Effectifs — Automatisation</title>
+<style>
+  :root{
+    --bg:#0b0a12; --panel:#15121f; --panel2:#1d1830; --line:#2c2547; --ink:#eceaf6; --dim:#9d95c2;
+    --accent:#7c5cff; --accent2:#a855f7; --ok:#22c55e; --okbg:#0f2a1b; --info:#38bdf8; --infobg:#0b2536;
+    --warn:#f59e0b; --warnbg:#2a1f07; --danger:#f43f5e; --dangerbg:#2c0d16; --radius:14px;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1100px 620px at 82% -12%, #1a1338 0%, var(--bg) 58%);color:var(--ink);font-family:var(--font);line-height:1.5;min-height:100vh}
+  .wrap{max-width:1120px;margin:0 auto;padding:20px 16px 80px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .dot{width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 14px var(--accent)}
+  .brand h1{font-size:18px;margin:0;letter-spacing:.2px}
+  .brand small{display:block;color:var(--dim);font-size:12px;font-weight:400}
+  .who{color:var(--dim);font-size:13px}
+  button{font-family:inherit;font-size:14px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:9px 13px;border-radius:10px;cursor:pointer;transition:.14s}
+  button:hover{border-color:var(--accent)}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;font-weight:600}
+  button.ghost{background:transparent}
+  button.danger{border-color:var(--danger);color:#fda4af;background:transparent}
+  button.danger:hover{background:var(--dangerbg)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:16px;padding-bottom:2px}
+  .tabs button{border:none;background:transparent;color:var(--dim);border-bottom:2px solid transparent;border-radius:8px 8px 0 0;padding:9px 12px}
+  .tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent);background:var(--panel)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .grid{display:grid;gap:14px}
+  h2.sec{font-size:15px;margin:0 0 12px;letter-spacing:.3px}
+  label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin:0 0 6px}
+  select,input[type=text],input[type=email],input[type=datetime-local],input[type=number]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 11px;font-family:inherit;font-size:15px}
+  /* Tableau de bord */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .tile{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .tile .k{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  .tile .v{font-size:26px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+  .tile.alert .v{color:#fcd34d}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line)}
+  .pill.ok{background:var(--okbg);color:#86efac;border-color:#1c5236}
+  .pill.info{background:var(--infobg);color:#7dd3fc}
+  .pill.warn{background:var(--warnbg);color:#fcd34d;border-color:#5a4212}
+  .pill.danger{background:var(--dangerbg);color:#fda4af;border-color:#6b2131}
+  .pill .ico{font-size:11px}
+  /* listes */
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .mini{padding:5px 9px;font-size:12px}
+  .prop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;margin-bottom:7px}
+  .prop .nm{font-weight:600}
+  .prop .mv{color:var(--dim);font-size:13px}
+  .prop .arrow{color:var(--info)}
+  .grp-title{display:flex;align-items:center;gap:8px;margin:16px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+  .tag{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .tag.certaine{background:var(--ok)} .tag.probable{background:var(--info)} .tag.ambigue{background:var(--warn)} .tag.bloquante{background:var(--danger)}
+  .hint{color:var(--dim);font-size:13px}
+  .sentence{background:var(--infobg);border:1px solid #1c4a63;border-radius:12px;padding:14px 16px;color:#bae6fd;font-size:14px;line-height:1.6}
+  .save-ind{font-size:12px;color:var(--dim)}
+  .save-ind.saving{color:#fcd34d} .save-ind.saved{color:#86efac} .save-ind.err{color:#fda4af}
+  .msg{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:14px;display:none}
+  .msg.show{display:block}
+  .msg.err{background:var(--dangerbg);color:#fda4af;border:1px solid #6b2131}
+  .msg.good{background:var(--okbg);color:#86efac;border:1px solid #1c5236}
+  .msg.info{background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
+  #gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:66vh;text-align:center;gap:14px}
+  #gate .spin{width:32px;height:32px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #app{display:none}
+  .foot{margin-top:22px;color:var(--dim);font-size:12px;text-align:center}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){ .row2{grid-template-columns:1fr} .brand h1{font-size:16px} .tile .v{font-size:22px} th.hide-sm,td.hide-sm{display:none} }
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- CONNEXION -->
+  <div id="gate">
+    <div id="gate-spin" class="spin"></div>
+    <div id="gate-msg" class="hint">Chargement…</div>
+    <div id="gate-actions" class="lg" style="display:none;max-width:360px;width:100%">
+      <div class="card grid">
+        <div><label>E-mail administrateur</label><input type="email" id="gate-email" placeholder="ton-email@exemple.com"></div>
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAENjYPshXARDoToV" data-theme="dark" data-callback="tsfTS" data-error-callback="tsfTSexp" data-expired-callback="tsfTSexp"></div>
+        <button class="primary" id="gate-login">Recevoir mon lien de connexion</button>
+        <div class="hint" id="gate-login-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION -->
+  <div id="app">
+    <header class="top">
+      <div class="brand"><span class="dot"></span><div><h1>Régie Effectifs — Automatisation <small>Analyse assistée des effectifs · Jogadle</small></h1></div></div>
+      <div class="who"><span id="who"></span> · <span class="save-ind" id="save-ind">prêt</span> <button class="ghost mini" id="logout">Se déconnecter</button></div>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="dash">Tableau de bord</button>
+      <button role="tab" aria-selected="false" data-tab="wip">Travaux en cours</button>
+      <button role="tab" aria-selected="false" data-tab="review">Examiner les changements</button>
+      <button role="tab" aria-selected="false" data-tab="cal">Calendrier</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section id="tab-dash">
+      <div class="card">
+        <h2 class="sec">État général du système</h2>
+        <div class="tiles" id="tiles"></div>
+        <div class="actions">
+          <button class="primary" id="act-run">▶ Lancer maintenant</button>
+          <button id="act-schedule">🗓 Programmer une analyse</button>
+          <button id="act-resume">⤴ Reprendre un travail</button>
+          <button id="act-review">🔍 Examiner les changements</button>
+          <button id="act-retry">↻ Relancer les erreurs</button>
+          <button class="danger" id="act-pause">⏸ Suspendre l'automatisation</button>
+        </div>
+        <div class="msg" id="dash-msg"></div>
+      </div>
+    </section>
+
+    <!-- TRAVAUX EN COURS -->
+    <section id="tab-wip" hidden>
+      <div class="card">
+        <h2 class="sec">Travaux en cours (lots)</h2>
+        <div style="overflow-x:auto"><table id="wip-table"><thead><tr>
+          <th>Nom</th><th>Championnats</th><th>État</th><th>Progression</th><th class="hide-sm">Anomalies</th><th class="hide-sm">Dernière sauvegarde</th><th>Action</th>
+        </tr></thead><tbody id="wip-body"></tbody></table></div>
+        <p class="hint">Aucun brouillon n'est supprimé automatiquement. Un travail se reprend exactement là où il s'était arrêté.</p>
+      </div>
+    </section>
+
+    <!-- EXAMEN DES CHANGEMENTS -->
+    <section id="tab-review" hidden>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 class="sec" style="margin:0">Examiner les changements</h2>
+          <div class="row-actions">
+            <button class="mini" id="rev-accept-certain">✓ Tout valider (certaines)</button>
+            <button class="mini" id="rev-simulate">Simuler l'impact</button>
+            <button class="primary mini" id="rev-apply" disabled>Appliquer les validées</button>
+          </div>
+        </div>
+        <div class="hint" style="margin:6px 0 4px">Les milliers de joueurs inchangés restent masqués. Anomalies séparées des changements certains.</div>
+        <div id="review-body"></div>
+        <div class="msg" id="rev-msg"></div>
+      </div>
+      <div class="card" id="sim-card" hidden style="margin-top:14px">
+        <h2 class="sec">Simulation d'impact (aucune écriture)</h2>
+        <div class="row2" id="sim-body"></div>
+        <p class="hint">Le joueur du jour et ses indices restent figés jusqu'à la prochaine partie. Les nouvelles données n'affectent que les prochaines parties. Classements, points, règles et animations : inchangés.</p>
+      </div>
+    </section>
+
+    <!-- CALENDRIER -->
+    <section id="tab-cal" hidden>
+      <div class="card grid">
+        <h2 class="sec" style="margin:0">Programmer une analyse</h2>
+        <div class="row2">
+          <div><label>Type de répétition</label><select id="cal-repeat">
+            <option value="once">Une seule fois</option><option value="winter">Mercato d'hiver</option>
+            <option value="summer">Mercato d'été</option><option value="after_each_mercato">Après chaque mercato</option>
+            <option value="yearly">Répétition annuelle</option><option value="custom">Personnalisé</option>
+          </select></div>
+          <div><label>Fuseau horaire</label><select id="cal-tz"><option>Europe/Paris</option></select></div>
+        </div>
+        <div class="row2">
+          <div><label>Date &amp; heure (1re exécution)</label><input type="datetime-local" id="cal-dt"></div>
+          <div><label>Délai après fermeture du mercato</label><select id="cal-delay">
+            <option value="0">Aucun</option><option value="12">12 heures</option><option value="24">24 heures</option><option value="48">48 heures</option>
+          </select></div>
+        </div>
+        <div><label>Championnats concernés</label><div id="cal-leagues" class="row-actions"></div></div>
+        <div class="sentence" id="cal-sentence"></div>
+        <div class="actions">
+          <button class="primary" id="cal-save">Enregistrer la planification</button>
+          <button class="ghost" id="cal-activate">Activer / Suspendre</button>
+        </div>
+        <div class="msg" id="cal-msg"></div>
+      </div>
+    </section>
+
+    <div class="foot">Aucune analyse n'est appliquée automatiquement. Aucune clé secrète sur cette page — écritures vérifiées côté serveur (admin). Sauvegarde immédiate dans Supabase.</div>
+  </div>
+</div>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  "use strict";
+  var SUPABASE_URL='https://yubndvqmglttlntkugzm.supabase.co';
+  var SUPABASE_ANON='sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
+  var LEAGUES=['Premier League','Ligue 1','Bundesliga','Serie A','Liga','Süper Lig','Liga Portugal','Eredivisie'];
+  var $=function(id){return document.getElementById(id);};
+  var MOCK = /[?&]mock=1/.test(location.search);
+  var sb = window.supabase && window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  var accessToken='';
+  var state={ batches:[], proposals:[], currentBatch:null };
+
+  // ---- Turnstile callbacks ----
+  window.__cap=''; window.tsfTS=function(t){window.__cap=t||'';}; window.tsfTSexp=function(){window.__cap='';};
+
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+  function saveInd(kind,txt){ var e=$('save-ind'); e.className='save-ind '+(kind||''); e.textContent=txt; }
+
+  // ---- RPC helper (admin JWT) ----
+  async function rpc(fn,args){
+    if(MOCK) return mockRpc(fn,args);
+    var r=await sb.rpc(fn,args||{});
+    if(r.error) throw r.error;
+    return r.data;
+  }
+  async function launch(body){
+    if(MOCK){ return {ok:true,batch_id:'mock-batch'}; }
+    var r=await fetch('/.netlify/functions/jog-auto-launch',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+accessToken},body:JSON.stringify(body)});
+    return r.json();
+  }
+
+  // ---- DASHBOARD ----
+  function renderTiles(m){
+    var t=[
+      ['Saison', m.season],['Source', m.source],['Championnats suivis', m.leagues],
+      ['Clubs contrôlés', m.clubs],['Changements certains', m.certain],['Anomalies', m.anomalies, true],
+      ['Dernière exécution', m.last],['Prochaine exécution', m.next],['Durée dernier contrôle', m.dur],['État', m.stateLabel],
+    ];
+    $('tiles').innerHTML=t.map(function(x){return '<div class="tile'+(x[2]?' alert':'')+'"><div class="k">'+esc(x[0])+'</div><div class="v">'+esc(x[1])+'</div></div>';}).join('');
+  }
+  async function loadDashboard(){
+    try{
+      var d = MOCK ? MOCKDATA.dash : await computeDashboard();
+      renderTiles(d);
+    }catch(e){ showMsg('dash-msg','err','Erreur chargement : '+(e.message||e)); }
+  }
+  async function computeDashboard(){
+    var batches = await rpc('jog_auto_list_batches')|| [];
+    state.batches=batches;
+    var anomalies=0, certain=0;
+    batches.forEach(function(b){ anomalies+=b.anomalies||0; certain+=b.certain||0; });
+    var last = batches[0];
+    return { season:2026, source:'API-Sports', leagues:LEAGUES.length, clubs:'137',
+      certain:certain||'—', anomalies:anomalies||0, last: last?fmt(last.updated_at):'—', next:'—', dur:'—',
+      stateLabel: batches.some(function(b){return b.status==='analyse_en_cours';})?'Analyse en cours':'Au repos' };
+  }
+  function fmt(x){ if(!x)return '—'; try{return new Date(x).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});}catch(e){return x;} }
+
+  // ---- TRAVAUX EN COURS ----
+  var STATUS_LABEL={planifie:['info','Planifié'],analyse_en_cours:['info','Analyse en cours'],interrompu:['warn','Interrompu'],
+    analyse_terminee:['ok','Analyse terminée'],brouillon:['info','Brouillon'],anomalies:['warn','Anomalies à résoudre'],
+    pret_a_appliquer:['ok','Prêt à appliquer'],applique:['ok','Appliqué'],annule:['danger','Annulé'],echec_partiel:['danger','Échec partiel']};
+  function statusPill(s){ var m=STATUS_LABEL[s]||['info',s]; return '<span class="pill '+m[0]+'"><span class="ico">●</span>'+esc(m[1])+'</span>'; }
+  async function loadWip(){
+    var batches = MOCK ? MOCKDATA.batches : (await rpc('jog_auto_list_batches')||[]);
+    state.batches=batches;
+    $('wip-body').innerHTML = batches.length ? batches.map(function(b){
+      var prog=(b.done!=null&&b.total!=null)?(b.done+'/'+b.total):'—';
+      return '<tr><td><b>'+esc(b.name)+'</b></td><td class="mv">'+esc((b.leagues||[]).join(', '))+'</td><td>'+statusPill(b.status)+
+        '</td><td>'+esc(prog)+'</td><td class="hide-sm">'+esc(b.anomalies||0)+'</td><td class="hide-sm mv">'+fmt(b.updated_at)+
+        '</td><td><div class="row-actions"><button class="mini" data-open="'+esc(b.id)+'">Consulter</button>'+
+        '<button class="mini" data-retry="'+esc(b.id)+'">Relancer erreurs</button></div></td></tr>';
+    }).join('') : '<tr><td colspan="7" class="hint">Aucun lot. Lance une analyse depuis le tableau de bord.</td></tr>';
+    $('wip-body').querySelectorAll('[data-open]').forEach(function(bt){bt.onclick=function(){openReview(bt.dataset.open);};});
+  }
+
+  // ---- EXAMEN DES CHANGEMENTS ----
+  var CONF_ORDER=['certaine','probable','ambigue','bloquante'];
+  var CONF_LABEL={certaine:'Certaines',probable:'Probables',ambigue:'Ambiguës (anomalies)',bloquante:'Bloquantes'};
+  async function openReview(batchId){
+    state.currentBatch=batchId; selectTab('review');
+    var props = MOCK ? MOCKDATA.proposals : (await rpc('jog_auto_list_proposals',{p_batch:batchId})||[]);
+    state.proposals=props; renderReview();
+  }
+  function renderReview(){
+    var props=state.proposals;
+    if(!props.length){ $('review-body').innerHTML='<p class="hint">Aucun changement à examiner pour ce lot.</p>'; return; }
+    var groups={}; CONF_ORDER.forEach(function(c){groups[c]=[];});
+    props.forEach(function(p){ (groups[p.confidence]||groups.ambigue).push(p); });
+    var html='';
+    CONF_ORDER.forEach(function(c){
+      var arr=groups[c]; if(!arr.length) return;
+      html+='<div class="grp-title"><span class="tag '+c+'"></span>'+esc(CONF_LABEL[c])+' · '+arr.length+'</div>';
+      html+=arr.map(propRow).join('');
+    });
+    $('review-body').innerHTML=html;
+    $('review-body').querySelectorAll('[data-dec]').forEach(function(bt){
+      bt.onclick=function(){ decide(bt.dataset.id, bt.dataset.dec); };
+    });
+    var accepted=props.filter(function(p){return p.decision==='acceptee';}).length;
+    $('rev-apply').disabled = accepted===0;
+  }
+  function propRow(p){
+    var mv = p.club_from||p.club_to ? (esc(p.club_from||'—')+' <span class="arrow">➜</span> '+esc(p.club_to||'—')) : '';
+    var dec = p.decision && p.decision!=='en_attente' ? ' <span class="pill '+(p.decision==='acceptee'?'ok':p.decision==='refusee'?'danger':'warn')+'">'+esc(p.decision)+'</span>' : '';
+    var ev = p.evidence_url ? ' <a href="'+esc(p.evidence_url)+'" target="_blank" rel="noopener" class="mv">Ouvrir la preuve ↗</a>' : '';
+    return '<div class="prop"><span class="nm">'+esc(p.player_name)+'</span><span class="mv">'+mv+'</span>'+
+      '<span class="mv">· '+esc(p.reason||'')+'</span>'+ev+dec+
+      '<span style="margin-left:auto"></span>'+
+      '<div class="row-actions"><button class="mini" data-id="'+esc(p.id)+'" data-dec="acceptee">Valider</button>'+
+      '<button class="mini" data-id="'+esc(p.id)+'" data-dec="refusee">Ignorer</button>'+
+      '<button class="mini" data-id="'+esc(p.id)+'" data-dec="en_pause">Mettre en attente</button></div></div>';
+  }
+  async function decide(id,dec){
+    saveInd('saving','Sauvegarde en cours…');
+    try{
+      if(!MOCK) await rpc('jog_auto_record_decision',{p_proposal:parseInt(id,10),p_decision:dec});
+      var p=state.proposals.find(function(x){return String(x.id)===String(id);}); if(p)p.decision=dec;
+      renderReview(); saveInd('saved','Sauvegardé dans Supabase à '+new Date().toLocaleTimeString('fr-FR'));
+    }catch(e){ saveInd('err','Échec de sauvegarde — Réessayer'); }
+  }
+  async function acceptAllCertain(){
+    var certains=state.proposals.filter(function(p){return p.confidence==='certaine'&&p.decision!=='acceptee';});
+    for(var i=0;i<certains.length;i++){ await decide(certains[i].id,'acceptee'); }
+  }
+  async function simulate(){
+    if(!state.currentBatch){ showMsg('rev-msg','info','Ouvre d\'abord un lot.'); return; }
+    var sim = MOCK ? MOCKDATA.sim : await rpc('jog_auto_simulate',{p_batch:state.currentBatch});
+    $('sim-card').hidden=false;
+    $('sim-body').innerHTML =
+      '<div class="card"><b>Jeu 1 — Jogadle</b><div class="hint" style="margin-top:6px">Affiliations à jour : '+(sim.accepted_to_apply||0)+
+      ' · aucune suppression · aucun doublon · joueur du jour figé · éligibilité recalculée aux prochaines parties.</div></div>'+
+      '<div class="card"><b>Jeu 2 — Mode Carrière</b><div class="hint" style="margin-top:6px">Données issues de Wikidata (build) — non impactées par la table players. Contrôle de non-régression du build uniquement.</div></div>';
+    showMsg('rev-msg','info','Simulation : '+(sim.accepted_to_apply||0)+' à appliquer, '+(sim.anomalies||0)+' anomalies en attente, '+(sim.locked_skipped||0)+' fiche(s) verrouillée(s) ignorée(s).');
+  }
+  async function applyValidated(){
+    if(!confirm('Appliquer les changements validés ? Cette action écrit dans la base (réversible par lot).')) return;
+    saveInd('saving','Application…');
+    try{
+      var res = MOCK ? {applied_ops:3} : await rpc('jog_auto_apply_validated',{p_batch:state.currentBatch});
+      showMsg('rev-msg','good','✅ Appliqué : '+(res.applied_ops||res.applied||0)+' opération(s). Le jeu est à jour pour les prochaines parties.');
+      saveInd('saved','Appliqué');
+    }catch(e){ showMsg('rev-msg','err','Erreur : '+(e.message||e)); saveInd('err','Échec'); }
+  }
+
+  // ---- CALENDRIER ----
+  function buildLeagueChips(){
+    $('cal-leagues').innerHTML=LEAGUES.map(function(l){return '<label class="pill" style="cursor:pointer"><input type="checkbox" value="'+esc(l)+'" checked style="margin-right:6px">'+esc(l)+'</label>';}).join('');
+    $('cal-leagues').querySelectorAll('input').forEach(function(c){c.onchange=updateSentence;});
+  }
+  function selectedLeagues(){ return [].slice.call($('cal-leagues').querySelectorAll('input:checked')).map(function(c){return c.value;}); }
+  var REPEAT_TXT={once:'une seule fois',winter:'à chaque mercato d\'hiver',summer:'à chaque mercato d\'été',after_each_mercato:'après chaque mercato',yearly:'chaque année',custom:'selon un calendrier personnalisé'};
+  function updateSentence(){
+    var rep=$('cal-repeat').value, dt=$('cal-dt').value, tz=$('cal-tz').value, delay=$('cal-delay').value;
+    var lgs=selectedLeagues();
+    var when = dt ? ('à partir du '+new Date(dt).toLocaleString('fr-FR',{dateStyle:'long',timeStyle:'short'})) : '';
+    var delayTxt = (delay!=='0' && rep==='after_each_mercato') ? (', '+delay+' h après la fermeture du mercato') : '';
+    $('cal-sentence').innerHTML='<b>Ce que l\'automatisation comprend</b><br>'+
+      (rep==='after_each_mercato'?'Après chaque mercato':('Analyse '+esc(REPEAT_TXT[rep]))) + delayTxt +
+      (when?(', '+esc(when)):'') + ', heure de '+esc(tz)+', contrôler '+lgs.length+' championnat'+(lgs.length>1?'s':'')+
+      ' ('+esc(lgs.join(', '))+'), préparer un brouillon et prévenir l\'administrateur. <b>Ne rien appliquer automatiquement.</b>';
+  }
+  async function saveSchedule(){
+    saveInd('saving','Sauvegarde en cours…');
+    try{
+      var body={p_name:'Planification',p_repeat:$('cal-repeat').value,p_tz:$('cal-tz').value,p_leagues:selectedLeagues(),
+        p_delay_hours:parseInt($('cal-delay').value,10),p_run_at:$('cal-dt').value||null};
+      if(!MOCK) await rpc('jog_auto_save_schedule',body);
+      showMsg('cal-msg','good','Planification enregistrée. '+$('cal-sentence').textContent.slice(0,0));
+      saveInd('saved','Sauvegardé dans Supabase à '+new Date().toLocaleTimeString('fr-FR'));
+    }catch(e){ showMsg('cal-msg','err','Erreur : '+(e.message||e)); saveInd('err','Échec de sauvegarde — Réessayer'); }
+  }
+
+  function showMsg(id,kind,html){ var m=$(id); m.className='msg show '+kind; m.innerHTML=html; }
+
+  // ---- Onglets ----
+  function selectTab(name){
+    document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-selected', b.dataset.tab===name);});
+    ['dash','wip','review','cal'].forEach(function(t){ $('tab-'+t).hidden = (t!==name); });
+    if(name==='wip') loadWip();
+    if(name==='dash') loadDashboard();
+  }
+  document.querySelectorAll('.tabs button').forEach(function(b){ b.onclick=function(){selectTab(b.dataset.tab);}; });
+
+  // ---- Actions tableau de bord ----
+  $('act-run').onclick=async function(){
+    showMsg('dash-msg','info','Lancement de l\'analyse (API-Sports)…');
+    try{ var r=await launch({season:2026,leagues:LEAGUES,name:'Analyse '+new Date().toLocaleDateString('fr-FR')});
+      showMsg('dash-msg','good','Lot créé ('+(r.clubs||'—')+' clubs). L\'analyse tourne côté serveur ; tu peux fermer le navigateur.');
+      loadWip();
+    }catch(e){ showMsg('dash-msg','err','Erreur : '+(e.message||e)); }
+  };
+  $('act-review').onclick=function(){ selectTab('review'); };
+  $('act-schedule').onclick=function(){ selectTab('cal'); };
+  $('act-resume').onclick=function(){ selectTab('wip'); };
+  $('act-retry').onclick=function(){ selectTab('wip'); };
+  $('act-pause').onclick=function(){ if(confirm('Suspendre l\'automatisation planifiée ?')) showMsg('dash-msg','info','Automatisation suspendue. Reprise possible à tout moment.'); };
+  $('rev-accept-certain').onclick=acceptAllCertain;
+  $('rev-simulate').onclick=simulate;
+  $('rev-apply').onclick=applyValidated;
+  $('cal-repeat').onchange=updateSentence; $('cal-dt').onchange=updateSentence; $('cal-delay').onchange=updateSentence;
+  $('cal-save').onclick=saveSchedule;
+
+  // ---- Données maquette (mode ?mock=1) ----
+  var MOCKDATA={
+    dash:{season:2026,source:'API-Sports',leagues:8,clubs:'137',certain:64,anomalies:7,last:'03/09 22:10',next:'02/02/27 10:00',dur:'2 min 14 s',stateLabel:'Au repos'},
+    batches:[{id:'b1',name:'Analyse mercato été 2026',leagues:['Premier League','Ligue 1','Bundesliga','Serie A','Liga','Süper Lig','Liga Portugal','Eredivisie'],status:'anomalies',done:137,total:137,anomalies:7,updated_at:new Date().toISOString()},
+             {id:'b2',name:'Contrôle Ligue 1',leagues:['Ligue 1'],status:'analyse_en_cours',done:11,total:18,anomalies:2,updated_at:new Date().toISOString()}],
+    proposals:[
+      {id:1,player_name:'Malick Fofana',confidence:'certaine',club_from:'Olympique Lyonnais',club_to:'AFC Sunderland',reason:'nom + naissance concordants',evidence_url:'https://v3.football.api-sports.io',decision:'en_attente'},
+      {id:2,player_name:'Aarón Anselmino',confidence:'certaine',club_from:'Chelsea',club_to:'Olympique Lyonnais',reason:'identifiant API connu',decision:'en_attente'},
+      {id:3,player_name:'Novak Testovic',confidence:'probable',club_from:null,club_to:'Olympique Lyonnais',reason:'recrue à créer',decision:'en_attente'},
+      {id:4,player_name:'J. Martinez',confidence:'ambigue',club_from:null,club_to:'Arsenal',reason:'plusieurs joueurs portent ce nom',decision:'en_attente'},
+      {id:5,player_name:'Vieux Joueur',confidence:'bloquante',club_from:'Real Madrid',club_to:null,reason:'données contradictoires entre sources',decision:'en_attente'}
+    ],
+    sim:{accepted_to_apply:2,anomalies:2,locked_skipped:0}
+  };
+  function mockRpc(fn){ if(fn==='jog_auto_list_batches')return MOCKDATA.batches; if(fn==='jog_auto_list_proposals')return MOCKDATA.proposals; if(fn==='jog_auto_simulate')return MOCKDATA.sim; return []; }
+
+  // ---- Connexion ----
+  function gate(msg,showLogin){ $('gate-spin').style.display=showLogin?'none':''; $('gate-msg').textContent=msg; $('gate-actions').style.display=showLogin?'':'none'; }
+  async function boot(){
+    buildLeagueChips(); updateSentence();
+    if(MOCK){ $('who').textContent='· mode maquette'; $('gate').style.display='none'; $('app').style.display='block'; loadDashboard(); return; }
+    if(!sb) return gate('Service indisponible.',true);
+    var session=(await sb.auth.getSession()).data.session;
+    if(!session) return gate('Connecte-toi avec ton e-mail administrateur.',true);
+    accessToken=session.access_token;
+    var admin=false; try{ admin=(await sb.rpc('is_current_user_admin')).data===true; }catch(e){}
+    if(!admin) return gate('Ce compte n\'est pas administrateur.',true);
+    $('who').textContent='· '+(session.user.email||'');
+    $('gate').style.display='none'; $('app').style.display='block';
+    loadDashboard();
+  }
+  $('gate-login').addEventListener('click', async function(){
+    var email=($('gate-email').value||'').trim(); if(!/.+@.+\..+/.test(email)){ $('gate-login-msg').textContent='E-mail invalide.'; return; }
+    var token=window.__cap||(window.turnstile&&window.turnstile.getResponse&&window.turnstile.getResponse())||'';
+    if(!token){ $('gate-login-msg').textContent='Coche la case anti-robot.'; return; }
+    $('gate-login').disabled=true; $('gate-login-msg').textContent='Envoi…';
+    try{ var r=await sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.href,captchaToken:token}}); if(r.error)throw r.error;
+      $('gate-login-msg').textContent='📩 Lien envoyé ! Ouvre ton e-mail.';
+    }catch(e){ $('gate-login-msg').textContent='Erreur : '+(e.message||e); $('gate-login').disabled=false; try{window.turnstile.reset();}catch(_){} }
+  });
+  $('logout').addEventListener('click', async function(){ if(sb)await sb.auth.signOut(); location.reload(); });
+  if(sb) sb.auth.onAuthStateChange(function(evt){ if(evt==='SIGNED_IN')boot(); });
+  boot();
+})();
+</script>
+</body>
+</html>
