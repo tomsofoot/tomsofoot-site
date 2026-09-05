@@ -107,7 +107,7 @@
 
   // ---------- Rendu du plateau (miroir du style premium) ----------
   function cell(html, cls, delay) {
-    return '<div class="flip-cell" style="--delay:' + (delay * CELL_STAGGER) + 'ms"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><span>T</span></div><div class="flip-face flip-back ' + cls + '"><span>' + html + '</span></div></div></div>';
+    return '<div class="flip-cell" style="--delay:' + (delay * CELL_STAGGER) + 'ms"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><img class="flip-logo" src="/favicon-96x96.png" alt=""></div><div class="flip-face flip-back ' + cls + '"><span>' + html + '</span></div></div></div>';
   }
   function rowHTML(g, revealCls) {
     var p = g.player, s = g.states || [];
@@ -117,7 +117,7 @@
     var numCell = p.number != null ? ('<span class="fig">' + p.number + "</span>" + ARW(by.number && by.number.direction))
       : '<span class="fig dash" title="Ce joueur n\'a pas encore de numéro officiel.">—</span><i class="no-num">(pas de n° officiel)</i>';
     var cells = [
-      '<div class="flip-cell" style="--delay:0ms"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><span>T</span></div><div class="flip-face flip-back player-cell"><b>' + esc(p.short_name || p.name) + "</b></div></div></div>",
+      '<div class="flip-cell" style="--delay:0ms"><div class="flip-inner"><div class="flip-face flip-front" aria-hidden="true"><img class="flip-logo" src="/favicon-96x96.png" alt=""></div><div class="flip-face flip-back player-cell"><b>' + esc(p.short_name || p.name) + "</b></div></div></div>",
       cell(esc(p.confederation || "—"), "result " + st(by.confederation), 1),
       cell(esc(p.club || "—"), "result " + st(by.club), 2),
       cell(esc(p.league || "—"), "result " + st(by.league), 3),
