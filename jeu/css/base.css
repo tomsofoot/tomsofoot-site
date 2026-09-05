@@ -258,16 +258,19 @@ button { color: inherit; }
 .board-head, .guess-row { display:grid; grid-template-columns:1.15fr 1.05fr 1.08fr .95fr 1fr 1.12fr .72fr .66fr; gap:9px; }
 .board-head { margin-bottom:9px; padding:0 4px; }
 .board-head span { padding:0 6px; font-family:Inter, Arial, sans-serif; font-size:15.4px; font-weight:900; letter-spacing:.05em; text-transform:uppercase;
-  background:linear-gradient(180deg,#f4f2ff 0%,#c2b2ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+  background:linear-gradient(180deg,#ffffff 0%,#e3daff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
   filter:drop-shadow(0 1px 6px rgba(120,90,240,.3)); }
 .guess-row { margin-bottom: 28px; perspective:1200px; }
 .flip-cell { position:relative; min-width:0; height:96px; perspective:1100px; }
 .flip-cell::before { content:""; position:absolute; z-index:-1; inset:5px -3px -5px 4px; border:1px solid rgba(111,85,255,.22); border-radius:9px; background:rgba(20,17,54,.35); transform:translate(2px,2px); }
+.revealing .flip-cell::before, .revealed .flip-cell::before { display:none; }
 .flip-inner { position:relative; width:100%; height:100%; transform-style:preserve-3d; }
 .flip-face { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:12px 10px; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:9px; text-align:center; }
 .flip-front { border:1px solid rgba(111,85,255,.44); background:linear-gradient(155deg,#171642,#090a25); box-shadow:inset 0 1px rgba(255,255,255,.07), var(--jg-shadow); color:#7661ff; font-family:"Archivo Black"; }
 .flip-front .flip-logo { width:34px; height:34px; border-radius:8px; object-fit:cover; opacity:.95; box-shadow:0 2px 7px rgba(0,0,0,.35); }
 .flip-back { transform:rotateY(180deg); border:1px solid rgba(128,117,205,.38); background:linear-gradient(155deg,rgba(26,24,68,.98),rgba(8,9,29,.98)); box-shadow:inset 0 1px rgba(255,255,255,.07), inset 0 -22px 40px rgba(0,0,10,.18), 0 17px 34px rgba(0,0,15,.34); color:#fff; font-size:18.2px; font-weight:800; }
+.flip-back span { display:block; max-width:100%; line-height:1.1; overflow-wrap:anywhere; word-break:break-word; hyphens:auto; }
+.flip-back.result:not(.num) { font-size:16.6px; }
 .flip-back::before { content:""; position:absolute; pointer-events:none; inset:3px; border:1px solid rgba(255,255,255,.045); border-radius:6px; }
 .player-cell { justify-content:flex-start; padding-left:20px; border-left:2px solid #6e57ff; background:linear-gradient(140deg,#151538,#090a21); }
 .player-cell b { font-size:19.5px; }
