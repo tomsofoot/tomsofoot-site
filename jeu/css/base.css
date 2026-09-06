@@ -179,25 +179,25 @@ button { color: inherit; }
 .cd-colon { font-family: "Archivo Black", Inter, sans-serif; font-style: normal; font-size: 24px; color: #4f7fe0; align-self: flex-start; margin-top: 6px; }
 
 /* ---------- Bandeau de pastilles sous le compteur ---------- */
-.hero-chips { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+.hero-chips { display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
 
-/* « X joueurs ont déjà trouvé aujourd'hui » (preuve sociale) */
+/* « X joueurs ont déjà trouvé aujourd'hui » (preuve sociale) — agrandi ~70% */
 .found-today {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 7px 15px; border-radius: 999px; color: #cfe0ff; font-size: 12.5px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 13px;
+  padding: 12px 26px; border-radius: 999px; color: #cfe0ff; font-size: 21px; font-weight: 700;
   background: linear-gradient(90deg, rgba(10,44,105,.6), rgba(30,95,220,.4));
   border: 1px solid rgba(90,150,245,.45);
 }
-.found-today svg { flex: 0 0 auto; color: #ffd76a; }
+.found-today svg { flex: 0 0 auto; width: 25px; height: 25px; color: #ffd76a; }
 .found-today strong { color: #fff; font-weight: 900; font-variant-numeric: tabular-nums; }
 
-/* « Effectifs à jour le … » */
+/* « Effectifs à jour le … » — agrandi ~70% */
 .effectifs-maj {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 7px 15px; border-radius: 999px; color: #9fb2d8; font-size: 12.5px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 13px;
+  padding: 12px 26px; border-radius: 999px; color: #9fb2d8; font-size: 21px; font-weight: 700;
   background: rgba(14,32,70,.5); border: 1px solid rgba(70,120,210,.3);
 }
-.effectifs-maj svg { flex: 0 0 auto; color: #39d17f; }
+.effectifs-maj svg { flex: 0 0 auto; width: 24px; height: 24px; color: #39d17f; }
 .effectifs-maj strong { color: #dfe8fb; font-weight: 800; }
 
 @media (max-width: 600px) {
