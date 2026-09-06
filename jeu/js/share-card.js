@@ -333,7 +333,9 @@
 
     try {
       const logo = await loadImage(logoSrc);
-      const prepared = transparentLogoCanvas(logo);
+      // Logo posé sur pastille blanche (déjà transparent hors pastille) :
+      // on le dessine tel quel, sans retirer le blanc (qui fait partie du badge).
+      const prepared = { canvas: logo, sx: 0, sy: 0, sw: (logo.naturalWidth || logo.width), sh: (logo.naturalHeight || logo.height) };
       drawFittedLogo(ctx, prepared, 165, 916, 98, 82);
     } catch (error) {
       console.warn("Jogadle : logo TomsoFoot non chargé", error);
