@@ -34,6 +34,25 @@
       .catch(function () {});
   }
 
+  // « X joueurs ont déjà trouvé aujourd'hui » — compteur invités + connectés (fonction serveur same-origin).
+  // Rafraîchi toutes les 60 s pour un effet vivant. Masqué si 0 ou indisponible.
+  var foundBox = document.querySelector("#td-found"), foundN = document.querySelector("#td-found-n"), foundLabel = document.querySelector("#td-found-label");
+  if (foundBox && foundN) {
+    var loadFound = function () {
+      fetch("/.netlify/functions/jog-found-today", { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || typeof d.count !== "number" || d.count <= 0) { foundBox.hidden = true; return; }
+          foundN.textContent = d.count.toLocaleString("fr-FR");
+          if (foundLabel) foundLabel.textContent = (d.count === 1 ? "joueur a déjà trouvé aujourd'hui" : "joueurs ont déjà trouvé aujourd'hui");
+          foundBox.hidden = false;
+        })
+        .catch(function () {});
+    };
+    loadFound();
+    setInterval(loadFound, 60000);
+  }
+
   // Titre du headline sur une seule ligne (ajustement léger).
   var line = document.querySelector("[data-fitline]");
   if (line) { var fit = function () { line.style.removeProperty("font-size"); var w = Math.min((document.querySelector(".jogadle") || document.body).clientWidth - 32, 1510); var sz = parseFloat(getComputedStyle(line).fontSize); while (line.scrollWidth > w && sz > 18) { sz -= 1; line.style.fontSize = sz + "px"; } }; fit(); global.addEventListener("resize", fit, { passive: true }); }

@@ -227,7 +227,6 @@
           <p>Le Jogadle : retrouvez le footballeur mystère grâce aux indices révélés après chaque proposition.</p>
           <div class="daily-meta">
             <span class="dm-edition">Édition <strong id="td-puzzle">—</strong></span>
-            <span class="separator"></span>
             <div class="td-countdown" aria-label="Temps avant le prochain joueur">
               <span class="td-countdown__label">Prochain joueur dans</span>
               <div class="td-countdown__tiles" id="td-next">
@@ -239,9 +238,15 @@
               </div>
             </div>
           </div>
-          <div class="effectifs-maj" id="td-maj" hidden>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M20 4v4h-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>Effectifs à jour le <strong id="td-maj-date">—</strong></span>
+          <div class="hero-chips">
+            <div class="found-today" id="td-found" hidden>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9V4h12v5a6 6 0 0 1-12 0Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 5H3v2a3 3 0 0 0 3 3M18 5h3v2a3 3 0 0 1-3 3M9 20h6M12 15v5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span><strong id="td-found-n">—</strong> <span id="td-found-label">joueurs ont déjà trouvé aujourd'hui</span></span>
+            </div>
+            <div class="effectifs-maj" id="td-maj" hidden>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M20 4v4h-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Effectifs à jour le <strong id="td-maj-date">—</strong></span>
+            </div>
           </div>
           <div class="top-actions">
             <button class="icon-button" type="button" data-td-help aria-label="Comment jouer">?</button>
