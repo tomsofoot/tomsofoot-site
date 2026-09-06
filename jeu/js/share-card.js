@@ -175,6 +175,9 @@
     ctx.restore();
   }
 
+  // Seuil au-delà duquel on résume : on garde les 5 derniers essais en grand.
+  const CONDENSE_FROM = 10, TAIL = 5;
+
   function drawGrid(ctx, rows) {
     const panel = { x: 164, y: 322, w: 752, h: 430 };
     fillRound(ctx, panel.x, panel.y, panel.w, panel.h, 16, "rgba(6,12,34,.52)");
@@ -182,18 +185,103 @@
     const n = Math.max(1, rows.length);
     const innerX = panel.x + 62, innerY = panel.y + 26, innerW = panel.w - 124, innerH = panel.h - 52;
     const colGap = 10, cellW = (innerW - colGap * 6) / 7;
-    const rowGap = n <= 8 ? 10 : n <= 14 ? 7 : n <= 22 ? 5 : 3;
+
+    if (n >= CONDENSE_FROM) { drawGridCondensed(ctx, rows, panel, innerX, innerY, innerW, innerH, cellW, colGap); return; }
+
+    const rowGap = n <= 8 ? 10 : 7;
     const cellH = Math.max(4, Math.min(40, (innerH - rowGap * (n - 1)) / n));
     const usedH = cellH * n + rowGap * (n - 1);
     const startY = innerY + (innerH - usedH) / 2;
     rows.forEach((row, r) => {
       const rowY = startY + r * (cellH + rowGap);
-      if (cellH >= 16) {
-        ctx.fillStyle = "rgba(159,182,230,.85)"; ctx.font = "800 " + Math.round(Math.min(cellH * 0.6, 18)) + "px Inter, Arial";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(String(r + 1), panel.x + 33, rowY + cellH / 2); ctx.textBaseline = "alphabetic";
-      }
+      drawRowNumber(ctx, panel.x + 33, rowY + cellH / 2, r + 1, cellH);
       for (let c = 0; c < 7; c++) drawCell(ctx, innerX + c * (cellW + colGap), rowY, cellW, cellH, row[c] === "correct");
     });
+  }
+
+  function drawRowNumber(ctx, cx, cy, num, cellH) {
+    if (cellH < 16) return;
+    ctx.fillStyle = "rgba(159,182,230,.85)"; ctx.font = "800 " + Math.round(Math.min(cellH * 0.6, 18)) + "px Inter, Arial";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(String(num), cx, cy); ctx.textBaseline = "alphabetic";
+  }
+
+  // Découpe 1..earlyN en blocs (pas de 10, style « 1 à 10 / 10 à 20 / 20 à 25 »).
+  function earlyRanges(earlyN) {
+    const bounds = [];
+    for (let b = 0; b < earlyN; b += 10) bounds.push(b);
+    bounds.push(earlyN);
+    // Fusionne un dernier bloc trop court (≤ 2) avec le précédent.
+    if (bounds.length >= 3 && (bounds[bounds.length - 1] - bounds[bounds.length - 2]) <= 2) bounds.splice(bounds.length - 2, 1);
+    const ranges = [];
+    for (let i = 0; i < bounds.length - 1; i++) ranges.push([bounds[i] === 0 ? 1 : bounds[i], bounds[i + 1]]);
+    return ranges;
+  }
+
+  // Pastille bleue « lo à hi ✗ » (bloc d'essais résumé).
+  function drawRangeChip(ctx, x, y, w, h, label) {
+    const g = ctx.createLinearGradient(x, y, x, y + h);
+    g.addColorStop(0, "#1c62d4"); g.addColorStop(1, COLORS.blueDeep);
+    fillRound(ctx, x, y, w, h, h / 2, g);
+    strokeRound(ctx, x + .5, y + .5, w - 1, h - 1, h / 2, "rgba(120,170,250,.55)", 1.5);
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.font = "900 23px Inter, Arial"; ctx.fillStyle = COLORS.white;
+    const tw = ctx.measureText(label).width;
+    ctx.fillText(label, x + CHIP_PADX, y + h / 2 + 1);
+    ctx.font = "900 26px Inter, Arial"; ctx.fillStyle = COLORS.red;
+    ctx.fillText("✗", x + CHIP_PADX + tw + 12, y + h / 2 + 1);
+    ctx.textBaseline = "alphabetic";
+  }
+  const CHIP_PADX = 22;
+  function chipWidth(ctx, label) {
+    ctx.font = "900 23px Inter, Arial"; const tw = ctx.measureText(label).width;
+    ctx.font = "900 26px Inter, Arial"; const xw = ctx.measureText("✗").width;
+    return CHIP_PADX + tw + 12 + xw + CHIP_PADX;
+  }
+
+  function drawGridCondensed(ctx, rows, panel, innerX, innerY, innerW, innerH, cellW, colGap) {
+    const n = rows.length, earlyN = n - TAIL;
+    const lastGap = 9, lastCellH = 40, dividerH = 30;
+    const lastZoneH = TAIL * lastCellH + (TAIL - 1) * lastGap;
+    const chipZoneTop = innerY, chipZoneH = innerH - lastZoneH - dividerH;
+
+    // --- Zone haute : pastilles de blocs (essais 1 .. earlyN) ---
+    const ranges = earlyRanges(earlyN);
+    const chipH = 46, xGap = 12, lineGap = 12;
+    const labels = ranges.map(r => r[0] + " à " + r[1]);
+    const widths = labels.map(l => chipWidth(ctx, l));
+    // Répartition en lignes qui tiennent dans innerW.
+    const lines = []; let cur = [], curW = 0;
+    ranges.forEach((_, i) => {
+      const add = widths[i] + (cur.length ? xGap : 0);
+      if (cur.length && curW + add > innerW) { lines.push({ items: cur.slice(), w: curW }); cur = []; curW = 0; }
+      cur.push(i); curW += widths[i] + (cur.length > 1 ? xGap : 0);
+    });
+    if (cur.length) lines.push({ items: cur, w: curW });
+    const blockH = lines.length * chipH + (lines.length - 1) * lineGap;
+    let ly = chipZoneTop + (chipZoneH - blockH) / 2;
+    lines.forEach(line => {
+      let lx = innerX + (innerW - line.w) / 2;
+      line.items.forEach(i => { drawRangeChip(ctx, lx, ly, widths[i], chipH, labels[i]); lx += widths[i] + xGap; });
+      ly += chipH + lineGap;
+    });
+
+    // --- Séparateur avec libellé ---
+    const divY = chipZoneTop + chipZoneH + dividerH / 2;
+    ctx.strokeStyle = "rgba(120,150,215,.28)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(innerX, divY); ctx.lineTo(innerX + innerW, divY); ctx.stroke();
+    const lab = TAIL + " DERNIERS ESSAIS";
+    ctx.font = "900 14px Inter, Arial"; const lw = ctx.measureText(lab).width;
+    fillRound(ctx, panel.x + panel.w / 2 - lw / 2 - 12, divY - 12, lw + 24, 24, 12, "rgba(6,12,34,.92)");
+    ctx.fillStyle = "#9fb6e6"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(lab, panel.x + panel.w / 2, divY + 1); ctx.textBaseline = "alphabetic";
+
+    // --- Zone basse : 5 derniers essais en grand ---
+    const lastTop = chipZoneTop + chipZoneH + dividerH;
+    for (let i = 0; i < TAIL; i++) {
+      const realIdx = earlyN + i, rowY = lastTop + i * (lastCellH + lastGap);
+      drawRowNumber(ctx, panel.x + 33, rowY + lastCellH / 2, realIdx + 1, lastCellH);
+      for (let c = 0; c < 7; c++) drawCell(ctx, innerX + c * (cellW + colGap), rowY, cellW, lastCellH, rows[realIdx][c] === "correct");
+    }
   }
 
   function drawLegend(ctx, y) {
