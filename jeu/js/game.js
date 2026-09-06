@@ -316,10 +316,11 @@
   function rowsForShare() { return state.guesses.map(function (g) { return g.states.map(function (s) { return s.state; }); }); }
   if (el.end) el.end.addEventListener("click", function (e) {
     if (e.target.closest("[data-td-png]") && global.JogadleShareCard) {
-      global.JogadleShareCard.download({ puzzleId: (el.edition && el.edition.textContent || "#100").replace("#", ""), score: state.guesses.length, rows: rowsForShare(), logoSrc: "assets/tomsofoot-logo.png" });
+      global.JogadleShareCard.download({ puzzleId: (el.edition && el.edition.textContent || "#100").replace("#", ""), score: state.guesses.length, points: (state.winRecap && typeof state.winRecap.totalAfter === "number") ? state.winRecap.totalAfter : undefined, rows: rowsForShare(), logoSrc: "assets/tomsofoot-logo.png", qrSrc: "assets/qr-jeu.png" });
     } else if (e.target.closest("[data-td-share]")) {
-      var txt = "Jogadle " + (el.edition && el.edition.textContent || "#100") + " — trouvé en " + state.guesses.length + " propositions\nJouez sur tomsofoot.fr/jeu";
-      if (navigator.share) navigator.share({ title: "Mon score Jogadle", text: txt }).catch(function () {});
+      var _grid = rowsForShare().map(function (r) { return r.map(function (s) { return s === "correct" ? "🟩" : "🟥"; }).join(""); }).join("\n");
+      var txt = "Jogadle " + (el.edition && el.edition.textContent || "#100") + " — trouvé en " + state.guesses.length + " propositions\n" + _grid + "\nJoue sur tomsofoot.fr/jeu";
+      if (navigator.share) navigator.share({ title: "Mon score Jogadle", text: txt, url: "https://tomsofoot.fr/jeu" }).catch(function () {});
       else if (navigator.clipboard) navigator.clipboard.writeText(txt);
     }
   });

@@ -1,346 +1,302 @@
 /* ================================================================
-   JOGADLE — Générateur PNG premium 1080 x 1080
+   JOGADLE — Générateur PNG premium 1080 x 1080 (identité bleu roi)
    Visuel uniquement : aucune règle de tirage n'est modifiée, aucune cible n'est calculée ici.
 
    Le générateur n'accepte QUE des états déjà renvoyés par le serveur (matchStates est calculé
-   côté serveur ; le client ne connaît jamais la cible). `rows` est un tableau de lignes, chaque
-   ligne étant un tableau de 7 chaînes "correct" | "wrong".
+   côté serveur ; le client ne connaît jamais la cible). `rows` = lignes de 7 "correct" | "wrong".
 
-   API d'intégration :
    await JogadleShareCard.download({
-     puzzleId,
-     score: state.guesses.length,
-     rows: state.guesses.map(g => g.states.map(s => s.state)), // états serveur uniquement
-     logoSrc: "tomsofoot-logo.png"
+     puzzleId, score, points,
+     rows: state.guesses.map(g => g.states.map(s => s.state)),
+     logoSrc: "assets/tomsofoot-logo.png",
+     qrSrc:   "assets/qr-jeu.png",
+     markSrc: "assets/coq-watermark.png"
    });
    ================================================================ */
 (function (global) {
   "use strict";
 
-  const W = 1080;
-  const H = 1080;
+  const W = 1080, H = 1080;
   const COLORS = Object.freeze({
-    bg0: "#050614",
-    bg1: "#0b0c24",
-    bg2: "#171239",
-    violet: "#674ee5",
-    violetSoft: "#34236f",
+    bg0: "#03081a", bg2: "#0c2c63",
+    blue: "#2e6be0", blueDeep: "#0a4eb8",
     red: "#f02f45",
-    ruby0: "#d22540",
-    ruby1: "#7c1028",
-    green0: "#21b862",
-    green1: "#0b6137",
-    white: "#f7f7fc",
-    muted: "#b7b7cd",
-    line: "rgba(129,111,218,.34)"
+    ruby0: "#d22540", ruby1: "#7c1028",
+    green0: "#21b862", green1: "#0b6137",
+    gold0: "#ffd76a", gold1: "#e0a325",
+    white: "#f7f9ff", muted: "#a9bbe0"
   });
 
   function rr(ctx, x, y, w, h, r) {
     r = Math.min(r, w / 2, h / 2);
     ctx.beginPath();
     ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
     ctx.closePath();
   }
-
-  function fillRound(ctx, x, y, w, h, r, fill) {
-    rr(ctx, x, y, w, h, r);
-    ctx.fillStyle = fill;
-    ctx.fill();
-  }
-
-  function strokeRound(ctx, x, y, w, h, r, stroke, width) {
-    rr(ctx, x, y, w, h, r);
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = width;
-    ctx.stroke();
-  }
+  function fillRound(ctx, x, y, w, h, r, fill) { rr(ctx, x, y, w, h, r); ctx.fillStyle = fill; ctx.fill(); }
+  function strokeRound(ctx, x, y, w, h, r, stroke, width) { rr(ctx, x, y, w, h, r); ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.stroke(); }
 
   function loadImage(src) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = src;
-    });
+    return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = src; });
   }
-
   async function loadFonts() {
     if (!document.fonts || !document.fonts.load) return;
     await Promise.allSettled([
       document.fonts.load("900 80px 'Archivo Black'"),
-      document.fonts.load("800 40px Inter"),
-      document.fonts.load("600 22px Inter")
+      document.fonts.load("900 34px Inter"), document.fonts.load("800 22px Inter"), document.fonts.load("600 18px Inter")
     ]);
   }
-
-  // Supprime seulement le blanc connecté aux bords de l'image.
-  // Les détails blancs enfermés dans le vrai logo restent donc intacts.
-  function transparentLogoCanvas(img) {
-    const c = document.createElement("canvas");
-    c.width = img.naturalWidth || img.width;
-    c.height = img.naturalHeight || img.height;
-    const x = c.getContext("2d", { willReadFrequently: true });
-    x.drawImage(img, 0, 0);
-    const data = x.getImageData(0, 0, c.width, c.height);
-    const p = data.data;
-    const total = c.width * c.height;
-    const seen = new Uint8Array(total);
-    const q = new Int32Array(total);
-    let head = 0, tail = 0;
-    const isBg = (i) => p[i] > 238 && p[i + 1] > 238 && p[i + 2] > 238;
-    const push = (idx) => {
-      if (idx < 0 || idx >= total || seen[idx]) return;
-      const i = idx * 4;
-      if (!isBg(i)) return;
-      seen[idx] = 1;
-      q[tail++] = idx;
-    };
-    for (let xx = 0; xx < c.width; xx++) {
-      push(xx);
-      push((c.height - 1) * c.width + xx);
-    }
-    for (let yy = 0; yy < c.height; yy++) {
-      push(yy * c.width);
-      push(yy * c.width + c.width - 1);
-    }
-    while (head < tail) {
-      const idx = q[head++];
-      const px = idx % c.width;
-      const py = (idx / c.width) | 0;
-      p[idx * 4 + 3] = 0;
-      if (px > 0) push(idx - 1);
-      if (px + 1 < c.width) push(idx + 1);
-      if (py > 0) push(idx - c.width);
-      if (py + 1 < c.height) push(idx + c.width);
-    }
-    x.putImageData(data, 0, 0);
-
-    // Recadrage automatique autour du symbole réellement visible.
-    let minX = c.width, minY = c.height, maxX = -1, maxY = -1;
-    for (let yy = 0; yy < c.height; yy++) {
-      for (let xx = 0; xx < c.width; xx++) {
-        if (p[(yy * c.width + xx) * 4 + 3] > 12) {
-          minX = Math.min(minX, xx); minY = Math.min(minY, yy);
-          maxX = Math.max(maxX, xx); maxY = Math.max(maxY, yy);
-        }
-      }
-    }
-    return { canvas: c, sx: minX, sy: minY, sw: maxX - minX + 1, sh: maxY - minY + 1 };
-  }
-
-  function drawBackground(ctx) {
-    const base = ctx.createLinearGradient(0, 0, W, H);
-    base.addColorStop(0, COLORS.bg0);
-    base.addColorStop(.44, COLORS.bg2);
-    base.addColorStop(1, COLORS.bg0);
-    ctx.fillStyle = base;
-    ctx.fillRect(0, 0, W, H);
-
-    const glow = ctx.createRadialGradient(540, 405, 20, 540, 405, 620);
-    glow.addColorStop(0, "rgba(82,55,185,.28)");
-    glow.addColorStop(.48, "rgba(41,31,104,.16)");
-    glow.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, W, H);
-
-    // Architecture de stade très discrète, sans photo et sans grain.
-    ctx.save();
-    ctx.strokeStyle = "rgba(112,87,218,.16)";
-    ctx.lineWidth = 2;
+  function star(ctx, cx, cy, r, fill) {
     ctx.beginPath();
-    ctx.moveTo(-70, 580); ctx.quadraticCurveTo(170, 425, 365, 445);
-    ctx.moveTo(1115, 225); ctx.quadraticCurveTo(920, 275, 852, 490);
-    ctx.stroke();
-    ctx.strokeStyle = "rgba(110,95,218,.08)";
-    for (let i = 0; i < 7; i++) {
-      ctx.beginPath();
-      ctx.moveTo(0, 610 + i * 26);
-      ctx.lineTo(180 + i * 8, 520 + i * 23);
-      ctx.stroke();
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / 5, a2 = a + Math.PI / 5;
+      ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      ctx.lineTo(cx + Math.cos(a2) * r * 0.45, cy + Math.sin(a2) * r * 0.45);
     }
-    ctx.restore();
-
-    const vignette = ctx.createRadialGradient(540, 520, 260, 540, 520, 790);
-    vignette.addColorStop(0, "rgba(0,0,0,0)");
-    vignette.addColorStop(1, "rgba(0,0,12,.62)");
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, W, H);
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
   }
-
-  function centeredSegments(ctx, y, segments) {
-    const widths = segments.map((s) => {
-      ctx.font = s.font;
-      return ctx.measureText(s.text).width;
-    });
-    const gap = 13;
+  function frDate(d) {
+    try { let s = d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" }); return s.charAt(0).toUpperCase() + s.slice(1); }
+    catch (_) { return ""; }
+  }
+  function rankFor(score) {
+    if (score <= 1) return { label: "IMPARABLE", stars: 3 };
+    if (score <= 2) return { label: "MAÎTRE", stars: 3 };
+    if (score <= 4) return { label: "EXPERT", stars: 3 };
+    if (score <= 6) return { label: "SOLIDE", stars: 2 };
+    if (score <= 9) return { label: "BIEN JOUÉ", stars: 2 };
+    if (score <= 14) return { label: "TENACE", stars: 1 };
+    return { label: "TROUVÉ", stars: 1 };
+  }
+  function centeredSegments(ctx, y, segments, gap) {
+    gap = gap == null ? 13 : gap;
+    const widths = segments.map((s) => { ctx.font = s.font; return ctx.measureText(s.text).width; });
     let x = (W - widths.reduce((a, b) => a + b, 0) - gap * (segments.length - 1)) / 2;
-    segments.forEach((s, i) => {
-      ctx.font = s.font;
-      ctx.fillStyle = s.color;
-      ctx.textAlign = "left";
-      ctx.fillText(s.text, x, y);
-      x += widths[i] + gap;
+    segments.forEach((s, i) => { ctx.font = s.font; ctx.fillStyle = s.color; ctx.textAlign = "left"; ctx.fillText(s.text, x, y); x += widths[i] + gap; });
+  }
+
+  function drawBackground(ctx, watermark) {
+    const base = ctx.createLinearGradient(0, 0, W, H);
+    base.addColorStop(0, COLORS.bg0); base.addColorStop(.46, COLORS.bg2); base.addColorStop(1, COLORS.bg0);
+    ctx.fillStyle = base; ctx.fillRect(0, 0, W, H);
+    const glow = ctx.createRadialGradient(540, 360, 20, 540, 360, 660);
+    glow.addColorStop(0, "rgba(30,95,220,.30)"); glow.addColorStop(.48, "rgba(15,55,150,.15)"); glow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+
+    // Filigrane coq (silhouette blanche, très discret).
+    if (watermark) {
+      ctx.save(); ctx.globalAlpha = 0.05;
+      const iw = watermark.naturalWidth || watermark.width, ih = watermark.naturalHeight || watermark.height;
+      const dw = 760, dh = dw * ih / iw;
+      ctx.drawImage(watermark, W - dw + 150, H - dh + 40, dw, dh);
+      ctx.restore();
+    }
+    const vignette = ctx.createRadialGradient(540, 520, 260, 540, 520, 800);
+    vignette.addColorStop(0, "rgba(0,0,0,0)"); vignette.addColorStop(1, "rgba(0,3,14,.66)");
+    ctx.fillStyle = vignette; ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawHeader(ctx, puzzleId) {
+    const font = "900 74px 'Archivo Black', Arial";
+    centeredSegments(ctx, 116, [
+      { text: "JOG", color: COLORS.white, font }, { text: "A", color: COLORS.red, font }, { text: "DLE", color: COLORS.white, font }
+    ]);
+    centeredSegments(ctx, 162, [
+      { text: "LE JOUEUR DU JOUR", color: COLORS.white, font: "800 21px Inter, Arial" },
+      { text: "•", color: COLORS.blue, font: "800 21px Inter, Arial" },
+      { text: "#" + puzzleId, color: COLORS.blue, font: "800 21px Inter, Arial" },
+      { text: "•", color: COLORS.blue, font: "800 21px Inter, Arial" },
+      { text: frDate(new Date()), color: "#cdd9f4", font: "700 21px Inter, Arial" }
+    ], 11);
+  }
+
+  function drawMedal(ctx, cy, rank) {
+    const label = rank.label;
+    ctx.font = "900 27px Inter, Arial";
+    const labW = ctx.measureText(label).width;
+    const medalR = 23, starR = 11, starGap = 6, gapA = 16, gapB = 18;
+    const starsW = 3 * (starR * 2) + 2 * starGap;
+    const totalW = medalR * 2 + gapA + labW + gapB + starsW;
+    let x = (W - totalW) / 2;
+    // médaille
+    const cx = x + medalR;
+    const g = ctx.createLinearGradient(cx, cy - medalR, cx, cy + medalR);
+    g.addColorStop(0, COLORS.gold0); g.addColorStop(1, COLORS.gold1);
+    ctx.beginPath(); ctx.arc(cx, cy, medalR, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,255,255,.6)"; ctx.stroke();
+    star(ctx, cx, cy, medalR * 0.56, "#5a3d05");
+    x += medalR * 2 + gapA;
+    // label
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.font = "900 27px Inter, Arial"; ctx.fillStyle = COLORS.white;
+    ctx.fillText(label, x, cy + 1);
+    x += labW + gapB;
+    // étoiles
+    for (let i = 0; i < 3; i++) { star(ctx, x + starR + i * (starR * 2 + starGap), cy, starR, i < rank.stars ? COLORS.gold0 : "rgba(160,180,225,.32)"); }
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawStatChips(ctx, y, chips) {
+    const h = 46, padX = 22, gap = 16;
+    ctx.font = "900 26px Inter, Arial"; const valW = chips.map(c => ctx.measureText(c.value).width);
+    ctx.font = "800 15px Inter, Arial"; const labW = chips.map(c => ctx.measureText(c.label).width);
+    const widths = chips.map((c, i) => valW[i] + 10 + labW[i] + padX * 2);
+    let x = (W - widths.reduce((a, b) => a + b, 0) - gap * (chips.length - 1)) / 2;
+    chips.forEach((c, i) => {
+      const w = widths[i];
+      const grad = ctx.createLinearGradient(x, y, x, y + h);
+      grad.addColorStop(0, "rgba(30,95,220,.30)"); grad.addColorStop(1, "rgba(12,44,110,.30)");
+      fillRound(ctx, x, y, w, h, 12, grad);
+      strokeRound(ctx, x + .5, y + .5, w - 1, h - 1, 12, "rgba(80,135,235,.55)", 1.5);
+      let tx = x + padX; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.font = "900 26px Inter, Arial"; ctx.fillStyle = COLORS.white; ctx.fillText(c.value, tx, y + h / 2 + 1);
+      tx += valW[i] + 10;
+      ctx.font = "800 15px Inter, Arial"; ctx.fillStyle = "#9fb6e6"; ctx.fillText(c.label, tx, y + h / 2 + 1);
+      ctx.textBaseline = "alphabetic"; x += w + gap;
     });
   }
 
-  function drawBrand(ctx, puzzleId, score) {
-    // JOGADLE : A rouge discret, reste blanc.
-    const font = "900 78px 'Archivo Black', Arial";
-    const parts = [
-      { text: "JOG", color: COLORS.white, font },
-      { text: "A", color: COLORS.red, font },
-      { text: "DLE", color: COLORS.white, font }
-    ];
-    centeredSegments(ctx, 132, parts);
-
-    centeredSegments(ctx, 189, [
-      { text: "LE JOUEUR DU JOUR", color: COLORS.white, font: "800 23px Inter, Arial" },
-      { text: "•", color: COLORS.red, font: "800 23px Inter, Arial" },
-      { text: "#" + puzzleId, color: COLORS.red, font: "800 23px Inter, Arial" }
-    ]);
-
-    centeredSegments(ctx, 265, [
-      { text: "TROUVÉ EN", color: "#e9e9f3", font: "600 21px Inter, Arial" },
-      { text: String(score), color: COLORS.white, font: "900 34px Inter, Arial" },
-      { text: score > 1 ? "PROPOSITIONS" : "PROPOSITION", color: "#d7d5e5", font: "600 21px Inter, Arial" }
-    ]);
-
-    ctx.fillStyle = COLORS.red;
-    ctx.fillRect(527, 279, 26, 3);
-  }
-
-  function drawResultCell(ctx, x, y, w, h, state) {
-    const good = state === "correct";
+  function drawCell(ctx, x, y, w, h, good) {
     const g = ctx.createLinearGradient(x, y, x, y + h);
-    if (good) {
-      g.addColorStop(0, COLORS.green0);
-      g.addColorStop(1, COLORS.green1);
-    } else {
-      g.addColorStop(0, COLORS.ruby0);
-      g.addColorStop(1, COLORS.ruby1);
-    }
+    if (good) { g.addColorStop(0, COLORS.green0); g.addColorStop(1, COLORS.green1); } else { g.addColorStop(0, COLORS.ruby0); g.addColorStop(1, COLORS.ruby1); }
     ctx.save();
-    ctx.shadowColor = good ? "rgba(33,184,98,.16)" : "rgba(240,47,69,.15)";
-    ctx.shadowBlur = 7;
-    fillRound(ctx, x, y, w, h, Math.min(6, h * .22), g);
-    ctx.shadowBlur = 0;
+    ctx.shadowColor = good ? "rgba(33,184,98,.16)" : "rgba(240,47,69,.15)"; ctx.shadowBlur = 7;
+    fillRound(ctx, x, y, w, h, Math.min(6, h * .22), g); ctx.shadowBlur = 0;
     strokeRound(ctx, x + .5, y + .5, w - 1, h - 1, Math.min(6, h * .22), good ? "rgba(82,225,142,.48)" : "rgba(255,80,101,.48)", 1);
-    ctx.fillStyle = "rgba(255,255,255,.11)";
-    fillRound(ctx, x + 3, y + 2, w - 6, Math.max(1, Math.min(2, h * .08)), 1, ctx.fillStyle);
+    ctx.fillStyle = "rgba(255,255,255,.11)"; fillRound(ctx, x + 3, y + 2, w - 6, Math.max(1, Math.min(2, h * .08)), 1, ctx.fillStyle);
+    if (h >= 17) {
+      ctx.fillStyle = "rgba(255,255,255,.94)"; ctx.font = "900 " + Math.round(h * 0.56) + "px Inter, Arial";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(good ? "✓" : "✗", x + w / 2, y + h / 2 + 1); ctx.textBaseline = "alphabetic";
+    }
     ctx.restore();
   }
 
   function drawGrid(ctx, rows) {
-    const panel = { x: 164, y: 326, w: 752, h: 506 };
-    fillRound(ctx, panel.x, panel.y, panel.w, panel.h, 16, "rgba(8,8,31,.52)");
-    strokeRound(ctx, panel.x + .5, panel.y + .5, panel.w - 1, panel.h - 1, 16, "rgba(132,111,218,.38)", 1);
-
+    const panel = { x: 164, y: 322, w: 752, h: 430 };
+    fillRound(ctx, panel.x, panel.y, panel.w, panel.h, 16, "rgba(6,12,34,.52)");
+    strokeRound(ctx, panel.x + .5, panel.y + .5, panel.w - 1, panel.h - 1, 16, "rgba(80,130,225,.40)", 1);
     const n = Math.max(1, rows.length);
-    const innerX = panel.x + 64;
-    const innerY = panel.y + 27;
-    const innerW = panel.w - 128;
-    const innerH = panel.h - 54;
-    const colGap = 10;
-    const cellW = (innerW - colGap * 6) / 7;
+    const innerX = panel.x + 62, innerY = panel.y + 26, innerW = panel.w - 124, innerH = panel.h - 52;
+    const colGap = 10, cellW = (innerW - colGap * 6) / 7;
     const rowGap = n <= 8 ? 10 : n <= 14 ? 7 : n <= 22 ? 5 : 3;
-    const cellH = Math.max(4, Math.min(42, (innerH - rowGap * (n - 1)) / n));
+    const cellH = Math.max(4, Math.min(40, (innerH - rowGap * (n - 1)) / n));
     const usedH = cellH * n + rowGap * (n - 1);
     const startY = innerY + (innerH - usedH) / 2;
-
     rows.forEach((row, r) => {
-      const normalized = Array.from({ length: 7 }, (_, c) => row[c] === "correct" ? "correct" : "wrong");
-      normalized.forEach((state, c) => {
-        drawResultCell(ctx, innerX + c * (cellW + colGap), startY + r * (cellH + rowGap), cellW, cellH, state);
-      });
+      const rowY = startY + r * (cellH + rowGap);
+      if (cellH >= 16) {
+        ctx.fillStyle = "rgba(159,182,230,.85)"; ctx.font = "800 " + Math.round(Math.min(cellH * 0.6, 18)) + "px Inter, Arial";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(String(r + 1), panel.x + 33, rowY + cellH / 2); ctx.textBaseline = "alphabetic";
+      }
+      for (let c = 0; c < 7; c++) drawCell(ctx, innerX + c * (cellW + colGap), rowY, cellW, cellH, row[c] === "correct");
     });
   }
 
-  function drawLegend(ctx) {
-    const y = 864;
-    drawResultCell(ctx, 290, y - 17, 40, 28, "correct");
-    ctx.fillStyle = "#dedfeb";
-    ctx.font = "600 16px Inter, Arial";
-    ctx.textAlign = "left";
-    ctx.fillText("BONNE RÉPONSE", 346, y + 4);
-    ctx.fillStyle = "rgba(171,166,210,.28)";
-    ctx.fillRect(535, y - 17, 1, 30);
-    drawResultCell(ctx, 576, y - 17, 40, 28, "wrong");
-    ctx.fillStyle = "#dedfeb";
-    ctx.fillText("MAUVAISE RÉPONSE", 632, y + 4);
+  function drawLegend(ctx, y) {
+    drawCell(ctx, 300, y - 17, 40, 28, true);
+    ctx.fillStyle = "#dfe6f6"; ctx.font = "600 16px Inter, Arial"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillText("BONNE RÉPONSE", 356, y + 4);
+    ctx.fillStyle = "rgba(150,170,220,.30)"; ctx.fillRect(548, y - 17, 1, 30);
+    drawCell(ctx, 590, y - 17, 40, 28, false);
+    ctx.fillStyle = "#dfe6f6"; ctx.fillText("MAUVAISE RÉPONSE", 646, y + 4);
   }
 
-  function drawCtaBase(ctx) {
-    const x = 142, y = 910, w = 796, h = 94;
+  function drawCtaBase(ctx, x, y, w, h) {
     const g = ctx.createLinearGradient(x, y, x + w, y);
-    g.addColorStop(0, "rgba(25,17,65,.97)");
-    g.addColorStop(.58, "rgba(11,11,39,.96)");
-    g.addColorStop(1, "rgba(31,16,56,.96)");
-    fillRound(ctx, x, y, w, h, 14, g);
-    strokeRound(ctx, x + .5, y + .5, w - 1, h - 1, 14, "rgba(121,87,255,.78)", 2);
-    ctx.save();
-    rr(ctx, x, y, w, h, 14); ctx.clip();
-    ctx.fillStyle = "rgba(240,47,69,.25)";
-    ctx.beginPath(); ctx.moveTo(875,y); ctx.lineTo(925,y); ctx.lineTo(850,y+h); ctx.lineTo(800,y+h); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = COLORS.red;
-    ctx.beginPath(); ctx.moveTo(925,y); ctx.lineTo(950,y); ctx.lineTo(875,y+h); ctx.lineTo(850,y+h); ctx.closePath(); ctx.fill();
+    g.addColorStop(0, "rgba(10,44,105,.97)"); g.addColorStop(.58, "rgba(6,18,52,.96)"); g.addColorStop(1, "rgba(12,38,92,.96)");
+    fillRound(ctx, x, y, w, h, 16, g);
+    strokeRound(ctx, x + .5, y + .5, w - 1, h - 1, 16, "rgba(80,140,240,.80)", 2);
+    ctx.save(); rr(ctx, x, y, w, h, 16); ctx.clip();
+    ctx.fillStyle = "rgba(240,47,69,.9)"; ctx.beginPath(); ctx.moveTo(x + w - 30, y); ctx.lineTo(x + w - 8, y); ctx.lineTo(x + w - 30, y + h); ctx.lineTo(x + w - 52, y + h); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "rgba(46,107,224,.9)"; ctx.beginPath(); ctx.moveTo(x + w - 8, y); ctx.lineTo(x + w + 12, y); ctx.lineTo(x + w - 10, y + h); ctx.lineTo(x + w - 30, y + h); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
 
-  function drawFittedLogo(ctx, prepared, x, y, boxW, boxH) {
-    if (!prepared || prepared.sw <= 0 || prepared.sh <= 0) return;
-    const scale = Math.min(boxW / prepared.sw, boxH / prepared.sh);
-    const dw = prepared.sw * scale;
-    const dh = prepared.sh * scale;
-    ctx.drawImage(prepared.canvas, prepared.sx, prepared.sy, prepared.sw, prepared.sh,
-      x + (boxW - dw) / 2, y + (boxH - dh) / 2, dw, dh);
+  function drawFittedImage(ctx, img, x, y, boxW, boxH) {
+    const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height; if (!iw || !ih) return;
+    const scale = Math.min(boxW / iw, boxH / ih), dw = iw * scale, dh = ih * scale;
+    ctx.drawImage(img, x + (boxW - dw) / 2, y + (boxH - dh) / 2, dw, dh);
   }
 
-  function drawFooterText(ctx) {
-    centeredSegments(ctx, 968, [
-      { text: "Jouez sur", color: COLORS.white, font: "800 27px Inter, Arial" },
-      { text: "tomsofoot.fr/jeu", color: COLORS.red, font: "800 27px Inter, Arial" }
-    ]);
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#b4b4c8";
-    ctx.font = "500 18px Inter, Arial";
-    ctx.fillText("Partagez vos scores entre amis", W / 2, 1042);
+  // ---- Icônes réseaux (monochrome blanc) ----
+  function icoYouTube(ctx, x, y, s) { fillRound(ctx, x, y + s * .2, s, s * .6, s * .18, "#fff"); ctx.fillStyle = COLORS.blueDeep; ctx.beginPath(); ctx.moveTo(x + s * .4, y + s * .36); ctx.lineTo(x + s * .4, y + s * .64); ctx.lineTo(x + s * .64, y + s * .5); ctx.closePath(); ctx.fill(); }
+  function icoInsta(ctx, x, y, s) { ctx.save(); ctx.strokeStyle = "#fff"; ctx.lineWidth = s * .085; rr(ctx, x + s * .12, y + s * .12, s * .76, s * .76, s * .24); ctx.stroke(); ctx.beginPath(); ctx.arc(x + s * .5, y + s * .5, s * .18, 0, 7); ctx.stroke(); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x + s * .72, y + s * .28, s * .045, 0, 7); ctx.fill(); ctx.restore(); }
+  function icoX(ctx, x, y, s) { ctx.save(); ctx.strokeStyle = "#fff"; ctx.lineWidth = s * .12; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x + s * .22, y + s * .22); ctx.lineTo(x + s * .78, y + s * .78); ctx.moveTo(x + s * .78, y + s * .22); ctx.lineTo(x + s * .22, y + s * .78); ctx.stroke(); ctx.restore(); }
+  function icoTikTok(ctx, x, y, s) { ctx.save(); ctx.strokeStyle = "#fff"; ctx.lineWidth = s * .1; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x + s * .44, y + s * .18); ctx.lineTo(x + s * .44, y + s * .64); ctx.stroke(); ctx.beginPath(); ctx.arc(x + s * .35, y + s * .66, s * .12, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x + s * .44, y + s * .18); ctx.quadraticCurveTo(x + s * .68, y + s * .22, x + s * .7, y + s * .4); ctx.stroke(); ctx.restore(); }
+
+  function drawSocial(ctx, y) {
+    const s = 30, gap = 16;
+    const items = [
+      { draw: icoYouTube, h: "@Tomso-Foot" }, { draw: icoInsta, h: "@tomso_foot" },
+      { draw: icoX, h: "@tomsofoot" }, { draw: icoTikTok, h: "@tomsofoot" }
+    ];
+    ctx.font = "800 17px Inter, Arial";
+    const hw = items.map(it => ctx.measureText(it.h).width);
+    const unit = items.map((it, i) => s + 8 + hw[i]);
+    const total = unit.reduce((a, b) => a + b, 0) + gap * (items.length - 1);
+    let x = (W - total) / 2;
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    items.forEach((it, i) => {
+      it.draw(ctx, x, y - s / 2, s);
+      ctx.font = "800 17px Inter, Arial"; ctx.fillStyle = COLORS.white; ctx.fillText(it.h, x + s + 8, y + 1);
+      x += unit[i] + gap;
+    });
+    ctx.textBaseline = "alphabetic";
   }
 
   async function render(options) {
     const rows = Array.isArray(options.rows) ? options.rows : [];
     const score = Number.isFinite(options.score) ? options.score : rows.length;
+    const points = (options.points == null || !isFinite(options.points)) ? null : options.points;
     const puzzleId = options.puzzleId == null ? "—" : options.puzzleId;
-    const logoSrc = options.logoSrc || "tomsofoot-logo.png";
 
     await loadFonts();
-    const canvas = document.createElement("canvas");
-    canvas.width = W;
-    canvas.height = H;
-    const ctx = canvas.getContext("2d");
-    drawBackground(ctx);
-    drawBrand(ctx, puzzleId, score);
-    drawGrid(ctx, rows);
-    drawLegend(ctx);
-    drawCtaBase(ctx);
+    let watermark = null, logo = null, qr = null;
+    try { watermark = await loadImage(options.markSrc || "assets/coq-watermark.png"); } catch (e) {}
+    try { logo = await loadImage(options.logoSrc || "assets/tomsofoot-logo.png"); } catch (e) {}
+    try { qr = await loadImage(options.qrSrc || "assets/qr-jeu.png"); } catch (e) {}
 
-    try {
-      const logo = await loadImage(logoSrc);
-      // Logo posé sur pastille blanche (déjà transparent hors pastille) :
-      // on le dessine tel quel, sans retirer le blanc (qui fait partie du badge).
-      const prepared = { canvas: logo, sx: 0, sy: 0, sw: (logo.naturalWidth || logo.width), sh: (logo.naturalHeight || logo.height) };
-      drawFittedLogo(ctx, prepared, 165, 916, 98, 82);
-    } catch (error) {
-      console.warn("Jogadle : logo TomsoFoot non chargé", error);
+    const canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d");
+
+    drawBackground(ctx, watermark);
+    drawHeader(ctx, puzzleId);
+    drawMedal(ctx, 208, rankFor(score));
+    const chips = [{ label: score > 1 ? "PROPOSITIONS" : "PROPOSITION", value: String(score) }];
+    if (points != null) chips.push({ label: "POINTS", value: String(points) });
+    drawStatChips(ctx, 248, chips);
+    drawGrid(ctx, rows);
+    drawLegend(ctx, 786);
+
+    // Bandeau bas : logo + accroche + QR brandé
+    const bx = 142, by = 820, bw = 796, bh = 108;
+    drawCtaBase(ctx, bx, by, bw, bh);
+    if (logo) drawFittedImage(ctx, logo, bx + 16, by + 12, bh - 24, bh - 24);
+    let qrLeft = bx + bw - 20;
+    if (qr) {
+      const qs = bh - 24, qx = bx + bw - qs - 34, qy = by + 12;
+      fillRound(ctx, qx - 6, qy - 6, qs + 12, qs + 12, 10, "#ffffff");
+      drawFittedImage(ctx, qr, qx, qy, qs, qs);
+      qrLeft = qx - 12;
     }
-    drawFooterText(ctx);
+    const tl = bx + (bh - 24) + 26, tc = (tl + qrLeft) / 2;
+    ctx.textAlign = "center";
+    ctx.font = "800 27px Inter, Arial";
+    const a = "Joue sur ", b = "tomsofoot.fr/jeu";
+    const wa = ctx.measureText(a).width, wb = ctx.measureText(b).width, ts = tc - (wa + wb) / 2;
+    ctx.textAlign = "left"; ctx.fillStyle = COLORS.white; ctx.fillText(a, ts, by + 46);
+    ctx.fillStyle = COLORS.blue; ctx.fillText(b, ts + wa, by + 46);
+    ctx.textAlign = "center"; ctx.font = "800 19px Inter, Arial"; ctx.fillStyle = "#cdd9f4";
+    ctx.fillText("Sauras-tu faire mieux ?", tc, by + 78);
+
+    drawSocial(ctx, 976);
+    ctx.textAlign = "center"; ctx.fillStyle = "#8494bd"; ctx.font = "500 15px Inter, Arial";
+    ctx.fillText("Partagez vos scores entre amis", W / 2, 1018);
     return canvas;
   }
 
