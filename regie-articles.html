@@ -478,9 +478,48 @@ function normalizeHex(v){
   if(!/^[0-9a-fA-F]{6}$/.test(s)) return null;
   return '#'+s.toUpperCase();
 }
+/* ---------- garde-fou anti « texte blanc sur blanc » ----------
+   Le fond de l'article est clair (var(--paper) ≈ blanc). Une couleur de texte quasi-blanche
+   (souvent héritée d'un copier-coller depuis une source à thème sombre) rend le texte invisible.
+   On neutralise ces couleurs À TOUS LES POINTS D'ENTRÉE (saisie, collage, chargement, enregistrement,
+   rendu) : le texte retombe alors sur l'encre foncée par défaut du CSS de l'article. Les couleurs
+   volontaires (rouge de marque, etc.) ne sont PAS touchées. Ainsi le bug ne peut plus réapparaître,
+   même après une future mise à jour ou un nouvel ajout de contenu. */
+function _hexLuminance(hex){
+  const m=/^#?([0-9a-fA-F]{6})$/.exec(String(hex==null?'':hex).trim()); if(!m) return null;
+  const n=parseInt(m[1],16), r=(n>>16&255)/255, g=(n>>8&255)/255, b=(n&255)/255;
+  const f=c=>c<=0.03928? c/12.92 : Math.pow((c+0.055)/1.055,2.4);
+  return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+}
+function isNearWhite(color){
+  if(color==null||color==='') return false;
+  const s=String(color).trim().toLowerCase();
+  if(s==='white'||s==='#fff'||s==='#ffffff') return true;
+  const hex=normalizeHex(s); const l=hex?_hexLuminance(hex):null;
+  return l!=null && l>0.8;   // luminance très élevée = quasi-blanc = illisible sur fond clair
+}
+// Retire uniquement les déclarations `color` quasi-blanches d'un fragment HTML ; conserve tout le reste.
+function cleanInvisibleColors(html){
+  if(html==null||html===''||!/color\s*:/i.test(String(html))) return html;
+  try{
+    const d=document.createElement('div'); d.innerHTML=String(html);
+    d.querySelectorAll('[style*="color"]').forEach(el=>{
+      const raw=/(?:^|;)\s*color\s*:\s*([^;]+)/i.exec(el.getAttribute('style')||'');
+      if(raw && isNearWhite(raw[1])){
+        const st=(el.getAttribute('style')||'').replace(/(?:^|;)\s*color\s*:[^;]*/ig,'').replace(/^;+|;+$/g,'').trim();
+        if(st) el.setAttribute('style',st); else el.removeAttribute('style');
+      }
+    });
+    return d.innerHTML;
+  }catch(e){ return html; }
+}
+// Renvoie la couleur seulement si elle est lisible (non quasi-blanche), sinon null.
+function safeColor(color){ return (color && !isNearWhite(color))? color : null; }
 function extractColorFromStyle(styleStr){
   const m=/(?:^|;)\s*color\s*:\s*([^;]+)/i.exec(styleStr||'');
-  return m?normalizeHex(m[1]):null;
+  if(!m) return null;
+  const col=normalizeHex(m[1]);
+  return (col && isNearWhite(col))? null : col;   // couleur quasi-blanche ignorée (retombe sur l'encre foncée)
 }
 function sanitizeRich(html){
   const allowed={B:1,I:1,EM:1,STRONG:1,U:1,A:1,UL:1,OL:1,LI:1,SUP:1,SUB:1,BR:1,SPAN:1};
@@ -1115,12 +1154,12 @@ try{ xtpRender(); }catch(e){}
     if(scheduleWhen){ a.status='scheduled'; a.scheduled_at=scheduleWhen; a.published_at=scheduleWhen; }
     return a;
   }
-  function blockContent(b){ const d=b.data||{}; const col=d.textColor?{textColor:d.textColor}:{}; switch(b.type){
-    case 'paragraph': return Object.assign({text:d.text||''},col);
+  function blockContent(b){ const d=b.data||{}; const _tc=safeColor(d.textColor); const col=_tc?{textColor:_tc}:{}; switch(b.type){
+    case 'paragraph': return Object.assign({text:cleanInvisibleColors(d.text||'')},col);
     case 'heading': case 'subheading': return Object.assign({text:d.text||''},col);
     case 'spacer': return {size:d.size||'normal'};
-    case 'quote': return Object.assign({text:d.text||'', cite:d.cite||''},col);
-    case 'image': return {image:{fallback:(d.original||d.src||''), original:(d.original||d.src||''), variants:(d.variants||[]), alt:d.alt||'', caption:d.caption||'', credit:d.credit||'', captionColor:d.captionColor||null, creditColor:d.creditColor||null, width:d.width||null, height:d.height||null}};
+    case 'quote': return Object.assign({text:cleanInvisibleColors(d.text||''), cite:d.cite||''},col);
+    case 'image': return {image:{fallback:(d.original||d.src||''), original:(d.original||d.src||''), variants:(d.variants||[]), alt:d.alt||'', caption:d.caption||'', credit:d.credit||'', captionColor:safeColor(d.captionColor)||null, creditColor:safeColor(d.creditColor)||null, width:d.width||null, height:d.height||null}};
     case 'stats': return Object.assign({rows:(d.rows||[]).filter(r=>r&&(r.k||r.v))},col);
     case 'table': return Object.assign({head:d.head||[], rows:d.rows||[]},col);
     case 'video': case 'embed': return {provider:d.provider||'youtube', id:d.id||''};
@@ -1284,10 +1323,10 @@ try{ xtpRender(); }catch(e){}
       fillSelect('zone', ZINV[a.zone_id]); fillSelect('competition', CINV[a.competition_id]); fillSelect('genre', GINV[a.genre_id]);
       state.header._dossier_id=a.dossier_id||null;
       state.blocks=(blocks||[]).map(bl=>{ const c=bl.content||{}; let d={};
-        if(bl.type==='paragraph'||bl.type==='heading'||bl.type==='subheading') d={text:c.text||'',textColor:c.textColor||null};
-        else if(bl.type==='quote') d={text:c.text||'',cite:c.cite||'',textColor:c.textColor||null};
+        if(bl.type==='paragraph'||bl.type==='heading'||bl.type==='subheading') d={text:cleanInvisibleColors(c.text||''),textColor:safeColor(c.textColor)||null};
+        else if(bl.type==='quote') d={text:cleanInvisibleColors(c.text||''),cite:c.cite||'',textColor:safeColor(c.textColor)||null};
         else if(bl.type==='spacer') d={size:c.size||'normal'};
-        else if(bl.type==='image'){ const im=c.image||{}; d={src:(im.variants&&im.variants[0]&&im.variants[0].url)||im.fallback||im.original||'',original:im.original||im.fallback||'',variants:im.variants||[],alt:im.alt||'',caption:im.caption||'',credit:im.credit||'',captionColor:im.captionColor||null,creditColor:im.creditColor||null,width:im.width,height:im.height}; }
+        else if(bl.type==='image'){ const im=c.image||{}; d={src:(im.variants&&im.variants[0]&&im.variants[0].url)||im.fallback||im.original||'',original:im.original||im.fallback||'',variants:im.variants||[],alt:im.alt||'',caption:im.caption||'',credit:im.credit||'',captionColor:safeColor(im.captionColor)||null,creditColor:safeColor(im.creditColor)||null,width:im.width,height:im.height}; }
         else if(bl.type==='stats') d={rows:c.rows||[],textColor:c.textColor||null};
         else if(bl.type==='table') d={head:c.head||[],rows:c.rows||[],textColor:c.textColor||null};
         else if(bl.type==='video'||bl.type==='embed') d={provider:c.provider||'youtube',id:c.id||''};
@@ -1912,16 +1951,16 @@ try{ xtpRender(); }catch(e){}
   const _renderBlocks2=renderBlocks; renderBlocks=function(){ _renderBlocks2(); decorateColorControls(); };
 
   /* ---------- aperçu : couleurs de bloc + légendes + en-tête ---------- */
-  function figcapC(caption,credit,capC,credC){ if(!caption && !credit) return ''; return '<figcaption>'+(caption?'<span'+(capC?' style="color:'+capC+'"':'')+'>'+esc(caption)+'</span>':'')+(credit?'<span class="cr"'+(credC?' style="color:'+credC+'"':'')+'>© '+esc(credit)+'</span>':'')+'</figcaption>'; }
+  function figcapC(caption,credit,capC,credC){ if(!caption && !credit) return ''; capC=safeColor(capC); credC=safeColor(credC); return '<figcaption>'+(caption?'<span'+(capC?' style="color:'+capC+'"':'')+'>'+esc(caption)+'</span>':'')+(credit?'<span class="cr"'+(credC?' style="color:'+credC+'"':'')+'>© '+esc(credit)+'</span>':'')+'</figcaption>'; }
   renderPreviewBlock=function(b){
-    if(b.hidden) return ''; const d=b.data||{}; const cs=d.textColor?(' style="color:'+d.textColor+'"'):''; const K=' data-blk="'+b.id+'"';
+    if(b.hidden) return ''; const d=b.data||{}; const _bc=safeColor(d.textColor); const cs=_bc?(' style="color:'+_bc+'"'):''; const K=' data-blk="'+b.id+'"';
     switch(b.type){
-      case 'paragraph': return d.text&&d.text.trim()?'<p'+cs+K+'>'+d.text+'</p>':'';
+      case 'paragraph': return d.text&&d.text.trim()?'<p'+cs+K+'>'+cleanInvisibleColors(d.text)+'</p>':'';
       case 'heading': return '<h2'+cs+K+'>'+esc(d.text||'Grand intertitre')+'</h2>';
       case 'subheading': return '<h3'+cs+K+'>'+esc(d.text||'Petit intertitre')+'</h3>';
       case 'spacer': return '<div'+K+' style="height:'+(SPACE_PX[d.size]||30)+'px"></div>';
       case 'image': return d.src?('<figure'+K+'><img src="'+esc(d.src)+'" alt="'+esc(d.alt||'')+'">'+figcapC(d.caption,d.credit,d.captionColor,d.creditColor)+'</figure>'):'';
-      case 'quote': return '<blockquote'+cs+K+'><p>'+(d.text||'Citation…')+'</p>'+(d.cite?'<cite>'+esc(d.cite)+'</cite>':'')+'</blockquote>';
+      case 'quote': return '<blockquote'+cs+K+'><p>'+cleanInvisibleColors(d.text||'Citation…')+'</p>'+(d.cite?'<cite>'+esc(d.cite)+'</cite>':'')+'</blockquote>';
       case 'stats': return '<div class="stats"'+cs+K+'>'+(d.rows||[]).map(r=>'<div class="stat"><b>'+esc(r.v)+'</b><span>'+esc(r.k)+'</span></div>').join('')+'</div>';
       case 'table': return '<table'+cs+K+'><thead><tr>'+(d.head||[]).map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+(d.rows||[]).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
       case 'video': case 'embed': { const id=(d.id||'').replace(/[^\w-]/g,''); return id?'<div class="embed"'+K+'><iframe src="https://www.youtube-nocookie.com/embed/'+id+'" allowfullscreen></iframe></div>':''; }
@@ -1931,9 +1970,9 @@ try{ xtpRender(); }catch(e){}
     return '';
   };
   // CSS des couleurs d'en-tête, isolée et patchable en direct (id « rb-hcol »).
-  window.headerColorCSS=function(){ const c=state.header.colors||{}; let css='';
-    if(c.title) css+='h1{color:'+c.title+' !important}'; if(c.deck) css+='.deck{color:'+c.deck+' !important}'; if(c.kicker) css+='.k{color:'+c.kicker+' !important}';
-    if(c.hero_caption) css+='.hero figcaption{color:'+c.hero_caption+' !important}'; if(c.hero_credit) css+='.hero figcaption .cr{color:'+c.hero_credit+' !important}';
+  window.headerColorCSS=function(){ const c=state.header.colors||{}; let css=''; const S=safeColor;
+    if(S(c.title)) css+='h1{color:'+S(c.title)+' !important}'; if(S(c.deck)) css+='.deck{color:'+S(c.deck)+' !important}'; if(S(c.kicker)) css+='.k{color:'+S(c.kicker)+' !important}';
+    if(S(c.hero_caption)) css+='.hero figcaption{color:'+S(c.hero_caption)+' !important}'; if(S(c.hero_credit)) css+='.hero figcaption .cr{color:'+S(c.hero_credit)+' !important}';
     return css; };
   const _previewHTML2=previewHTML;
   previewHTML=function(){ let html=_previewHTML2(); const css=window.headerColorCSS();
