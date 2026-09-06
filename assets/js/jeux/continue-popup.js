@@ -91,6 +91,10 @@
     root.setAttribute('aria-modal', 'true');
     root.setAttribute('aria-labelledby', 'tsf-cx-title');
     root.setAttribute('aria-hidden', 'true');
+    // Styles critiques EN INLINE (miroir de la règle .tsf-cx de continue-popup.css) : garantissent
+    // que la fenêtre reste un overlay FIXE et MASQUÉ même si la CSS n'est pas (encore) appliquée.
+    // Sans ça, un chargement lent/raté de la CSS fait « tomber » la pop-up brute dans la page.
+    root.style.cssText = 'position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:26px;visibility:hidden;opacity:0;pointer-events:none';
     root.innerHTML =
       '<div class="tsf-cx__backdrop" data-cx-close></div>' +
       '<div class="tsf-cx__dialog" tabindex="-1">' +
@@ -227,6 +231,7 @@
     render(states, _data || fallbackData());
     root.setAttribute('aria-hidden', 'false');
     root.classList.add('is-open');
+    root.style.visibility = 'visible'; root.style.opacity = '1'; root.style.pointerEvents = 'auto'; // miroir inline de .is-open
     doc.body.classList.add('tsf-cx-lock');
     lastFocus = doc.activeElement;
     keydownHandler = onKeydown; doc.addEventListener('keydown', keydownHandler, true);
@@ -248,6 +253,7 @@
   function close() {
     if (!root) return;
     root.classList.remove('is-open');
+    root.style.visibility = 'hidden'; root.style.opacity = '0'; root.style.pointerEvents = 'none'; // miroir inline de la fermeture
     root.setAttribute('aria-hidden', 'true');
     doc.body.classList.remove('tsf-cx-lock');
     if (keydownHandler) { doc.removeEventListener('keydown', keydownHandler, true); keydownHandler = null; }
