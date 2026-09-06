@@ -226,9 +226,22 @@
           <h1><span>Un joueur.</span><em data-fitline>Autant d’essais qu’il faut.</em></h1>
           <p>Le Jogadle : retrouvez le footballeur mystère grâce aux indices révélés après chaque proposition.</p>
           <div class="daily-meta">
-            <span>Édition <strong id="td-puzzle">—</strong></span>
+            <span class="dm-edition">Édition <strong id="td-puzzle">—</strong></span>
             <span class="separator"></span>
-            <span>Prochain joueur dans <strong id="td-next">— : — : —</strong></span>
+            <div class="td-countdown" aria-label="Temps avant le prochain joueur">
+              <span class="td-countdown__label">Prochain joueur dans</span>
+              <div class="td-countdown__tiles" id="td-next">
+                <span class="cd-tile"><strong id="td-h">--</strong><small>Heures</small></span>
+                <em class="cd-colon">:</em>
+                <span class="cd-tile"><strong id="td-m">--</strong><small>Min</small></span>
+                <em class="cd-colon">:</em>
+                <span class="cd-tile"><strong id="td-s">--</strong><small>Sec</small></span>
+              </div>
+            </div>
+          </div>
+          <div class="effectifs-maj" id="td-maj" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M20 4v4h-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Effectifs à jour le <strong id="td-maj-date">—</strong></span>
           </div>
           <div class="top-actions">
             <button class="icon-button" type="button" data-td-help aria-label="Comment jouer">?</button>

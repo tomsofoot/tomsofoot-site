@@ -149,6 +149,48 @@ button { color: inherit; }
 }
 .daily-meta strong { color: #fff; }
 .daily-meta .separator { width: 5px; height: 5px; border-radius: 50%; background: var(--jg-red); box-shadow: 0 0 12px rgba(240,47,69,.45); }
+.daily-meta .dm-edition { align-self: center; }
+
+/* ---------- Compte à rebours « Prochain joueur » (tuiles) ---------- */
+.td-countdown {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 9px;
+  padding: 13px 20px 11px; border-radius: 16px; text-transform: none; letter-spacing: 0;
+  background: linear-gradient(180deg, rgba(18,44,96,.55), rgba(8,18,44,.55));
+  border: 1px solid rgba(80,135,235,.34);
+  box-shadow: 0 14px 40px rgba(0,10,40,.5), inset 0 1px rgba(255,255,255,.05);
+}
+.td-countdown__label {
+  color: #9fb2d8; font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+}
+.td-countdown__tiles { display: flex; align-items: flex-start; gap: 8px; }
+.cd-tile {
+  min-width: 60px; padding: 9px 8px 7px; border-radius: 12px; text-align: center;
+  background: linear-gradient(180deg, #1a53c0, #0a4eb8 55%, #082a63);
+  border: 1px solid rgba(120,170,250,.4);
+  box-shadow: 0 6px 16px rgba(6,26,80,.5), inset 0 1px rgba(255,255,255,.22);
+}
+.cd-tile strong {
+  display: block; font-family: "Archivo Black", Inter, sans-serif; font-weight: 900;
+  font-size: 28px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 8px rgba(0,0,20,.4);
+}
+.cd-tile small { display: block; margin-top: 5px; color: #bcd0f6; font-size: 9.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.cd-colon { font-family: "Archivo Black", Inter, sans-serif; font-style: normal; font-size: 24px; color: #4f7fe0; align-self: flex-start; margin-top: 6px; }
+
+/* ---------- Ligne « Effectifs à jour le … » ---------- */
+.effectifs-maj {
+  display: inline-flex; align-items: center; gap: 8px; margin: 14px auto 0;
+  padding: 7px 15px; border-radius: 999px; color: #9fb2d8; font-size: 12.5px; font-weight: 700;
+  background: rgba(14,32,70,.5); border: 1px solid rgba(70,120,210,.3);
+}
+.effectifs-maj svg { flex: 0 0 auto; color: #39d17f; }
+.effectifs-maj strong { color: #dfe8fb; font-weight: 800; }
+
+@media (max-width: 600px) {
+  .td-countdown { padding: 11px 16px 9px; }
+  .cd-tile { min-width: 52px; }
+  .cd-tile strong { font-size: 24px; }
+}
 .top-actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; }
 .icon-button {
   width: 48px; height: 48px; border-radius: 50%;

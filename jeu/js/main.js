@@ -9,13 +9,29 @@
   }
   // Boutons mobile ouvrir/fermer classement gérés par JogadleLeagueUI (leaderboard.js).
 
-  // Compte à rebours vers minuit (heure de Paris) — affichage uniquement.
-  var nextEl = document.querySelector("#td-next");
-  if (nextEl) {
+  // Compte à rebours vers minuit (heure de Paris) — tuiles Heures / Min / Sec (affichage uniquement).
+  var hEl = document.querySelector("#td-h"), mEl = document.querySelector("#td-m"), sEl = document.querySelector("#td-s");
+  if (hEl && mEl && sEl) {
     var clock = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    function secs() { var p = clock.formatToParts(new Date()); var v = function (t) { return parseInt(p.find(function (x) { return x.type === t; }).value, 10); }; var h = v("hour"); if (h === 24) h = 0; return (86400 - (h * 3600 + v("minute") + 0 * 0 + v("second"))) % 86400; }
-    function fmt(t) { var h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60, p = function (n) { return String(n).padStart(2, "0"); }; return p(h) + " : " + p(m) + " : " + p(s); }
-    var tick = function () { nextEl.textContent = fmt(secs()); }; tick(); setInterval(tick, 1000);
+    var pad2 = function (n) { return String(n).padStart(2, "0"); };
+    function secs() { var p = clock.formatToParts(new Date()); var v = function (t) { return parseInt(p.find(function (x) { return x.type === t; }).value, 10); }; var h = v("hour"); if (h === 24) h = 0; return (86400 - (h * 3600 + v("minute") + v("second"))) % 86400; }
+    var tick = function () { var t = secs(), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60; hEl.textContent = pad2(h); mEl.textContent = pad2(m); sEl.textContent = pad2(s); };
+    tick(); setInterval(tick, 1000);
+  }
+
+  // « Effectifs à jour le … » — date renvoyée par la fonction serveur same-origin (lecture seule).
+  // Si indisponible (aucune donnée / hors production), la ligne reste masquée : aucun état vide affiché.
+  var majBox = document.querySelector("#td-maj"), majOut = document.querySelector("#td-maj-date");
+  if (majBox && majOut) {
+    fetch("/.netlify/functions/jog-effectifs-maj", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.updated_at) return;
+        var dt = new Date(d.updated_at); if (isNaN(dt.getTime())) return;
+        majOut.textContent = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", day: "numeric", month: "long", year: "numeric" }).format(dt);
+        majBox.hidden = false;
+      })
+      .catch(function () {});
   }
 
   // Titre du headline sur une seule ligne (ajustement léger).
