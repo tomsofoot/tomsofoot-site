@@ -987,18 +987,11 @@ function restoreAnchor(doc,pv,a){ if(!a)return;
   }catch(e){}
 }
 
-/* ---------- seed démo ---------- */
-$('[data-h="title"]').value="L'Azteca a retrouvé sa voix"; state.header.title="L'Azteca a retrouvé sa voix"; state.header.slug=slugify(state.header.title);$('[data-h="slug"]').value=state.header.slug;
-$('[data-h="kicker"]').value="Mondial 2026 · Match d'ouverture"; state.header.kicker="Mondial 2026 · Match d'ouverture";
-$('[data-h="deck"]').value="Plus de quarante ans après, le mythique stade de Mexico a vibré pour une nouvelle ouverture de Coupe du monde."; state.header.deck=$('[data-h="deck"]').value;
-$('[data-h="competition"]').value="Coupe du monde"; state.header.competition="Coupe du monde";$('[data-h="genre"]').value="Reportage"; state.header.genre="Reportage";
-addBlock('paragraph',{text:"Il y a des stades qui appartiennent au présent, et d'autres qui semblent toujours dialoguer avec le passé. L'Azteca fait partie de ceux-là."});
-addBlock('spacer',{size:'normal'});
-addBlock('heading',{text:'Une ouverture précoce'});
-addBlock('paragraph',{text:'Hugo Broos avait choisi la prudence. En face, le Mexique avançait avec la confiance de huit matches sans défaite.'});
-addBlock('stats',{rows:[{k:'Possession',v:'61%'},{k:'Tirs',v:'16'},{k:'Buts',v:'2'},{k:'Exclusion',v:'1'}]});
-addBlock('quote',{text:"Certains moments méritent davantage de reconnaissance que d'exubérance.",cite:'Notre envoyé spécial'});
-autosave(true); update();
+/* ---------- démarrage : éditeur vierge ----------
+   Aucun contenu de démo n'est injecté, et AUCUN enregistrement n'est déclenché au chargement :
+   ainsi ouvrir la page (ou « Nouveau ») ne crée plus de brouillon en base. Un article n'est
+   enregistré que lorsque tu écris réellement quelque chose (via l'autosave sur saisie). */
+update();
 
 /* ---------- Aperçu tweet X en direct (lecture seule, additif — ne modifie rien de l'éditeur) ----------
    Reconstruit le rendu exact du futur tweet (mêmes règles que le serveur x-core.mjs :
@@ -1133,13 +1126,32 @@ try{ xtpRender(); }catch(e){}
 
   // ---------- enregistrement / publication ----------
   let dbT=null;
+  // Un slug doit être unique (contrainte articles_slug_key). Si le slug proposé est déjà pris
+  // par un AUTRE article, on en dérive un libre (« base », « base-2 », « base-3 »…) plutôt que
+  // de laisser l'enregistrement échouer. Filet de sécurité : en usage normal les titres diffèrent.
+  function isSlugConflict(e){ const m=((e&&(e.message||e.error_description||e.details))||'')+''; return (e&&e.code==='23505')||/articles_slug_key|duplicate key/i.test(m); }
+  async function freeSlug(base){
+    base=(base||'article').replace(/-\d+$/,'')||'article';
+    try{
+      const {data}=await sb.from('articles').select('slug').ilike('slug',base+'%');
+      const taken=new Set((data||[]).map(r=>r.slug));
+      if(!taken.has(base)) return base;
+      let i=2; while(taken.has(base+'-'+i)) i++;
+      return base+'-'+i;
+    }catch(_){ return base+'-'+Date.now().toString(36).slice(-4); }
+  }
   function realSave(manual){
     return new Promise(async (resolve)=>{
       if(!sb){ toast('Service indisponible.','err'); return resolve(null); }
       if(!token){ toast('Connecte-toi (compte admin) pour enregistrer. Ici, tu testes seulement le rendu.','warn'); return resolve(null); }
       gid('saveDot').classList.add('saving'); gid('saveTxt').textContent='Enregistrement…';
       try{
-        const {data,error}=await sb.rpc('save_article',{p_article:buildArticle(), p_blocks:buildBlocks()});
+        let {data,error}=await sb.rpc('save_article',{p_article:buildArticle(), p_blocks:buildBlocks()});
+        if(error && isSlugConflict(error)){
+          const ns=await freeSlug(state.header.slug||slugify(state.header.title||''));
+          state.header.slug=ns; const _s=$('[data-h="slug"]'); if(_s) _s.value=ns;
+          ({data,error}=await sb.rpc('save_article',{p_article:buildArticle(), p_blocks:buildBlocks()}));
+        }
         if(error) throw error;
         const row=Array.isArray(data)?data[0]:data;
         if(row){ currentUuid=row.id; currentEditorialId=row.editorial_id||currentEditorialId; currentStatus=row.status||currentStatus; currentPublishedAt=row.published_at||null; currentScheduledAt=row.scheduled_at||null; currentFeatured=!!row.featured; gid('edId').textContent=currentEditorialId; setPill(); }
