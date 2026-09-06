@@ -243,38 +243,34 @@
     var L = (RULES && RULES.LEAGUE_LABELS) || { ultimate: "Ultime", pro: "Pro", rookie: "Rookie", noob: "Noob" };
     return L[key] || null;
   }
-  // Récapitulatif détaillé de fin de partie. Toutes les valeurs proviennent du serveur (state.winRecap) ;
-  // le client ne fait qu'AFFICHER (aucun point n'est calculé ici).
-  function recapHTML() {
-    var w = state.winRecap;
-    if (!w) return "";                                   // invité / mode dégradé : pas de récap chiffré
-    var rows = [];
-    rows.push(["Essais", String(w.attempts)]);
-    if (w.moneyTime) {
-      // Jour de Money Time : le gain quotidien est remplacé par la variation de championnat (calculée à part).
-      return '<div class="bravo-recap"><div class="bravo-recap__mt">Money Time — votre variation de championnat remplace le gain quotidien. ' +
-        'Elle sera appliquée à la clôture du groupe.</div></div>';
-    }
-    rows.push(["Points de base", "+" + w.base]);
-    if (w.hintPenalty) rows.push(["Indice révélé", "−" + w.hintPenalty]);
-    var recapLines = rows.map(function (r) {
-      var neg = /^−/.test(r[1]);
-      return '<div class="bravo-recap__row"><span>' + esc(r[0]) + '</span><b class="' + (neg ? "is-neg" : "") + '">' + esc(r[1]) + '</b></div>';
-    }).join("");
-    var won = '<div class="bravo-recap__row bravo-recap__row--won"><span>Points gagnés</span><b>+' + w.pointsWon + '</b></div>';
-    var totalBlock = '';
-    if (typeof w.totalAfter === "number") {
-      totalBlock = '<div class="bravo-recap__total"><span>Total de saison</span>' +
-        '<em>' + (typeof w.totalBefore === "number" ? w.totalBefore + ' → ' : '') + '<b>' + w.totalAfter + ' pts</b></em></div>';
-    }
-    var pos = '';
+  // ---------- Écran de résultat (note OVR + anneau, style Apple × EA) ----------
+  // Palier de performance (cohérent avec la carte de partage) : note /99, médaille, couleur d'anneau.
+  function resultTier(n) {
+    var rank, stars, tier;
+    if (n <= 1) { rank = "Imparable"; stars = 3; tier = "elite"; }
+    else if (n <= 2) { rank = "Maître"; stars = 3; tier = "elite"; }
+    else if (n <= 4) { rank = "Expert"; stars = 3; tier = "high"; }
+    else if (n <= 6) { rank = "Solide"; stars = 2; tier = "mid"; }
+    else if (n <= 9) { rank = "Bien joué"; stars = 2; tier = "mid"; }
+    else if (n <= 14) { rank = "Tenace"; stars = 1; tier = "low"; }
+    else { rank = "Trouvé"; stars = 1; tier = "low"; }
+    var ovr = Math.max(50, Math.min(99, Math.round(102 - n * 3)));
+    return { ovr: ovr, rank: rank, stars: stars, tier: tier };
+  }
+  function jrStars(s) { var o = ""; for (var i = 0; i < 3; i++) o += '<span class="' + (i < s ? "on" : "") + '">★</span>'; return o; }
+  // Grille de stats : complète pour les connectés (state.winRecap), épurée sinon.
+  function jrGrid(w, n) {
+    if (!w) return '<div class="jr-cell jr-cell--wide"><div class="jr-k">Propositions</div><div class="jr-v">' + n + '</div></div>';
+    var cells = '<div class="jr-cell"><div class="jr-k">Propositions</div><div class="jr-v">' + n + '</div></div>' +
+      '<div class="jr-cell"><div class="jr-k">Points gagnés</div><div class="jr-v pos">+' + w.pointsWon + '</div></div>';
     var lbl = leagueLabel(w.league);
     if (lbl && w.rank != null) {
       var ev = w.evolution || 0;
-      var evTxt = ev > 0 ? '<i class="up">▲ +' + ev + '</i>' : ev < 0 ? '<i class="down">▼ ' + Math.abs(ev) + '</i>' : '<i class="flat">— stable</i>';
-      pos = '<div class="bravo-recap__pos"><span>Ligue ' + esc(lbl) + '</span><em>' + esc(w.rank) + '<sup>e</sup> ' + evTxt + '</em></div>';
+      var evTxt = ev > 0 ? ' <i class="up">▲' + ev + '</i>' : ev < 0 ? ' <i class="down">▼' + Math.abs(ev) + '</i>' : '';
+      cells += '<div class="jr-cell"><div class="jr-k">Classement ' + esc(lbl) + '</div><div class="jr-v">' + esc(String(w.rank)) + '<sup>e</sup>' + evTxt + '</div></div>';
     }
-    return '<div class="bravo-recap">' + recapLines + won + totalBlock + pos + '</div>';
+    if (typeof w.totalAfter === "number") cells += '<div class="jr-cell"><div class="jr-k">Total de saison</div><div class="jr-v">' + w.totalAfter + ' pts</div></div>';
+    return cells;
   }
   // ---------- Pop-up « Prolongez l'expérience » (composant partagé, purement éditorial) ----------
   // Écrit la balise du jour et déclenche le pop-up UNIQUEMENT à la fin FRAÎCHE d'une partie
@@ -294,13 +290,76 @@
     try { global.TomsoFootContinue.markCompleted("daily-player", endState || "completed"); } catch (e) {}
   }
 
+  var _jrCd = null;
   function showBravo() {
     if (el.search) el.search.style.display = "none";
-    var n = state.guesses.length;
-    el.end.innerHTML = '<div class="end-card"><span>Bravo !</span><h3>Trouvé en ' + n + " proposition" + (n > 1 ? "s" : "") + '</h3>' +
-      recapHTML() +
-      '<p>Revenez demain à minuit pour un nouveau joueur.</p><div class="end-actions"><button type="button" data-td-share>Partager</button><button type="button" class="secondary" data-td-png>Télécharger le PNG</button></div></div>';
-    refreshPoints(); scrollToEnd(); cxMountReopen();
+    var n = state.guesses.length, w = state.winRecap, t = resultTier(n);
+    var C = 540.4, target = C * (1 - t.ovr / 99);
+    var isGuest = !!(API.isGuest && API.isGuest());
+    var hint = (!w && isGuest) ? '<div class="jr-hint">Connecte-toi pour gagner des points et grimper au classement.</div>' : "";
+    el.end.innerHTML =
+      '<div class="end-card jr jr-' + t.tier + '">' +
+        '<div class="jr-eyebrow">Joueur du jour — Résolu</div>' +
+        '<h3 class="jr-title">Trouvé en <span class="jr-n">' + n + '</span> essai' + (n > 1 ? "s" : "") + '.</h3>' +
+        '<div class="jr-ring"><svg viewBox="0 0 196 196"><defs>' +
+          '<linearGradient id="jrg" x1="0" y1="0" x2="1" y2="1"><stop class="jr-s0" offset="0"/><stop class="jr-s1" offset="1"/></linearGradient>' +
+          '<filter id="jrf" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow class="jr-glow" dx="0" dy="0" stdDeviation="6"/></filter></defs>' +
+          '<circle class="jr-track" cx="98" cy="98" r="86"/>' +
+          '<circle class="jr-arc" cx="98" cy="98" r="86" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '" filter="url(#jrf)"/></svg>' +
+          '<div class="jr-center"><div class="jr-ovr">0</div><div class="jr-rank">' + esc(t.rank) + '</div><div class="jr-stars">' + jrStars(t.stars) + '</div></div></div>' +
+        '<div class="jr-beat" data-td-foundline hidden><b><span data-td-found>—</span></b> ont déjà trouvé aujourd\'hui</div>' +
+        '<div class="jr-grid">' + jrGrid(w, n) + '</div>' + hint +
+        '<div class="jr-cd">Prochain joueur dans <b id="td-end-cd">—:—:—</b></div>' +
+        '<div class="jr-actions">' +
+          '<button type="button" class="jr-pill" data-td-continue>Continuer — Mode Carrière <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+          '<div class="jr-links"><a data-td-share>Partager</a><a data-td-png>Enregistrer l\'image</a></div>' +
+        '</div>' +
+      '</div>';
+    refreshPoints(); scrollToEnd();
+    jrAnimate(target, t.ovr, C); jrStartCountdown(); jrFillFound();
+  }
+  // Animation d'ouverture : l'anneau se remplit + la note monte de 0 à sa valeur.
+  function jrAnimate(target, ovr, C) {
+    var arc = el.end.querySelector(".jr-arc"), ovrEl = el.end.querySelector(".jr-ovr");
+    if (!arc || !ovrEl) return;
+    if (global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      arc.style.strokeDashoffset = target; ovrEl.textContent = ovr; return;
+    }
+    var dur = 950, t0 = null, ease = function (x) { return 1 - Math.pow(1 - x, 3); };
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur), e = ease(p);
+      arc.style.strokeDashoffset = (C - (C - target) * e).toFixed(1);
+      ovrEl.textContent = Math.round(ovr * e);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  // Compte à rebours vers minuit (Paris) affiché sur l'écran de fin.
+  function jrStartCountdown() {
+    if (_jrCd) { clearInterval(_jrCd); _jrCd = null; }
+    var clock = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    var pad = function (x) { return String(x).padStart(2, "0"); };
+    function tick() {
+      var elx = document.getElementById("td-end-cd");
+      if (!elx) { if (_jrCd) { clearInterval(_jrCd); _jrCd = null; } return; }
+      var p = clock.formatToParts(new Date()), v = function (k) { return parseInt(p.find(function (x) { return x.type === k; }).value, 10); };
+      var h = v("hour"); if (h === 24) h = 0; var s = (86400 - (h * 3600 + v("minute") + v("second"))) % 86400;
+      elx.textContent = pad(Math.floor(s / 3600)) + ":" + pad(Math.floor((s % 3600) / 60)) + ":" + pad(s % 60);
+    }
+    tick(); _jrCd = setInterval(tick, 1000);
+  }
+  // Compteur « X ont déjà trouvé » (même source que le hero) — révélé si disponible.
+  function jrFillFound() {
+    var line = el.end.querySelector("[data-td-foundline]");
+    fetch("/.netlify/functions/jog-found-today", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || typeof d.count !== "number" || d.count <= 0) return;
+        var spans = el.end.querySelectorAll("[data-td-found]");
+        for (var i = 0; i < spans.length; i++) spans[i].textContent = d.count.toLocaleString("fr-FR");
+        if (line) line.hidden = false;
+      }).catch(function () {});
   }
   function scrollToEnd() {
     var card = el.end.querySelector(".end-card"); if (!card) return;
@@ -322,6 +381,8 @@
       var txt = "Jogadle " + (el.edition && el.edition.textContent || "#100") + " — trouvé en " + state.guesses.length + " propositions\n" + _grid + "\nJoue sur tomsofoot.fr/jeu";
       if (navigator.share) navigator.share({ title: "Mon score Jogadle", text: txt, url: "https://tomsofoot.fr/jeu" }).catch(function () {});
       else if (navigator.clipboard) navigator.clipboard.writeText(txt);
+    } else if (e.target.closest("[data-td-continue]")) {
+      if (global.TomsoFootContinue && global.TomsoFootContinue.open) { try { global.TomsoFootContinue.open("daily-player"); } catch (_) {} }
     }
   });
 

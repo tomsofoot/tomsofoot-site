@@ -474,3 +474,47 @@ button { color: inherit; }
 /* N° absent : petite explication sous le tiret (« pas de n° officiel »). */
 .result.num .no-num{display:block;margin-top:3px;font-size:9.5px;font-weight:700;line-height:1.1;letter-spacing:.01em;text-transform:none;opacity:.92}
 .result.num .fig.dash{line-height:1}
+
+/* ============================================================
+   Écran de résultat de fin de partie (note OVR + anneau) —
+   style « Apple × EA », bleu roi, paliers de couleur.
+   ============================================================ */
+.end-card.jr{--a:#7cc0ff;--b:#2464d8;--glow:.4;max-width:500px;width:100%;text-align:center;padding:34px 30px 26px;border-radius:26px;
+  background:linear-gradient(180deg,rgba(46,55,82,.92),rgba(28,36,60,.95));border:1px solid rgba(150,175,230,.18);
+  box-shadow:0 40px 90px rgba(0,4,20,.55),inset 0 1px rgba(255,255,255,.08);color:#f5f7fb;
+  font-family:-apple-system,"SF Pro Display",Inter,Arial,sans-serif}
+.jr.jr-elite{--a:#3fd0ff;--b:#0a84ff;--glow:.9}
+.jr.jr-high{--a:#6ab6ff;--b:#1e63d8;--glow:.55}
+.jr.jr-mid{--a:#7cc0ff;--b:#2464d8;--glow:.4}
+.jr.jr-low{--a:#93a6cf;--b:#42598f;--glow:.15}
+.jr .jr-eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;color:#9aa3ba;text-transform:uppercase}
+.jr .jr-title{margin:10px 0 0;font-size:27px;font-weight:600;letter-spacing:-.02em;line-height:1.12;color:#fff;
+  text-transform:none;font-family:-apple-system,"SF Pro Display",Inter,Arial,sans-serif}
+.jr .jr-title .jr-n{color:var(--a)}
+.jr .jr-ring{position:relative;width:186px;height:186px;margin:20px auto 0}
+.jr .jr-ring svg{width:186px;height:186px;transform:rotate(-90deg)}
+.jr .jr-track{fill:none;stroke:rgba(255,255,255,.11);stroke-width:11}
+.jr .jr-arc{fill:none;stroke:url(#jrg);stroke-width:11;stroke-linecap:round}
+.jr .jr-s0{stop-color:var(--a)}.jr .jr-s1{stop-color:var(--b)}.jr .jr-glow{flood-color:var(--a);flood-opacity:var(--glow)}
+.jr .jr-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.jr .jr-ovr{font-size:56px;font-weight:700;letter-spacing:-.03em;line-height:.9;background:linear-gradient(180deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+.jr .jr-rank{margin-top:2px;font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--a);text-transform:uppercase}
+.jr .jr-stars{margin-top:3px;font-size:12px;letter-spacing:3px}
+.jr .jr-stars .on{color:var(--a)}.jr .jr-stars span:not(.on){color:rgba(150,170,210,.3)}
+.jr .jr-beat{margin:16px 0 0;font-size:14.5px;color:#cfd6e6}.jr .jr-beat b{color:#fff;font-weight:600}
+.jr .jr-grid{margin:20px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.10);border-radius:14px;overflow:hidden}
+.jr .jr-cell{background:rgba(40,49,74,.72);padding:14px 10px}
+.jr .jr-cell--wide{grid-column:1 / -1}
+.jr .jr-k{font-size:10.5px;font-weight:600;letter-spacing:.12em;color:#9aa3ba;text-transform:uppercase}
+.jr .jr-v{margin-top:4px;font-size:23px;font-weight:600;letter-spacing:-.02em;color:#fff;font-variant-numeric:tabular-nums}
+.jr .jr-v.pos{color:#3ddc84}
+.jr .jr-v .up{color:#3ddc84;font-style:normal;font-size:14px}.jr .jr-v .down{color:#ff6b6b;font-style:normal;font-size:14px}
+.jr .jr-v sup{font-size:.55em}
+.jr .jr-hint{margin:13px 0 0;font-size:12.5px;color:#8b93a8}.jr .jr-hint a{color:#5aa8ff;cursor:pointer;text-decoration:none}
+.jr .jr-cd{margin:18px 0 0;font-size:14px;color:#9aa3ba}.jr .jr-cd b{color:#eef2fb;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.jr .jr-actions{margin:20px 0 0;display:flex;flex-direction:column;align-items:center;gap:14px}
+.jr .jr-pill{display:inline-flex;align-items:center;gap:9px;min-width:250px;justify-content:center;padding:13px 26px;border-radius:980px;border:0;cursor:pointer;background:linear-gradient(180deg,#3a90ff,#0a4eb8);color:#fff;font-size:16px;font-weight:600;letter-spacing:-.01em;box-shadow:0 12px 26px rgba(10,60,150,.45);font-family:inherit}
+.jr .jr-pill svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.4}
+.jr .jr-links{display:flex;align-items:center;gap:22px}
+.jr .jr-links a{display:inline-flex;align-items:center;gap:5px;color:#5aa8ff;font-size:15px;font-weight:500;cursor:pointer;text-decoration:none}
+@media (max-width:600px){.jr .jr-title{font-size:23px}.jr .jr-ovr{font-size:48px}.end-card.jr{padding:28px 20px 22px}}
