@@ -2148,6 +2148,22 @@ try{ xtpRender(); }catch(e){}
   /* ---------- dépôt direct dans l'aperçu (via le script injecté même-origine) ---------- */
   TSFM.previewDropFile=function(file,index){ if(!/^image\//.test(file.type)){toast('Fichier non image ignoré.','warn');return;} if(index==='hero'){ heroFromFile(file); return; } const at=(typeof index==='number')?index:state.blocks.length; const b=addBlock('image',{alt:'',caption:'',credit:'',src:''},at); const i=state.blocks.indexOf(b); uploadImageToBlock(i,file); };
   TSFM.previewDropMedia=function(id,index){ const m=ensureMedia().find(x=>x.id===id); if(!m)return; if(index==='hero'){ applyHero(m); return; } insertMediaBlock(m,(typeof index==='number')?index:state.blocks.length); };
+
+  /* ---------- filet de secours : fichier lâché sur la zone d'aperçu -> image principale ----------
+     Selon le navigateur, un vrai glisser-déposer d'un fichier depuis l'ordinateur sur l'iframe
+     d'aperçu peut être délivré au conteneur PARENT au lieu du document interne de l'iframe ;
+     dans ce cas rien ne le captait (le navigateur tentait d'ouvrir le fichier => « rien ne se passe »).
+     On capte donc aussi le drop au niveau du conteneur d'aperçu et on le route vers l'image
+     principale. IMPORTANT : ne réagit qu'aux FICHIERS (types "Files"), donc n'interfère ni avec le
+     glisser d'une vignette Médias (application/x-tsf-media), ni avec le drop interne de l'iframe
+     (qui, lorsqu'il fonctionne, traite l'événement avant qu'il n'atteigne ce handler). */
+  (function(){
+    const prev=document.querySelector('.rb-preview'); if(!prev) return;
+    const hasFiles=e=>{ const t=e.dataTransfer&&e.dataTransfer.types; return !!(t && [].indexOf.call(t,'Files')>=0); };
+    prev.addEventListener('dragover',e=>{ if(!hasFiles(e))return; e.preventDefault(); try{ e.dataTransfer.dropEffect='copy'; }catch(_){}; prev.style.outline='2px dashed #ff334d'; prev.style.outlineOffset='-6px'; });
+    prev.addEventListener('dragleave',e=>{ if(e.target===prev || !prev.contains(e.relatedTarget)){ prev.style.outline=''; prev.style.outlineOffset=''; } });
+    prev.addEventListener('drop',e=>{ if(!hasFiles(e))return; prev.style.outline=''; prev.style.outlineOffset=''; const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(!f||!/^image\//.test(f.type))return; e.preventDefault(); e.stopPropagation(); if(window.TSFM&&TSFM.previewDropFile) TSFM.previewDropFile(f,'hero'); });
+  })();
   async function heroFromFile(file){ const api=API(); const bad=api.validateFile&&api.validateFile(file); if(bad){toast(bad,'err');return;} if(!api.token){toast('Connecte-toi (admin) pour téléverser.','warn');return;} toast('Téléversement de l\'image principale…','warn'); try{ const res=await api.storeImage(file); const hero=document.querySelector('[data-h="hero"]'); hero.value=res.displayUrl; hero.dispatchEvent(new Event('input',{bubbles:true})); // ajoute aussi à la bibliothèque
       ensureMedia().push({id:'m'+Date.now(),name:file.name,size:file.size,type:file.type,width:res.width,height:res.height,url:res.displayUrl,original:res.origUrl,variants:res.variants,alt:'',caption:'',credit:'',status:'done',progress:100,sig:fileSig(file)}); renderMedia(); persistExtras(); toast('Image principale ajoutée ✓','ok'); }catch(e){ toast('Échec : '+(e.message||e),'err'); } }
 
