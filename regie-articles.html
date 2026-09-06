@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Régie articles — TomsoFoot (maquette éditeur v2)</title>
+<title>Régie articles — TomsoFoot</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
@@ -430,7 +430,8 @@ body:not(.media-open) .rb-media{display:none}
    Ajouts : espacement paragraphes + bloc espace ; glisser-déposer d'images
    avec indicateur & progression ; légende/crédit/alt → figcaption ;
    images au ratio naturel ; identifiant éditorial auto ; boutons agrandis.
-   Prototype non connecté à la base.
+   Éditeur en production : connecté à Supabase (enregistrement, publication,
+   médias, diffusion X) via le client admin authentifié.
    ========================================================================= */
 const BLOCK_DEFS = {
   paragraph:{label:'Paragraphe',icon:'¶',ph:'Écrivez votre paragraphe…'},
@@ -620,7 +621,11 @@ function blockEditor(b,i){
   if(b.type==='stats') return '<p class="rb-hint">Statistiques (libellé · valeur) — réorganisées verticalement sur mobile.</p>'+(d.rows||[]).map((r,j)=>'<div class="rb-grid" style="margin-top:6px"><input class="rb-i" data-stat="'+i+'-'+j+'-k" value="'+esc(r.k)+'"><input class="rb-i" data-stat="'+i+'-'+j+'-v" value="'+esc(r.v)+'"></div>').join('');
   if(b.type==='table') return '<p class="rb-hint">Tableau (maquette : structure d\'exemple, édition détaillée à venir).</p>';
   if(b.type==='divider') return '<p class="rb-hint">Séparateur visuel.</p>';
-  if(b.type==='related'||b.type==='continue') return '<input class="rb-i" placeholder="Titre de la section" data-field="title" data-i="'+i+'" value="'+esc(d.title||'')+'"><input class="rb-i" style="margin-top:8px" placeholder="Titre de l\'article recommandé" data-field="itemtitle" data-i="'+i+'" value="'+esc((d.items&&d.items[0]&&d.items[0].title)||'')+'">';
+  if(b.type==='related'||b.type==='continue'){
+    var it=(d.items&&d.items[0])||{};
+    var tgt=it.slug?('<p class="rb-hint" style="margin:6px 0 0">→ cible : <b>/articles/'+esc(it.slug)+'</b></p>'):'<p class="rb-hint" style="margin:6px 0 0">Choisis un article existant dans la liste pour garantir un lien valide.</p>';
+    return '<input class="rb-i" placeholder="Titre de la section" data-field="title" data-i="'+i+'" value="'+esc(d.title||'')+'"><input class="rb-i" style="margin-top:8px" list="tsf-art-list" placeholder="Titre de l\'article recommandé" data-field="itemtitle" data-i="'+i+'" value="'+esc(it.title||'')+'">'+tgt;
+  }
   return '';
 }
 /* ---------- gras / italique : préservation du Range (correction #2) ---------- */
@@ -663,7 +668,7 @@ function bindEditors(){
       applyInlineFormat(cmd);
     });
   });
-  $$('[data-field]').forEach(inp=>{ inp.oninput=()=>{ const card=inp.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; if(i<0)return; const f=inp.dataset.field; if(f==='itemtitle'){ state.blocks[i].data.items=[{title:inp.value,slug:slugify(inp.value)}]; } else state.blocks[i].data[f]=inp.value; update(); autosave(); }; });
+  $$('[data-field]').forEach(inp=>{ inp.oninput=()=>{ const card=inp.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; if(i<0)return; const f=inp.dataset.field; if(f==='itemtitle'){ const hit=(window.__tsfArtList||[]).find(a=>a.title===inp.value); const sl=hit?hit.slug:slugify(inp.value); state.blocks[i].data.items=[{title:inp.value,slug:sl}]; const hint=inp.parentNode.querySelector('.rb-hint'); if(hint) hint.innerHTML = sl?('→ cible : <b>/articles/'+esc(sl)+'</b>'+(hit?'':' <span style="color:#f5c451">(à créer / à vérifier)</span>')):'Choisis un article existant dans la liste pour garantir un lien valide.'; } else state.blocks[i].data[f]=inp.value; update(); autosave(); }; });
   $$('[data-stat]').forEach(inp=>{ inp.oninput=()=>{ const card=inp.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; const p=inp.dataset.stat.split('-'); const j=p[1],k=p[2]; if(i>=0){ state.blocks[i].data.rows[j][k]=inp.value; update(); autosave(); } }; });
   $$('.rb-space-seg').forEach(seg=>{ seg.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const card=seg.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; if(i>=0){ state.blocks[i].data.size=bt.dataset.size; renderBlocks(); update(); autosave(); } }); });
   $$('.rb-img-drop').forEach(z=>{ z.ondragover=e=>{e.preventDefault();z.style.borderColor='#ff334d';}; z.ondragleave=()=>z.style.borderColor=''; z.ondrop=e=>{e.preventDefault();z.style.borderColor='';const f=[...(e.dataTransfer.files||[])][0]; if(f){ const card=z.closest('.rb-block'); const i=card?indexOfId(+card.dataset.blockId):-1; if(i>=0) uploadImageToBlock(i,f);} }; });
@@ -721,7 +726,7 @@ const TSF={
       +'<p><b>Rubrique :</b> '+esc([h.competition,h.genre].filter(Boolean).join(' · ')||'—')+'</p><p><b>Date :</b> '+esc(h.date||'aujourd\'hui')+'</p>'
       +'<p><b>Image principale :</b> '+(h.hero?'définie':'—')+'</p>'
       +'<p><b>À la une :</b> '+(featured?'OUI — l\'ancien « à la une » repasse en article normal (conservé, toujours publié, dans les archives)':'non')+'</p>'
-      +'<p><b>Dossier / journal :</b> '+esc(h.dossier||h.journal||'—')+'</p><p><b>Aperçus vérifiés :</b> ordinateur ✓ · mobile ✓</p>';
+      +'<p><b>Dossier / journal :</b> '+esc(h.dossier||h.journal||'—')+'</p>';
     $('#pubConfirm').onclick=()=>{ this.close('mPub'); $('#edStatus').textContent=featured?'· Publié · à la une':'· Publié'; alert('✅ (Maquette) Publication confirmée'+(featured?' + mise à la une (opération atomique : l\'ancien reste publié)':'')+'. En vrai : écriture transactionnelle des blocs + version archivée.'); };
     $('#mPub').classList.add('on');
   },
@@ -987,18 +992,11 @@ function restoreAnchor(doc,pv,a){ if(!a)return;
   }catch(e){}
 }
 
-/* ---------- seed démo ---------- */
-$('[data-h="title"]').value="L'Azteca a retrouvé sa voix"; state.header.title="L'Azteca a retrouvé sa voix"; state.header.slug=slugify(state.header.title);$('[data-h="slug"]').value=state.header.slug;
-$('[data-h="kicker"]').value="Mondial 2026 · Match d'ouverture"; state.header.kicker="Mondial 2026 · Match d'ouverture";
-$('[data-h="deck"]').value="Plus de quarante ans après, le mythique stade de Mexico a vibré pour une nouvelle ouverture de Coupe du monde."; state.header.deck=$('[data-h="deck"]').value;
-$('[data-h="competition"]').value="Coupe du monde"; state.header.competition="Coupe du monde";$('[data-h="genre"]').value="Reportage"; state.header.genre="Reportage";
-addBlock('paragraph',{text:"Il y a des stades qui appartiennent au présent, et d'autres qui semblent toujours dialoguer avec le passé. L'Azteca fait partie de ceux-là."});
-addBlock('spacer',{size:'normal'});
-addBlock('heading',{text:'Une ouverture précoce'});
-addBlock('paragraph',{text:'Hugo Broos avait choisi la prudence. En face, le Mexique avançait avec la confiance de huit matches sans défaite.'});
-addBlock('stats',{rows:[{k:'Possession',v:'61%'},{k:'Tirs',v:'16'},{k:'Buts',v:'2'},{k:'Exclusion',v:'1'}]});
-addBlock('quote',{text:"Certains moments méritent davantage de reconnaissance que d'exubérance.",cite:'Notre envoyé spécial'});
-autosave(true); update();
+/* ---------- démarrage : éditeur vierge ----------
+   Aucun contenu de démo n'est injecté, et AUCUN enregistrement n'est déclenché au chargement :
+   ainsi ouvrir la page (ou « Nouveau ») ne crée plus de brouillon en base. Un article n'est
+   enregistré que lorsque tu écris réellement quelque chose (via l'autosave sur saisie). */
+update();
 
 /* ---------- Aperçu tweet X en direct (lecture seule, additif — ne modifie rien de l'éditeur) ----------
    Reconstruit le rendu exact du futur tweet (mêmes règles que le serveur x-core.mjs :
@@ -1133,13 +1131,32 @@ try{ xtpRender(); }catch(e){}
 
   // ---------- enregistrement / publication ----------
   let dbT=null;
+  // Un slug doit être unique (contrainte articles_slug_key). Si le slug proposé est déjà pris
+  // par un AUTRE article, on en dérive un libre (« base », « base-2 », « base-3 »…) plutôt que
+  // de laisser l'enregistrement échouer. Filet de sécurité : en usage normal les titres diffèrent.
+  function isSlugConflict(e){ const m=((e&&(e.message||e.error_description||e.details))||'')+''; return (e&&e.code==='23505')||/articles_slug_key|duplicate key/i.test(m); }
+  async function freeSlug(base){
+    base=(base||'article').replace(/-\d+$/,'')||'article';
+    try{
+      const {data}=await sb.from('articles').select('slug').ilike('slug',base+'%');
+      const taken=new Set((data||[]).map(r=>r.slug));
+      if(!taken.has(base)) return base;
+      let i=2; while(taken.has(base+'-'+i)) i++;
+      return base+'-'+i;
+    }catch(_){ return base+'-'+Date.now().toString(36).slice(-4); }
+  }
   function realSave(manual){
     return new Promise(async (resolve)=>{
       if(!sb){ toast('Service indisponible.','err'); return resolve(null); }
       if(!token){ toast('Connecte-toi (compte admin) pour enregistrer. Ici, tu testes seulement le rendu.','warn'); return resolve(null); }
       gid('saveDot').classList.add('saving'); gid('saveTxt').textContent='Enregistrement…';
       try{
-        const {data,error}=await sb.rpc('save_article',{p_article:buildArticle(), p_blocks:buildBlocks()});
+        let {data,error}=await sb.rpc('save_article',{p_article:buildArticle(), p_blocks:buildBlocks()});
+        if(error && isSlugConflict(error)){
+          const ns=await freeSlug(state.header.slug||slugify(state.header.title||''));
+          state.header.slug=ns; const _s=$('[data-h="slug"]'); if(_s) _s.value=ns;
+          ({data,error}=await sb.rpc('save_article',{p_article:buildArticle(), p_blocks:buildBlocks()}));
+        }
         if(error) throw error;
         const row=Array.isArray(data)?data[0]:data;
         if(row){ currentUuid=row.id; currentEditorialId=row.editorial_id||currentEditorialId; currentStatus=row.status||currentStatus; currentPublishedAt=row.published_at||null; currentScheduledAt=row.scheduled_at||null; currentFeatured=!!row.featured; gid('edId').textContent=currentEditorialId; setPill(); }
@@ -1506,6 +1523,269 @@ try{ xtpRender(); }catch(e){}
     processImage, storeImage, validateFile, toast,
     save:()=>realSave(true)
   };
+
+  /* ==========================================================================
+     AMÉLIORATIONS RÉGIE — additif, ne modifie pas les flux existants.
+     Accède aux états internes (token, realSave, currentUuid, loadArticle…) et
+     aux globaux (state, TSF, update, autosave). Tout est enveloppé/try-caté
+     pour ne jamais bloquer l'éditeur si un détail échoue.
+     ========================================================================== */
+  (function enhance(){
+    var pad2=function(n){return String(n).padStart(2,'0');};
+    function stripHtml(s){ var d=document.createElement('div'); d.innerHTML=String(s==null?'':s); return (d.textContent||'').replace(/\s+/g,' ').trim(); }
+
+    /* ---------- compteur de mots + temps de lecture auto ---------- */
+    function articlePlain(){
+      var out=[]; var h=state.header||{};
+      out.push(stripHtml(h.title), stripHtml(h.deck));
+      (state.blocks||[]).forEach(function(b){ if(b.hidden)return; var d=b.data||{};
+        if(b.type==='paragraph'||b.type==='heading'||b.type==='subheading'||b.type==='quote'){ out.push(stripHtml(d.text)); if(d.cite)out.push(stripHtml(d.cite)); }
+        else if(b.type==='stats'){ (d.rows||[]).forEach(function(r){ out.push((r&&r.k||'')+' '+(r&&r.v||'')); }); }
+        else if(b.type==='table'){ (d.rows||[]).forEach(function(r){ out.push((r||[]).join(' ')); }); }
+        else if(b.type==='image'){ out.push(stripHtml(d.caption)); }
+      });
+      return out.join(' ').replace(/\s+/g,' ').trim();
+    }
+    function wordCount(){ var t=articlePlain(); return t? t.split(/\s+/).filter(Boolean).length : 0; }
+
+    var readingTouched=false;
+    var readingInput=document.querySelector('[data-h="reading"]');
+    if(readingInput) readingInput.addEventListener('input',function(){ readingTouched=true; });
+
+    var metaBar=document.createElement('p'); metaBar.className='rb-hint'; metaBar.style.cssText='text-align:center;margin-top:6px;font-weight:700;color:#9fb2cc';
+    (function(){ var secs=document.querySelectorAll('.rb-sec'); if(secs[1]) secs[1].appendChild(metaBar); })();
+    function refreshMeta(){
+      var w=wordCount(); var mins=Math.max(1,Math.round(w/200));
+      metaBar.textContent = w? (w.toLocaleString('fr-FR')+' mot'+(w>1?'s':'')+' · ~'+mins+' min de lecture') : '';
+      if(!readingTouched && readingInput && w){ if(String(mins)!==String(readingInput.value)){ readingInput.value=mins; state.header.reading=mins; } }
+      try{ refreshSeo(); }catch(e){}
+    }
+
+    /* ---------- aperçu SEO / Google ---------- */
+    var seoCard=null;
+    (function buildSeo(){
+      var seoField=document.querySelector('[data-h="seo"]'); if(!seoField)return;
+      var wrap=seoField.closest('.full')||seoField.parentNode;
+      seoCard=document.createElement('div');
+      seoCard.style.cssText='grid-column:1/-1;margin-top:4px;background:#0a1730;border:1px solid var(--line);border-radius:10px;padding:12px';
+      seoCard.innerHTML='<div style="font-size:11px;color:#9fb2cc;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Aperçu Google</div>'
+        +'<div style="background:#fff;border-radius:8px;padding:10px 12px">'
+        +'<div id="seoUrl" style="color:#202124;font-size:12px;font-family:arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">tomsofoot.fr › articles › …</div>'
+        +'<div id="seoTitle" style="color:#1a0dab;font-size:18px;line-height:1.3;margin:2px 0;font-family:arial,sans-serif">Titre de l\'article</div>'
+        +'<div id="seoDesc" style="color:#4d5156;font-size:13px;line-height:1.4;font-family:arial,sans-serif">Description…</div>'
+        +'</div>'
+        +'<div id="seoMeta" style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#8ba0be;font-variant-numeric:tabular-nums"></div>';
+      wrap.parentNode.insertBefore(seoCard, wrap.nextSibling);
+    })();
+    function _clip(s,n){ s=String(s==null?'':s); return s.length>n? s.slice(0,n-1).trim()+'…' : s; }
+    function refreshSeo(){
+      if(!seoCard)return; var h=state.header||{};
+      var title=(h.title||'').trim(); var slug=(h.slug||slugify(title||'')||'…');
+      var desc=(h.seo||'').trim() || (h.deck||'').trim();
+      document.getElementById('seoUrl').textContent='tomsofoot.fr › articles › '+slug;
+      document.getElementById('seoTitle').textContent=_clip(title||'Titre de l\'article',65);
+      document.getElementById('seoDesc').textContent=_clip(desc||'Ajoute une description SEO (≈150 caractères) pour Google.',160);
+      var tl=title.length, dl=(h.seo||'').trim().length;
+      var tCol=(tl>0&&tl<=60)?'#3fdc8b':(tl>65?'#ff8ea0':'#f5c451');
+      var dCol=(dl>=120&&dl<=160)?'#3fdc8b':((dl>0&&dl<170)?'#f5c451':'#ff8ea0');
+      document.getElementById('seoMeta').innerHTML='<span style="color:'+tCol+'">Titre : '+tl+' car.</span><span style="color:'+dCol+'">Description SEO : '+dl+' car.</span>';
+    }
+
+    /* ---------- verrou du slug après publication ---------- */
+    var slugInput=document.querySelector('[data-h="slug"]');
+    function applySlugLock(){
+      if(!slugInput)return;
+      var pub=(currentStatus==='published');
+      var note=document.getElementById('slugLockNote');
+      if(pub){
+        slugInput.readOnly=true; slugInput.style.opacity='.7';
+        if(!note){
+          note=document.createElement('p'); note.id='slugLockNote'; note.className='rb-hint'; note.style.marginTop='4px';
+          note.innerHTML='🔒 Slug verrouillé (article en ligne — le changer casserait l\'URL). <a href="#" id="slugUnlock" style="color:#9fc2ff">Déverrouiller quand même</a>';
+          slugInput.parentNode.appendChild(note);
+          document.getElementById('slugUnlock').onclick=function(e){ e.preventDefault(); if(confirm('Changer le slug d\'un article déjà publié cassera son URL actuelle (aucune redirection automatique). Continuer ?')){ slugInput.readOnly=false; slugInput.style.opacity=''; note.remove(); } };
+        }
+      } else { slugInput.readOnly=false; slugInput.style.opacity=''; if(note) note.remove(); }
+    }
+
+    /* ---------- suivi « non enregistré » + sauvegarde de secours (localStorage) ---------- */
+    var dirty=false, loadedStamp=null, LSKEY='tsf-regie-backup';
+    function snapshot(){ try{ return {ts:Date.now(), editorialId:currentEditorialId, uuid:currentUuid, status:currentStatus, header:state.header, blocks:state.blocks}; }catch(e){ return null; } }
+    function backupLocal(){ try{ var s=snapshot(); if(s) localStorage.setItem(LSKEY, JSON.stringify(s)); }catch(e){} }
+    function clearBackup(){ try{ localStorage.removeItem(LSKEY); }catch(e){} }
+    function afterSave(row){ if(row){ dirty=false; clearBackup(); if(row.updated_at) loadedStamp=row.updated_at; } return row; }
+
+    // enveloppe autosave (global) : marque « modifié » + backup local avant l'enregistrement réseau
+    if(typeof autosave==='function'){ var _as=autosave; autosave=function(m){ dirty=true; backupLocal(); return _as(m); }; }
+
+    // enveloppe realSave : nettoie l'état « modifié » au succès + garde-fou multi-onglets sur enregistrement manuel
+    if(typeof realSave==='function'){
+      var _rs=realSave;
+      realSave=function(m){
+        if(m===true && currentUuid && loadedStamp && sb){
+          return sb.from('articles').select('updated_at').eq('id',currentUuid).limit(1).then(function(res){
+            var srv=res&&res.data&&res.data[0]&&res.data[0].updated_at;
+            if(srv && loadedStamp && new Date(srv)>new Date(loadedStamp)){
+              if(!confirm('Cet article a été modifié ailleurs depuis que tu l\'as ouvert (un autre onglet ?). Enregistrer maintenant écrasera ces changements. Continuer ?')) return null;
+            }
+            return _rs(m).then(afterSave);
+          }).catch(function(){ return _rs(m).then(afterSave); });
+        }
+        return _rs(m).then(afterSave);
+      };
+    }
+
+    window.addEventListener('beforeunload', function(e){ if(dirty){ e.preventDefault(); e.returnValue=''; return ''; } });
+
+    function restoreSnapshot(s){
+      try{
+        state.header = s.header||{}; state.blocks=(s.blocks||[]).map(function(b){ b.id=uid++; return b; });
+        currentUuid=s.uuid||currentUuid; currentEditorialId=s.editorialId||currentEditorialId; currentStatus=s.status||'draft';
+        document.querySelectorAll('[data-h]').forEach(function(el){ var k=el.dataset.h; var v=state.header[k]; if(el.type==='checkbox'){ el.checked=!!v; } else { el.value=(v==null?'':v); } });
+        var idEl=document.getElementById('edId'); if(idEl) idEl.textContent=currentEditorialId; setPill();
+        renderBlocks(); update(); try{applySlugLock();refreshMeta();}catch(e){}
+      }catch(e){}
+    }
+    (function offerRestore(){
+      var raw; try{ raw=localStorage.getItem(LSKEY); }catch(e){ return; }
+      if(!raw) return; var s; try{ s=JSON.parse(raw); }catch(e){ clearBackup(); return; }
+      var hasContent = s && ((s.blocks&&s.blocks.length) || (s.header&&(s.header.title||s.header.deck)));
+      if(!hasContent){ return; }
+      var mins=Math.max(0,Math.round((Date.now()-(s.ts||0))/60000));
+      var bar=document.createElement('div');
+      bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:10000;background:#0d1f3d;border:1px solid #4a76c9;border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 12px 30px rgba(0,0,0,.45);max-width:92vw;flex-wrap:wrap';
+      bar.innerHTML='<span style="font-size:13px;color:#dbe6f5">Brouillon non enregistré retrouvé'+(isFinite(mins)?(' (il y a '+mins+' min)'):'')+(s.header&&s.header.title?(' — « '+esc(s.header.title)+' »'):'')+'.</span>'
+        +'<button id="tsfRestoreYes" class="btn btn--primary" style="min-height:38px">Récupérer</button>'
+        +'<button id="tsfRestoreNo" class="btn" style="min-height:38px">Ignorer</button>';
+      document.body.appendChild(bar);
+      document.getElementById('tsfRestoreYes').onclick=function(){ restoreSnapshot(s); bar.remove(); toast('Brouillon récupéré ✓','ok'); };
+      document.getElementById('tsfRestoreNo').onclick=function(){ clearBackup(); bar.remove(); };
+    })();
+
+    /* ---------- Ctrl/Cmd+S = enregistrer ---------- */
+    document.addEventListener('keydown', function(e){
+      if((e.ctrlKey||e.metaKey)&&!e.altKey&&!e.shiftKey&&(e.key==='s'||e.key==='S')){
+        e.preventDefault();
+        if(token){ realSave(true); toast('Enregistrement…','ok'); }
+        else { toast('Connexion admin requise pour enregistrer.','warn'); }
+      }
+    });
+
+    /* ---------- sélecteur date/heure (remplace les prompt) ---------- */
+    function localVal(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T'+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+    function pickDateTime(title, def, cb){
+      var ov=document.createElement('div');
+      ov.style.cssText='position:fixed;inset:0;background:rgba(6,12,26,.6);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px';
+      ov.innerHTML='<div style="background:#0d1f3d;border:1px solid var(--line);border-radius:14px;padding:18px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5)">'
+        +'<h3 style="margin:0 0 12px;font-size:16px;color:#fff">'+esc(title)+'</h3>'
+        +'<input type="datetime-local" id="tsfDT" value="'+esc(def)+'" style="width:100%;background:var(--field);border:1px solid var(--line);color:#fff;border-radius:9px;padding:11px 12px;font:inherit;font-size:15px">'
+        +'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">'
+        +'<button class="btn" id="tsfDTc">Annuler</button><button class="btn btn--primary" id="tsfDTo">Valider</button></div></div>';
+      document.body.appendChild(ov);
+      var input=ov.querySelector('#tsfDT');
+      ov.querySelector('#tsfDTc').onclick=function(){ ov.remove(); cb(null); };
+      ov.addEventListener('click',function(e){ if(e.target===ov){ ov.remove(); cb(null); } });
+      ov.querySelector('#tsfDTo').onclick=function(){ var v=input.value; ov.remove(); cb(v||null); };
+      setTimeout(function(){ try{ input.focus(); }catch(e){} }, 30);
+    }
+    TSF.openSchedule=function(){
+      if(!token){ toast('Connexion admin requise pour programmer.','warn'); return; }
+      var def=localVal(new Date(Date.now()+3600000));
+      pickDateTime('Programmer la publication', def, function(v){ if(!v)return; var d=new Date(v); if(isNaN(d)){ toast('Date invalide.','err'); return; }
+        scheduleWhen=d.toISOString(); currentStatus='scheduled';
+        realSave(true).then(function(){ toast('Programmé pour le '+d.toLocaleString('fr-FR')+' (invisible jusque-là).','ok'); });
+      });
+    };
+    var _btnPubDate=document.getElementById('btnPubDate');
+    if(_btnPubDate) _btnPubDate.onclick=function(){
+      if(!token){ toast('Connexion admin requise.','warn'); return; }
+      if(!currentUuid || currentStatus!=='published'){ toast('Charge d\'abord un article déjà publié.','warn'); return; }
+      var cur=currentPublishedAt?new Date(currentPublishedAt):new Date();
+      pickDateTime('Nouvelle date de publication', localVal(cur), function(v){ if(!v)return; var d=new Date(v); if(isNaN(d)){ toast('Date invalide.','err'); return; }
+        sb.rpc('publish_article',{p_id:currentUuid,p_featured:currentFeatured,p_when:d.toISOString()}).then(function(res){ if(res.error)throw res.error; var pub=Array.isArray(res.data)?res.data[0]:res.data; if(pub){ currentPublishedAt=pub.published_at||d.toISOString(); } toast('Date de publication mise à jour : '+fmtParis(currentPublishedAt),'ok'); }).catch(function(e){ toast('Échec : '+(e.message||e),'err'); });
+      });
+    };
+
+    /* ---------- checklist de publication ---------- */
+    function publishIssues(){
+      var h=state.header||{}, issues=[];
+      var hasContent=(state.blocks||[]).some(function(b){ if(b.hidden)return false; var d=b.data||{};
+        return ((/^(paragraph|heading|subheading|quote)$/.test(b.type)) && stripHtml(d.text)) || (b.type==='image'&&d.src) || (b.type==='stats'&&(d.rows||[]).length); });
+      if(!(h.title||'').trim()) issues.push({s:'bloc',t:'Titre principal manquant'});
+      if(!(h.slug||'').trim()) issues.push({s:'bloc',t:'Slug manquant'});
+      if(!hasContent) issues.push({s:'bloc',t:'Le contenu est vide'});
+      if(!(h.hero||'').trim()) issues.push({s:'reco',t:'Aucune image principale'});
+      else if(!(h.hero_alt||'').trim()) issues.push({s:'reco',t:'Image principale sans texte alternatif'});
+      if(!(h.seo||'').trim()) issues.push({s:'reco',t:'Description SEO manquante'});
+      var imgNoAlt=(state.blocks||[]).filter(function(b){ return !b.hidden&&b.type==='image'&&b.data&&b.data.src&&!(b.data.alt||'').trim(); }).length;
+      if(imgNoAlt) issues.push({s:'reco',t:imgNoAlt+' image'+(imgNoAlt>1?'s':'')+' du corps sans texte alternatif'});
+      if(!(h.competition||h.genre)) issues.push({s:'reco',t:'Aucune rubrique (compétition / genre)'});
+      return issues;
+    }
+    function injectChecklist(){
+      var recap=document.getElementById('pubRecap'); if(!recap) return [];
+      var issues=publishIssues();
+      var html;
+      if(!issues.length){ html='<div style="margin-top:10px;padding:10px 12px;border-radius:9px;background:rgba(63,220,139,.14);border:1px solid rgba(63,220,139,.5);color:#c8f6da;font-size:13px">✓ Tout est prêt pour la publication.</div>'; }
+      else {
+        html='<div style="margin-top:10px;padding:10px 12px;border-radius:9px;background:rgba(245,196,81,.10);border:1px solid rgba(245,196,81,.5)">'
+          +'<b style="display:block;color:#ffd98a;font-size:13px;margin-bottom:6px">À vérifier avant publication :</b>'
+          +'<ul style="margin:0;padding-left:18px;font-size:13px;color:#e7eefb">'
+          + issues.map(function(x){ return '<li style="margin:2px 0">'+(x.s==='bloc'?'🔴 ':'🟡 ')+esc(x.t)+'</li>'; }).join('')
+          +'</ul><p style="margin:8px 0 0;font-size:12px;color:#9fb2cc">🔴 bloquant · 🟡 recommandé — tu peux publier quand même.</p></div>';
+      }
+      recap.insertAdjacentHTML('beforeend', html);
+      return issues;
+    }
+    if(TSF && typeof TSF.openPublish==='function'){
+      var _op=TSF.openPublish;
+      TSF.openPublish=function(featured){
+        _op.call(TSF, featured);
+        var issues=injectChecklist();
+        var blockers=issues.filter(function(x){ return x.s==='bloc'; });
+        var confirmBtn=document.getElementById('pubConfirm'); if(!confirmBtn) return;
+        var prev=confirmBtn.onclick;
+        confirmBtn.onclick=function(ev){
+          if(blockers.length){ if(!confirm('Il manque : '+blockers.map(function(b){return b.t;}).join(', ')+'.\nPublier quand même ?')) return; }
+          if(prev) prev.call(confirmBtn, ev);
+        };
+      };
+    }
+
+    /* ---------- sélecteur d'article pour les blocs « lien / dossier » ---------- */
+    function loadPickList(){
+      if(!sb || !token) return;
+      sb.from('articles').select('title,slug').order('published_at',{ascending:false,nullsFirst:false}).limit(300).then(function(res){
+        if(res.error||!res.data) return;
+        window.__tsfArtList = res.data.filter(function(a){ return a.title&&a.slug; });
+        var dl=document.getElementById('tsf-art-list'); if(!dl){ dl=document.createElement('datalist'); dl.id='tsf-art-list'; document.body.appendChild(dl); }
+        dl.innerHTML=window.__tsfArtList.map(function(a){ return '<option value="'+esc(a.title)+'"></option>'; }).join('');
+      }).catch(function(){});
+    }
+
+    /* ---------- rafraîchit compteur/SEO à chaque mise à jour de l'aperçu ---------- */
+    if(typeof update==='function'){ var _upd=update; update=function(f){ var r=_upd(f); try{ refreshMeta(); }catch(e){} return r; }; }
+
+    /* ---------- branchements sur chargement / boot ---------- */
+    if(typeof loadArticle==='function'){
+      var _load=loadArticle;
+      loadArticle=function(k){
+        var r=_load(k);
+        Promise.resolve(r).then(function(){
+          readingTouched = !!(state.header && state.header.reading);
+          try{ applySlugLock(); refreshMeta(); }catch(e){}
+          if(currentUuid && sb){ sb.from('articles').select('updated_at').eq('id',currentUuid).limit(1).then(function(res){ var u=res&&res.data&&res.data[0]&&res.data[0].updated_at; if(u) loadedStamp=u; }).catch(function(){}); }
+        });
+        return r;
+      };
+    }
+    if(typeof boot==='function'){
+      var _boot=boot;
+      boot=function(){ var r=_boot(); Promise.resolve(r).then(function(){ try{ loadPickList(); applySlugLock(); refreshMeta(); }catch(e){} }); return r; };
+    }
+    // première mise à jour des indicateurs
+    try{ refreshMeta(); }catch(e){}
+  })();
 
   boot();
 })();
