@@ -741,24 +741,21 @@ function bindEditors(){
     ce.onpaste=e=>{
       e.preventDefault();
       const cd=e.clipboardData||window.clipboardData;
-      // COLLAGE = TEXTE BRUT UNIQUEMENT. On lit EXCLUSIVEMENT text/plain — jamais text/html — donc
-      // aucun style/balise/lien/span de la source (ni d'extension) n'entre dans l'éditeur. Ligne vide
-      // = nouveau bloc ; retour à la ligne simple = retour interne. L'apparence vient ensuite du thème
-      // TomSoFoot et des outils de la barre (gras/italique/couleur/lien appliqués volontairement).
-      const paras=splitIntoParagraphs(cd.getData('text/plain'));
-      if(!paras.length) return;
-      // texte d'un paragraphe -> HTML propre (échappé), retours internes -> <br> (aucun style importé)
-      const toHtml=p=>p.split('\n').map(esc).join('<br>');
-      const bi=indexOfId(+ce.dataset.blockId);
-      // 1er paragraphe : inséré comme TEXTE au curseur (remplace la sélection, gère curseur + annuler/refaire).
-      // insertText n'apporte aucun style ; syncBlockFromCe -> sanitizeRich normalise d'éventuels <div> en <br>.
-      restoreRange(); document.execCommand('insertText',false,paras[0]); syncBlockFromCe(ce);
-      if(paras.length===1 || bi<0){ saveRange(); update(); autosave(); return; }
-      // Paragraphes suivants : nouveaux blocs Paragraphe, contenu = texte propre (aucun balisage source).
-      let at=bi+1, lastId=null;
-      for(let k=1;k<paras.length;k++){ const b={id:uid++,type:'paragraph',hidden:false,data:{text:toHtml(paras[k])}}; state.blocks.splice(at++,0,b); lastId=b.id; }
-      renderBlocks(); update(); autosave();
-      if(lastId!=null){ const li=indexOfId(lastId); if(li>=0) focusBlock(li); }   // curseur à la fin du dernier bloc collé
+      // COLLAGE = TEXTE BRUT UNIQUEMENT, ENTIÈREMENT DANS LE BLOC COURANT.
+      // On lit EXCLUSIVEMENT text/plain — jamais text/html — donc aucun style/balise/lien/span de la
+      // source (ni d'extension) n'entre dans l'éditeur. AUCUN découpage automatique en plusieurs blocs :
+      // tout le texte collé, aussi long soit-il, reste dans CE paragraphe (retours à la ligne -> <br>
+      // internes), sans limite de caractères. La mise en forme vient ensuite des outils de la barre.
+      const raw=cd.getData('text/plain');
+      if(raw==null) return;
+      const text=String(raw).replace(/\r\n?/g,'\n').replace(/\u00a0/g,' ');
+      // texte -> HTML propre : chaque ligne échappée, retours à la ligne -> <br>. Aucun style importé,
+      // uniquement du texte et des <br> : aucun bloc <p>/<div> créé, tout reste dans un seul paragraphe.
+      const html=text.split('\n').map(l=>esc(l.replace(/[ \t]+/g,' '))).join('<br>');
+      // Inséré au curseur (remplace la sélection, gère curseur + annuler/refaire). insertHTML ne pose que
+      // le texte échappé et les <br> voulus ; syncBlockFromCe -> sanitizeRich aplatit tout <div> résiduel.
+      restoreRange(); document.execCommand('insertHTML',false,html); syncBlockFromCe(ce);
+      saveRange(); update(); autosave();
     };
     ce.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&!e.altKey){ const k=e.key.toLowerCase(); if(k==='b'){e.preventDefault();applyInlineFormat('bold');return;} if(k==='i'){e.preventDefault();applyInlineFormat('italic');return;} } });
     const blk=state.blocks[indexOfId(+ce.dataset.blockId)];
@@ -1893,9 +1890,8 @@ try{ xtpRender(); }catch(e){}
       loadArticle=function(k){
         var r=_load(k);
         Promise.resolve(r).then(function(){
-          // MIGRATION : un article existant stocké en un seul bloc multi-paragraphes est redécoupé
-          // en blocs distincts (idempotent : sans effet sur un bloc déjà à paragraphe unique).
-          try{ if(splitMultiParagraphBlocks()){ renderBlocks(); update(); } }catch(e){}
+          // MIGRATION DÉSACTIVÉE : le collage garde désormais tout le texte dans UN seul bloc (sans
+          // découpage), donc on ne redécoupe plus au chargement — un long paragraphe reste un long paragraphe.
           readingTouched = !!(state.header && state.header.reading);
           try{ applySlugLock(); refreshMeta(); }catch(e){}
           if(currentUuid && sb){ sb.from('articles').select('updated_at').eq('id',currentUuid).limit(1).then(function(res){ var u=res&&res.data&&res.data[0]&&res.data[0].updated_at; if(u) loadedStamp=u; }).catch(function(){}); }
@@ -1905,7 +1901,7 @@ try{ xtpRender(); }catch(e){}
     }
     if(typeof boot==='function'){
       var _boot=boot;
-      boot=function(){ var r=_boot(); Promise.resolve(r).then(function(){ try{ if(splitMultiParagraphBlocks()){ renderBlocks(); update(); } }catch(e){} try{ loadPickList(); applySlugLock(); refreshMeta(); }catch(e){} }); return r; };
+      boot=function(){ var r=_boot(); Promise.resolve(r).then(function(){ /* migration multi-paragraphes désactivée : le collage tient dans un seul bloc */ try{ loadPickList(); applySlugLock(); refreshMeta(); }catch(e){} }); return r; };
     }
     // première mise à jour des indicateurs
     try{ refreshMeta(); }catch(e){}
