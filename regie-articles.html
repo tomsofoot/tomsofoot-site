@@ -335,7 +335,7 @@ body:not(.media-open) .rb-media{display:none}
           <button class="rb-addbtn" onclick="TSF.openAdd()">+ Ajouter un contenu</button>
           <button class="rb-addbtn rb-addbtn--img" onclick="TSF.pickImage()">+ Ajouter une image</button>
         </div>
-        <p class="rb-hint" style="text-align:center">Astuce : <b>Entrée</b> = nouveau paragraphe · <b>Maj+Entrée</b> = retour à la ligne · <b>Entrée</b> sur une ligne vide = espace éditorial · ou glissez-déposez une image entre deux blocs.</p>
+        <p class="rb-hint" style="text-align:center">Astuce : <b>Entrée</b> = retour à la ligne (dans le même paragraphe) · <b>« + Ajouter un contenu »</b> pour un nouveau bloc · ou glissez-déposez une image entre deux blocs.</p>
         <p class="rb-hint" style="text-align:center">Orthographe : les fautes sont soulignées pendant la frappe. Pour une vérification complète (orthographe, grammaire, ponctuation, répétitions), clique <b style="color:#c8f6da">✓ Corriger l'orthographe</b> en haut.</p>
       </div>
 
@@ -746,6 +746,9 @@ function applyInlineFormat(cmd){
 function refreshFmtButtons(ce){ const rt=ce.parentNode&&ce.parentNode.querySelector('.rb-rt'); if(!rt)return; rt.querySelectorAll('button[data-cmd]').forEach(btn=>{ const c=btn.dataset.cmd; if(c==='bold'||c==='italic'){ let on=false; try{on=document.queryCommandState(c);}catch(e){} btn.classList.toggle('on',on); } }); }
 
 function bindEditors(){
+  // Force les retours à la ligne du navigateur en <br> (et non <div>/<p>) : Entrée et Retour arrière
+  // restent cohérents dans un seul bloc, sans structure de blocs parasites qui casse la fusion des lignes.
+  try{ document.execCommand('defaultParagraphSeparator', false, 'br'); }catch(_){}
   $$('.rb-ce').forEach(ce=>{
     ce.oninput=()=>{ syncBlockFromCe(ce); saveRange(); update(); autosave(); refreshFmtButtons(ce); };
     ce.onfocus=()=>{ const bi=indexOfId(+ce.dataset.blockId); if(bi>=0)state.sel=bi; saveRange(); };
@@ -792,18 +795,13 @@ function bindEditors(){
 /* ---------- clavier : Entrée / Maj+Entrée / double Entrée ---------- */
 function paragraphKeys(e,ce){
   if(e.key!=='Enter') return;
-  if(e.shiftKey){ return; } // Maj+Entrée = retour à la ligne (comportement natif <br>, conservé)
+  // ENTRÉE = SIMPLE RETOUR À LA LIGNE (<br>) DANS LE MÊME BLOC — jamais un nouveau bloc/paragraphe
+  // (Maj+Entrée fait pareil). Pour créer un vrai nouveau bloc, utiliser « + Ajouter un contenu ».
+  // Conséquence importante : tout le texte reste dans UN SEUL contenteditable, donc Retour arrière
+  // (Suppr) fusionne les lignes normalement, au lieu de rester bloqué entre deux blocs séparés.
   e.preventDefault();
-  const i=indexOfId(+ce.dataset.blockId); if(i<0)return;
-  const empty = ce.textContent.trim()==='' && !ce.querySelector('img');
-  if(empty){
-    // 2e Entrée sur une ligne vide -> transforme en ESPACE (normal) + nouveau paragraphe
-    state.blocks[i]={id:state.blocks[i].id,type:'spacer',hidden:false,data:{size:'normal'}};
-    addBlock('paragraph',{text:''},i+1); focusBlock(i+1);
-  } else {
-    addBlock('paragraph',{text:''},i+1); focusBlock(i+1);
-  }
-  update(); autosave();
+  document.execCommand('insertLineBreak');
+  syncBlockFromCe(ce); saveRange(); update(); autosave();
 }
 // Place le curseur à la FIN du i-ème bloc éditable (les inséreurs ne sont pas comptés).
 function focusBlock(i){ requestAnimationFrame(()=>{ const cards=$('#blocks').querySelectorAll('.rb-block'); const el=cards[i]; if(!el)return; const ce=el.querySelector('.rb-ce'); if(ce){ ce.focus(); try{ const r=document.createRange(); r.selectNodeContents(ce); r.collapse(false); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r); saveRange(); }catch(_){} state.sel=i; } }); }
