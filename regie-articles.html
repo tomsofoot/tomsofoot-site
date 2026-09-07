@@ -50,8 +50,11 @@ body.media-open .rb-main{grid-template-columns:46% minmax(0,1fr) var(--media-w,3
    réinitialisées : lors d'une édition dans un paragraphe (Suppr/Retour arrière qui fusionne des lignes),
    le repeint partiel laissait apparaître le texte fantôme superposé + des « traits noirs ». Le fond
    opaque (identique visuellement à celui du body) force le repeint complet et supprime définitivement
-   ce bug. NE PAS retirer ce fond. */
-.rb-editor{overflow-y:auto;padding:18px 18px 140px;border-right:1px solid var(--line);position:relative;background:var(--navy)}
+   ce bug. NE PAS retirer ce fond.
+   overflow-anchor:none : quand un long paragraphe rétrécit (fusion de lignes au Suppr/Retour arrière),
+   l'ancrage de défilement de Chrome réajuste le scroll et laissait une frame « fantôme » (texte
+   superposé). On le désactive ici ; le repeint atomique du champ (voir ghostBuster plus bas) fait le reste. */
+.rb-editor{overflow-y:auto;padding:18px 18px 140px;border-right:1px solid var(--line);position:relative;background:var(--navy);overflow-anchor:none}
 .rb-preview{display:flex;flex-direction:column;background:#050d1a}
 .rb-tabs{display:none}
 /* Editor sections */
@@ -1819,6 +1822,25 @@ try{ xtpRender(); }catch(e){}
       function scheduleMeta(){ if(_metaT) clearTimeout(_metaT); _metaT=setTimeout(function(){ _metaT=null; try{ refreshMeta(); }catch(e){} }, 260); }
       update=function(f){ var r=_upd(f); scheduleMeta(); return r; };
     }
+
+    /* ---------- anti-fantôme : repeint atomique du champ édité ----------
+       Sur un long paragraphe (article entier collé dans un seul bloc), fusionner des lignes avec
+       Suppr / Retour arrière fait RÉTRÉCIR le champ éditable. Chrome, qui gère la zone défilante sur
+       une couche GPU, peut alors garder une frame « fantôme » (texte superposé) dans la couche jusqu'à
+       la prochaine interaction : c'est exactement le bug « ça se superpose ». Le fond opaque (plus haut)
+       a supprimé les traits noirs, mais pas cette frame fantôme. Ici, à chaque frappe dans un champ
+       éditable, on force un repeint ATOMIQUE du champ concerné en le promouvant brièvement sur sa propre
+       couche (transform: translateZ(0)) puis en la retirant : le contenu est repeint proprement, sans
+       toucher ni au curseur ni au texte. Écouteur global en capture => valable même après re-rendu des blocs. */
+    document.addEventListener('input', function(e){
+      var ce = e.target && e.target.closest && e.target.closest('.rb-ce');
+      if(!ce) return;
+      ce.style.transform = 'translateZ(0)';                 // repeint immédiat, efface le fantôme
+      if(ce.__gbRAF) cancelAnimationFrame(ce.__gbRAF);
+      ce.__gbRAF = requestAnimationFrame(function(){          // on aplatit la couche une fois la frappe posée
+        ce.__gbRAF = requestAnimationFrame(function(){ ce.style.transform = ''; });
+      });
+    }, true);
 
     /* ---------- branchements sur chargement / boot ---------- */
     if(typeof loadArticle==='function'){
