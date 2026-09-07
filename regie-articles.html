@@ -99,6 +99,18 @@ textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
    (d.text / textColor), NI l'aperçu de droite (#pv), NI l'article public : ceux-ci gardent leurs couleurs. */
 [data-block-type="paragraph"] .rb-ce{ color:var(--white); caret-color:var(--white); }
 [data-block-type="paragraph"] .rb-ce [style*="color"]{ color:inherit !important; }   /* neutralise une couleur sombre collée — DANS L'ÉDITEUR seulement, le contenu n'est pas réécrit */
+/* ANTI-EXTENSIONS D'ÉCRITURE (QuillBot, Grammarly, LanguageTool…) — DANS L'ÉDITEUR SEULEMENT.
+   Ces extensions Chrome enrobent le texte de l'éditeur dans des <p>/<div> avec un FOND NOIR
+   (background:#000) et un positionnement relatif : c'est la cause des « traits noirs » / de la
+   superposition au collage, visible sur Chrome et pas sur Edge/IE (qui n'ont pas ces extensions).
+   Le contenu STOCKÉ n'a jamais de <p>/<div> (sanitizeRich les aplatit en <br>), donc cette règle
+   ne vise que l'injection transitoire des extensions ; elle ne touche pas les listes (ul/ol/li). */
+[data-block-type="paragraph"] .rb-ce p,
+[data-block-type="paragraph"] .rb-ce div{
+  background:transparent !important; background-color:transparent !important;
+  margin:0 !important; padding:0 !important; border:0 !important;
+  position:static !important; box-shadow:none !important; color:inherit !important;
+}
 [data-block-type="paragraph"] .rb-ce ::selection{ background:#2b5bb0; color:#fff; }
 [data-block-type="paragraph"] .rb-ce ::-moz-selection{ background:#2b5bb0; color:#fff; }
 .rb-ce{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:11px 13px;min-height:46px;font-size:16px;line-height:1.55;outline:none}
