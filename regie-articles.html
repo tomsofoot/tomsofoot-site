@@ -1823,23 +1823,37 @@ try{ xtpRender(); }catch(e){}
       update=function(f){ var r=_upd(f); scheduleMeta(); return r; };
     }
 
-    /* ---------- anti-fantôme : repeint atomique du champ édité ----------
+    /* ---------- anti-fantôme : repeint RÉEL du champ édité ----------
        Sur un long paragraphe (article entier collé dans un seul bloc), fusionner des lignes avec
-       Suppr / Retour arrière fait RÉTRÉCIR le champ éditable. Chrome, qui gère la zone défilante sur
-       une couche GPU, peut alors garder une frame « fantôme » (texte superposé) dans la couche jusqu'à
-       la prochaine interaction : c'est exactement le bug « ça se superpose ». Le fond opaque (plus haut)
-       a supprimé les traits noirs, mais pas cette frame fantôme. Ici, à chaque frappe dans un champ
-       éditable, on force un repeint ATOMIQUE du champ concerné en le promouvant brièvement sur sa propre
-       couche (transform: translateZ(0)) puis en la retirant : le contenu est repeint proprement, sans
-       toucher ni au curseur ni au texte. Écouteur global en capture => valable même après re-rendu des blocs. */
+       Suppr / Retour arrière fait RÉTRÉCIR le champ éditable, et Chrome garde une frame « fantôme »
+       (texte superposé) jusqu'à la prochaine interaction : c'est le bug « ça se superpose ».
+       IMPORTANT : promouvoir une couche GPU (translateZ) NE SUFFIT PAS — Chrome recompose une texture
+       déjà en cache sans redessiner le contenu. Il faut forcer un VRAI repeint : on sort brièvement le
+       champ du flux (display:none), on force un recalcul de mise en page, puis on le remet. Le curseur
+       et la sélection sont sauvegardés/restaurés (les nœuds ne sont pas détruits), donc rien ne bouge
+       pour l'utilisateur, et aucun clignotement (les deux changements sont synchrones, l'état masqué
+       n'est jamais peint). On ne le déclenche que sur les frappes qui rétrécissent/restructurent le
+       champ (suppressions, nouveau paragraphe, collage) — jamais sur une frappe normale — via rAF
+       coalescé (au plus un repeint par frame, même quand on maintient Suppr). */
+    function tsfHardRepaint(ce){
+      if(!ce || !ce.isConnected) return;
+      var sel=window.getSelection(), saved=null;
+      try{ if(sel && sel.rangeCount){ var r=sel.getRangeAt(0); if(ce.contains(r.startContainer)) saved={sc:r.startContainer,so:r.startOffset,ec:r.endContainer,eo:r.endOffset}; } }catch(_){}
+      var active=(document.activeElement===ce);
+      var d=ce.style.display;
+      ce.style.display='none'; void ce.offsetHeight; ce.style.display=d;   // force un vrai relayout + repeint
+      if(active){ try{ ce.focus({preventScroll:true}); }catch(_){ try{ ce.focus(); }catch(__){} } }
+      if(saved){ try{ var r2=document.createRange(); r2.setStart(saved.sc,saved.so); r2.setEnd(saved.ec,saved.eo); sel.removeAllRanges(); sel.addRange(r2); }catch(_){} }
+    }
     document.addEventListener('input', function(e){
       var ce = e.target && e.target.closest && e.target.closest('.rb-ce');
       if(!ce) return;
-      ce.style.transform = 'translateZ(0)';                 // repeint immédiat, efface le fantôme
-      if(ce.__gbRAF) cancelAnimationFrame(ce.__gbRAF);
-      ce.__gbRAF = requestAnimationFrame(function(){          // on aplatit la couche une fois la frappe posée
-        ce.__gbRAF = requestAnimationFrame(function(){ ce.style.transform = ''; });
-      });
+      var it = e.inputType || '';
+      // uniquement les cas qui font apparaître le fantôme (rétrécissement / restructuration)
+      if(it.indexOf('delete')<0 && it.indexOf('Paragraph')<0 && it.indexOf('Paste')<0 && it.indexOf('Drop')<0 && it!=='') return;
+      if(ce.__hrScheduled) return;
+      ce.__hrScheduled = true;
+      requestAnimationFrame(function(){ ce.__hrScheduled=false; tsfHardRepaint(ce); });
     }, true);
 
     /* ---------- branchements sur chargement / boot ---------- */
