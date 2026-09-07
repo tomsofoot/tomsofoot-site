@@ -45,7 +45,13 @@ button{font:inherit;cursor:pointer}
 /* Layout */
 .rb-main{display:grid;grid-template-columns:55% 45% 0px;height:calc(100vh - 66px);transition:grid-template-columns .22s ease}
 body.media-open .rb-main{grid-template-columns:46% minmax(0,1fr) var(--media-w,300px)}
-.rb-editor{overflow-y:auto;padding:18px 18px 140px;border-right:1px solid var(--line);position:relative}
+/* background OPAQUE obligatoire : .rb-editor est une zone défilante (overflow-y:auto), donc Chrome
+   la promeut en couche composée (GPU). Sans fond opaque, la couche garde des zones transparentes non
+   réinitialisées : lors d'une édition dans un paragraphe (Suppr/Retour arrière qui fusionne des lignes),
+   le repeint partiel laissait apparaître le texte fantôme superposé + des « traits noirs ». Le fond
+   opaque (identique visuellement à celui du body) force le repeint complet et supprime définitivement
+   ce bug. NE PAS retirer ce fond. */
+.rb-editor{overflow-y:auto;padding:18px 18px 140px;border-right:1px solid var(--line);position:relative;background:var(--navy)}
 .rb-preview{display:flex;flex-direction:column;background:#050d1a}
 .rb-tabs{display:none}
 /* Editor sections */
@@ -1803,7 +1809,16 @@ try{ xtpRender(); }catch(e){}
     }
 
     /* ---------- rafraîchit compteur/SEO à chaque mise à jour de l'aperçu ---------- */
-    if(typeof update==='function'){ var _upd=update; update=function(f){ var r=_upd(f); try{ refreshMeta(); }catch(e){} return r; }; }
+    // refreshMeta est LOURD (parcourt tous les blocs + parse le HTML de chacun via stripHtml).
+    // On ne l'exécute JAMAIS de façon synchrone à chaque frappe : sur un article volumineux
+    // (long copier-coller), ce travail par touche saturait le pipeline de rendu et provoquait
+    // la superposition du texte / traits noirs (fantômes) lors d'un Retour arrière. On le
+    // débounce comme l'aperçu (update est déjà débouncé à 90 ms), ici 260 ms après la dernière frappe.
+    if(typeof update==='function'){
+      var _upd=update, _metaT=null;
+      function scheduleMeta(){ if(_metaT) clearTimeout(_metaT); _metaT=setTimeout(function(){ _metaT=null; try{ refreshMeta(); }catch(e){} }, 260); }
+      update=function(f){ var r=_upd(f); scheduleMeta(); return r; };
+    }
 
     /* ---------- branchements sur chargement / boot ---------- */
     if(typeof loadArticle==='function'){
