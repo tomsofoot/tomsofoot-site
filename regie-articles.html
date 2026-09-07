@@ -580,19 +580,24 @@ function sanitizeRich(html){
    paragraphes est restructuré par le navigateur (et par une extension de grammaire) en blocs
    <p>/<div> qui s'effondrent transitoirement et se chevauchent. Ces deux fonctions séparent le
    contenu en paragraphes pour créer des blocs distincts (au collage et au chargement). */
-// Depuis un HTML de presse-papiers BRUT : un paragraphe par bloc réel (<p>/<div>/<li>), sinon lignes vides (double <br>).
-function splitIntoParagraphs(rawHtml){
-  const html=String(rawHtml==null?'':rawHtml).replace(/<!--[\s\S]*?-->/g,'');
-  const d=document.createElement('div'); d.innerHTML=html;
-  const blocks=[...d.querySelectorAll('p,div,li')].filter(b=>!b.querySelector('p,div,li')); // uniquement les blocs internes
+// Depuis le presse-papiers : renvoie du TEXTE SEUL (aucun gras / couleur / surlignage / span
+// d'extension), un paragraphe par bloc. On n'injecte donc AUCUN balisage dans l'éditeur — c'est ce
+// balisage (spans de Grammarly/QuillBot, <mark>, styles) que le navigateur restructurait en blocs
+// <p>/<div> qui s'effondraient. Détection des paragraphes sur les vrais blocs HTML, sinon sur les
+// sauts de ligne du texte brut. Renvoie du texte NON échappé (l'échappement se fait à l'insertion).
+function splitIntoParagraphs(html, plain){
   let paras=[];
-  if(blocks.length){
-    blocks.forEach(b=>{ const t=sanitizeRich(b.innerHTML); if(t.replace(/<br\s*\/?>/gi,'').trim()) paras.push(t.trim()); });
+  if(html){
+    const d=document.createElement('div'); d.innerHTML=String(html).replace(/<!--[\s\S]*?-->/g,'');
+    const sel='p,div,li,h1,h2,h3,h4,h5,h6,blockquote,tr,section,article';
+    const blocks=[...d.querySelectorAll(sel)].filter(b=>!b.querySelector(sel)); // blocs internes uniquement
+    if(blocks.length){ blocks.forEach(b=>{ const t=(b.textContent||'').replace(/ /g,' ').replace(/[ \t]+/g,' ').trim(); if(t) paras.push(t); }); }
   }
   if(!paras.length){
-    paras = sanitizeRich(html).split(/(?:\s*<br\s*\/?>\s*){2,}/i).map(s=>s.trim()).filter(s=>s.replace(/<br\s*\/?>/gi,'').trim().length);
+    let txt = plain || (html ? (new DOMParser().parseFromString(String(html),'text/html').body.textContent||'') : '');
+    paras = String(txt).split(/\r?\n+/).map(s=>s.replace(/ /g,' ').replace(/[ \t]+/g,' ').trim()).filter(Boolean);
   }
-  return paras.length?paras:[sanitizeRich(html)];
+  return paras; // texte brut, un élément par paragraphe (vide si rien)
 }
 // Depuis un texte DÉJÀ stocké (séparateurs <br>) : sépare sur toute suite de <br> (paragraphes aplatis d'un ancien collage).
 function splitStoredParagraphs(text){
@@ -743,25 +748,25 @@ function bindEditors(){
     ['keyup','mouseup','pointerup'].forEach(ev=>ce.addEventListener(ev,saveRange));
     ce.onpaste=e=>{
       e.preventDefault();
-      const raw=(e.clipboardData||window.clipboardData).getData('text/html')||(e.clipboardData).getData('text/plain');
-      // CAUSE PROFONDE du bug de superposition : coller un article ENTIER dans UN seul champ éditable
-      // géant. Le navigateur (et une extension de grammaire type Grammarly/QuillBot) restructure alors
-      // ce texte multi-paragraphes en blocs <p>/<div> qui s'effondrent transitoirement (chevauchement).
-      // On découpe donc le collage en BLOCS Paragraphe distincts (un paragraphe = un petit contenteditable) :
-      // plus aucun enfant bloc à effondrer. Détection des paragraphes sur les vrais blocs (<p>/<div>) du
-      // presse-papiers, sinon sur les lignes vides (double <br>).
-      const paras=splitIntoParagraphs(raw);
+      const cd=e.clipboardData||window.clipboardData;
+      // COLLAGE = TEXTE SEUL. On ne garde que le texte (aucun gras / couleur / surlignage / span
+      // d'extension). Double bénéfice : (1) on n'injecte plus dans l'éditeur le balisage que le
+      // navigateur/les extensions restructuraient en blocs <p>/<div> (cause du chevauchement) ;
+      // (2) un article multi-paragraphes est découpé en BLOCS Paragraphe distincts — plus aucun
+      // champ géant ni enfant bloc à effondrer.
+      const paras=splitIntoParagraphs(cd.getData('text/html'), cd.getData('text/plain'));
+      if(!paras.length) return;
       const bi=indexOfId(+ce.dataset.blockId);
-      if(paras.length<=1 || bi<0){
-        // Un seul paragraphe (ou repli) : insertion en ligne, comportement inchangé.
-        restoreRange(); document.execCommand('insertHTML',false,paras[0]||sanitizeRich(raw)); syncBlockFromCe(ce); saveRange(); update(); autosave();
+      if(paras.length===1 || bi<0){
+        // Un seul paragraphe : insertion de TEXTE brut à l'emplacement du curseur.
+        restoreRange(); document.execCommand('insertText',false,paras[0]); syncBlockFromCe(ce); saveRange(); update(); autosave();
         return;
       }
-      // 1er paragraphe : inséré à l'emplacement du curseur dans le bloc courant.
-      restoreRange(); document.execCommand('insertHTML',false,paras[0]); syncBlockFromCe(ce);
-      // Paragraphes suivants : nouveaux blocs Paragraphe insérés à la suite.
+      // 1er paragraphe : texte brut inséré dans le bloc courant.
+      restoreRange(); document.execCommand('insertText',false,paras[0]); syncBlockFromCe(ce);
+      // Paragraphes suivants : nouveaux blocs Paragraphe (texte échappé, stocké tel quel).
       let at=bi+1, lastId=null;
-      for(let k=1;k<paras.length;k++){ const b={id:uid++,type:'paragraph',hidden:false,data:{text:paras[k]}}; state.blocks.splice(at++,0,b); lastId=b.id; }
+      for(let k=1;k<paras.length;k++){ const b={id:uid++,type:'paragraph',hidden:false,data:{text:esc(paras[k])}}; state.blocks.splice(at++,0,b); lastId=b.id; }
       renderBlocks(); update(); autosave();
       if(lastId!=null){ const li=indexOfId(lastId); if(li>=0) focusBlock(li); }   // curseur à la fin du dernier bloc collé
     };
