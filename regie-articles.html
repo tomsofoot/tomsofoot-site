@@ -575,6 +575,45 @@ function sanitizeRich(html){
   return out;
 }
 
+/* ---------- découpage en paragraphes (CAUSE PROFONDE du bug de superposition) ----------
+   Un bloc Paragraphe ne doit contenir qu'UN seul paragraphe. Sinon, un contenteditable multi-
+   paragraphes est restructuré par le navigateur (et par une extension de grammaire) en blocs
+   <p>/<div> qui s'effondrent transitoirement et se chevauchent. Ces deux fonctions séparent le
+   contenu en paragraphes pour créer des blocs distincts (au collage et au chargement). */
+// Depuis un HTML de presse-papiers BRUT : un paragraphe par bloc réel (<p>/<div>/<li>), sinon lignes vides (double <br>).
+function splitIntoParagraphs(rawHtml){
+  const html=String(rawHtml==null?'':rawHtml).replace(/<!--[\s\S]*?-->/g,'');
+  const d=document.createElement('div'); d.innerHTML=html;
+  const blocks=[...d.querySelectorAll('p,div,li')].filter(b=>!b.querySelector('p,div,li')); // uniquement les blocs internes
+  let paras=[];
+  if(blocks.length){
+    blocks.forEach(b=>{ const t=sanitizeRich(b.innerHTML); if(t.replace(/<br\s*\/?>/gi,'').trim()) paras.push(t.trim()); });
+  }
+  if(!paras.length){
+    paras = sanitizeRich(html).split(/(?:\s*<br\s*\/?>\s*){2,}/i).map(s=>s.trim()).filter(s=>s.replace(/<br\s*\/?>/gi,'').trim().length);
+  }
+  return paras.length?paras:[sanitizeRich(html)];
+}
+// Depuis un texte DÉJÀ stocké (séparateurs <br>) : sépare sur toute suite de <br> (paragraphes aplatis d'un ancien collage).
+function splitStoredParagraphs(text){
+  return String(text==null?'':text).split(/(?:\s*<br\s*\/?>\s*)+/i).map(s=>s.trim()).filter(s=>s.replace(/<br\s*\/?>/gi,'').trim().length);
+}
+// Passe de MIGRATION : remplace tout bloc Paragraphe multi-paragraphes par des blocs distincts.
+// Idempotente (un bloc à paragraphe unique n'a pas de <br> séparateur, donc n'est pas touché).
+function splitMultiParagraphBlocks(){
+  if(!state || !state.blocks) return false;
+  let changed=false; const out=[];
+  state.blocks.forEach(b=>{
+    if(b && b.type==='paragraph' && b.data){
+      const ps=splitStoredParagraphs(b.data.text);
+      if(ps.length>1){ changed=true; ps.forEach(t=>out.push({id:uid++,type:'paragraph',hidden:false,data:{text:t}})); return; }
+    }
+    out.push(b);
+  });
+  if(changed) state.blocks=out;
+  return changed;
+}
+
 /* ---------- block model ---------- */
 function defaultData(t){
   if(t==='spacer') return {size:'normal'};
@@ -702,7 +741,30 @@ function bindEditors(){
     ce.oninput=()=>{ syncBlockFromCe(ce); saveRange(); update(); autosave(); refreshFmtButtons(ce); };
     ce.onfocus=()=>{ const bi=indexOfId(+ce.dataset.blockId); if(bi>=0)state.sel=bi; saveRange(); };
     ['keyup','mouseup','pointerup'].forEach(ev=>ce.addEventListener(ev,saveRange));
-    ce.onpaste=e=>{ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData('text/html')||(e.clipboardData).getData('text/plain'); restoreRange(); document.execCommand('insertHTML',false,sanitizeRich(t)); syncBlockFromCe(ce); saveRange(); update(); autosave(); };
+    ce.onpaste=e=>{
+      e.preventDefault();
+      const raw=(e.clipboardData||window.clipboardData).getData('text/html')||(e.clipboardData).getData('text/plain');
+      // CAUSE PROFONDE du bug de superposition : coller un article ENTIER dans UN seul champ éditable
+      // géant. Le navigateur (et une extension de grammaire type Grammarly/QuillBot) restructure alors
+      // ce texte multi-paragraphes en blocs <p>/<div> qui s'effondrent transitoirement (chevauchement).
+      // On découpe donc le collage en BLOCS Paragraphe distincts (un paragraphe = un petit contenteditable) :
+      // plus aucun enfant bloc à effondrer. Détection des paragraphes sur les vrais blocs (<p>/<div>) du
+      // presse-papiers, sinon sur les lignes vides (double <br>).
+      const paras=splitIntoParagraphs(raw);
+      const bi=indexOfId(+ce.dataset.blockId);
+      if(paras.length<=1 || bi<0){
+        // Un seul paragraphe (ou repli) : insertion en ligne, comportement inchangé.
+        restoreRange(); document.execCommand('insertHTML',false,paras[0]||sanitizeRich(raw)); syncBlockFromCe(ce); saveRange(); update(); autosave();
+        return;
+      }
+      // 1er paragraphe : inséré à l'emplacement du curseur dans le bloc courant.
+      restoreRange(); document.execCommand('insertHTML',false,paras[0]); syncBlockFromCe(ce);
+      // Paragraphes suivants : nouveaux blocs Paragraphe insérés à la suite.
+      let at=bi+1, lastId=null;
+      for(let k=1;k<paras.length;k++){ const b={id:uid++,type:'paragraph',hidden:false,data:{text:paras[k]}}; state.blocks.splice(at++,0,b); lastId=b.id; }
+      renderBlocks(); update(); autosave();
+      if(lastId!=null){ const li=indexOfId(lastId); if(li>=0) focusBlock(li); }   // curseur à la fin du dernier bloc collé
+    };
     ce.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&!e.altKey){ const k=e.key.toLowerCase(); if(k==='b'){e.preventDefault();applyInlineFormat('bold');return;} if(k==='i'){e.preventDefault();applyInlineFormat('italic');return;} } });
     const blk=state.blocks[indexOfId(+ce.dataset.blockId)];
     if(blk && blk.type==='paragraph') ce.addEventListener('keydown',e=>paragraphKeys(e,ce));
@@ -1823,38 +1885,12 @@ try{ xtpRender(); }catch(e){}
       update=function(f){ var r=_upd(f); scheduleMeta(); return r; };
     }
 
-    /* ---------- anti-fantôme : repeint RÉEL du champ édité ----------
-       Sur un long paragraphe (article entier collé dans un seul bloc), fusionner des lignes avec
-       Suppr / Retour arrière fait RÉTRÉCIR le champ éditable, et Chrome garde une frame « fantôme »
-       (texte superposé) jusqu'à la prochaine interaction : c'est le bug « ça se superpose ».
-       IMPORTANT : promouvoir une couche GPU (translateZ) NE SUFFIT PAS — Chrome recompose une texture
-       déjà en cache sans redessiner le contenu. Il faut forcer un VRAI repeint : on sort brièvement le
-       champ du flux (display:none), on force un recalcul de mise en page, puis on le remet. Le curseur
-       et la sélection sont sauvegardés/restaurés (les nœuds ne sont pas détruits), donc rien ne bouge
-       pour l'utilisateur, et aucun clignotement (les deux changements sont synchrones, l'état masqué
-       n'est jamais peint). On ne le déclenche que sur les frappes qui rétrécissent/restructurent le
-       champ (suppressions, nouveau paragraphe, collage) — jamais sur une frappe normale — via rAF
-       coalescé (au plus un repeint par frame, même quand on maintient Suppr). */
-    function tsfHardRepaint(ce){
-      if(!ce || !ce.isConnected) return;
-      var sel=window.getSelection(), saved=null;
-      try{ if(sel && sel.rangeCount){ var r=sel.getRangeAt(0); if(ce.contains(r.startContainer)) saved={sc:r.startContainer,so:r.startOffset,ec:r.endContainer,eo:r.endOffset}; } }catch(_){}
-      var active=(document.activeElement===ce);
-      var d=ce.style.display;
-      ce.style.display='none'; void ce.offsetHeight; ce.style.display=d;   // force un vrai relayout + repeint
-      if(active){ try{ ce.focus({preventScroll:true}); }catch(_){ try{ ce.focus(); }catch(__){} } }
-      if(saved){ try{ var r2=document.createRange(); r2.setStart(saved.sc,saved.so); r2.setEnd(saved.ec,saved.eo); sel.removeAllRanges(); sel.addRange(r2); }catch(_){} }
-    }
-    document.addEventListener('input', function(e){
-      var ce = e.target && e.target.closest && e.target.closest('.rb-ce');
-      if(!ce) return;
-      var it = e.inputType || '';
-      // uniquement les cas qui font apparaître le fantôme (rétrécissement / restructuration)
-      if(it.indexOf('delete')<0 && it.indexOf('Paragraph')<0 && it.indexOf('Paste')<0 && it.indexOf('Drop')<0 && it!=='') return;
-      if(ce.__hrScheduled) return;
-      ce.__hrScheduled = true;
-      requestAnimationFrame(function(){ ce.__hrScheduled=false; tsfHardRepaint(ce); });
-    }, true);
+    /* ---------- ancien pansement RETIRÉ ----------
+       Les tentatives précédentes forçaient un repeint (fond opaque, bascule translateZ, bascule display)
+       de la structure déjà cassée. Ce n'était pas la cause. La cause est traitée à la racine : un bloc
+       Paragraphe ne contient plus qu'UN paragraphe (voir splitIntoParagraphs / splitMultiParagraphBlocks),
+       donc plus aucun enfant bloc <p>/<div> à effondrer. Le repeint forcé par bascule display est donc
+       supprimé (aucun « rafraîchissement permanent »). */
 
     /* ---------- branchements sur chargement / boot ---------- */
     if(typeof loadArticle==='function'){
@@ -1862,6 +1898,9 @@ try{ xtpRender(); }catch(e){}
       loadArticle=function(k){
         var r=_load(k);
         Promise.resolve(r).then(function(){
+          // MIGRATION : un article existant stocké en un seul bloc multi-paragraphes est redécoupé
+          // en blocs distincts (idempotent : sans effet sur un bloc déjà à paragraphe unique).
+          try{ if(splitMultiParagraphBlocks()){ renderBlocks(); update(); } }catch(e){}
           readingTouched = !!(state.header && state.header.reading);
           try{ applySlugLock(); refreshMeta(); }catch(e){}
           if(currentUuid && sb){ sb.from('articles').select('updated_at').eq('id',currentUuid).limit(1).then(function(res){ var u=res&&res.data&&res.data[0]&&res.data[0].updated_at; if(u) loadedStamp=u; }).catch(function(){}); }
@@ -1871,7 +1910,7 @@ try{ xtpRender(); }catch(e){}
     }
     if(typeof boot==='function'){
       var _boot=boot;
-      boot=function(){ var r=_boot(); Promise.resolve(r).then(function(){ try{ loadPickList(); applySlugLock(); refreshMeta(); }catch(e){} }); return r; };
+      boot=function(){ var r=_boot(); Promise.resolve(r).then(function(){ try{ if(splitMultiParagraphBlocks()){ renderBlocks(); update(); } }catch(e){} try{ loadPickList(); applySlugLock(); refreshMeta(); }catch(e){} }); return r; };
     }
     // première mise à jour des indicateurs
     try{ refreshMeta(); }catch(e){}
