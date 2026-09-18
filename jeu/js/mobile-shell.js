@@ -89,46 +89,57 @@
     input.setAttribute("autocapitalize", "words");
   }
 
-  // ---------- Historique compact ----------
+  // ---------- Une seule proposition à l'écran ----------
   // game.js reconstruit le plateau à chaque proposition (la plus récente en premier).
-  // On garde la dernière en grand ; les précédentes passent sur une ligne compacte
-  // (un toucher la déplie). Numérotation « Essai N ». Purement visuel.
+  // Sur mobile on n'affiche que la dernière : la précédente s'efface, la nouvelle apparaît.
+  // Les essais précédents restent consultables via un bouton (fermé par défaut). Purement visuel.
   var boardArea = $("#td-board-area", root);
-  var expanded = {};
-  var MINI_HEAD = ["Joueur", "Conf.", "Club", "Ligue", "Nat.", "Poste", "Âge", "N°"];
+  var historyOpen = false;
+  function plural(k) { return k + " essai" + (k > 1 ? "s" : "") + " précédent" + (k > 1 ? "s" : ""); }
   function decorate() {
     if (!boardArea) return;
     var rows = boardArea.querySelectorAll(".guess-row");
-    var n = rows.length, firstMini = null;
+    var n = rows.length;
+    if (!n) historyOpen = false;
     for (var i = 0; i < n; i++) {
-      var r = rows[i], id = r.getAttribute("data-id") || "";
-      var first = r.querySelector(".flip-cell");
+      var first = rows[i].querySelector(".flip-cell");
       if (first) first.setAttribute("data-n", String(n - i));
-      var mini = i > 0 && !expanded[id];
-      r.classList.toggle("jgm-mini", mini);
-      r.classList.toggle("jgm-open", i > 0 && !!expanded[id]);
-      if (i > 0 && id) r.setAttribute("title", mini ? "Toucher pour déplier" : "Toucher pour replier");
-      if (mini && !firstMini) firstMini = r;
+      rows[i].classList.toggle("jgm-old", i > 0);
     }
-    var head = boardArea.querySelector(".jgm-minihead");
-    if (!firstMini) { if (head) head.remove(); return; }
-    if (!head) {
-      head = el("div", "jgm-minihead", MINI_HEAD.map(function (h) { return "<span>" + h + "</span>"; }).join(""));
-      head.setAttribute("aria-hidden", "true");
+    html.classList.toggle("jgm-history-open", historyOpen);
+    var btn = boardArea.querySelector(".jgm-history");
+    var older = n - 1;
+    if (older < 1 || rows[0].classList.contains("is-pending") && rows[1] && rows[1].classList.contains("is-pending")) { if (btn) btn.remove(); return; }
+    if (!btn) {
+      btn = el("button", "jgm-history");
+      btn.type = "button";
+      btn.addEventListener("click", function () { historyOpen = !historyOpen; decorate(); });
     }
-    if (head.nextSibling !== firstMini) firstMini.parentNode.insertBefore(head, firstMini);
+    btn.setAttribute("aria-expanded", String(historyOpen));
+    btn.innerHTML = (historyOpen ? "Masquer les " + plural(older) : "Voir les " + plural(older)) + ' <i aria-hidden="true">' + (historyOpen ? "▴" : "▾") + "</i>";
+    if (btn.previousSibling !== rows[0]) rows[0].parentNode.insertBefore(btn, rows[0].nextSibling);
+  }
+  // Transition : l'ancienne carte s'efface pendant que la nouvelle (en attente) apparaît.
+  var lastTop = null;
+  function crossfade() {
+    if (!boardArea) return;
+    var rows = boardArea.querySelectorAll(".guess-row");
+    var fresh = rows[0];
+    if (fresh && fresh.classList.contains("is-pending") && lastTop && !global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      var boardEl = fresh.parentNode;
+      var ghost = lastTop.cloneNode(true);
+      ghost.classList.remove("jgm-old");
+      ghost.classList.remove("revealing");
+      ghost.classList.add("jgm-ghost", "revealed");
+      ghost.style.top = fresh.offsetTop + "px";
+      boardEl.appendChild(ghost);
+      setTimeout(function () { if (ghost.parentNode) ghost.parentNode.removeChild(ghost); }, 420);
+    }
+    lastTop = fresh && !fresh.classList.contains("is-pending") ? fresh.cloneNode(true) : lastTop;
+    if (!fresh) lastTop = null;
   }
   if (boardArea) {
-    boardArea.addEventListener("click", function (e) {
-      var r = e.target.closest && e.target.closest(".guess-row");
-      if (!r || r.classList.contains("is-pending")) return;
-      var rows = boardArea.querySelectorAll(".guess-row");
-      if (r === rows[0]) return;                       // la dernière proposition reste ouverte
-      var id = r.getAttribute("data-id"); if (!id) return;
-      expanded[id] = !expanded[id];
-      decorate();
-    });
-    if (global.MutationObserver) new MutationObserver(decorate).observe(boardArea, { childList: true });
+    if (global.MutationObserver) new MutationObserver(function () { crossfade(); decorate(); }).observe(boardArea, { childList: true });
     decorate();
   }
 

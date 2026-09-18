@@ -204,7 +204,7 @@ html[data-jg-view="mobile"] .jgm-dock__in { max-width: var(--jgm-w); margin-inli
 
 /* Joueurs déjà testés : une ligne de pastilles défilante */
 html[data-jg-view="mobile"] .jgm-dock .used-list {
-  margin: 0; flex-direction: row; flex-wrap: nowrap; gap: 6px; align-items: center;
+  margin: 0; flex-direction: row; flex-wrap: nowrap; justify-content: flex-start; gap: 6px; align-items: center;
   overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch;
   mask-image: linear-gradient(90deg, #000 88%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
 }
@@ -274,10 +274,6 @@ html[data-jg-view="mobile"] .test-mode { top: auto; bottom: calc(var(--jgm-dock)
    V2 — lisibilité : historique compact, rouge adouci, barre du bas pleine
    ===================================================================== */
 
-/* « Déjà testés » : doublon des cartes sur mobile (les suggestions marquent déjà
-   « joueur déjà utilisé ») → masqué pour libérer la zone du pouce. */
-html[data-jg-view="mobile"] .jgm-dock .used-list { display: none !important; }
-
 /* Rouge adouci : les cases fausses s'effacent, les vertes ressortent. */
 html[data-jg-view="mobile"] .flip-back.wrong {
   border-color: rgba(240,73,111,.30);
@@ -299,37 +295,22 @@ html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(1) .player-cell { 
 html[data-jg-view="mobile"] .board-head + .guess-row { border-color: rgba(160,140,255,.7); box-shadow: 0 16px 40px rgba(0,0,18,.45), 0 0 0 1px rgba(111,85,255,.18), 0 0 30px rgba(111,85,255,.16); }
 html[data-jg-view="mobile"] .guess-row.jgm-open { cursor: pointer; }
 
-/* ---------- Historique compact : une ligne par ancienne proposition ---------- */
-html[data-jg-view="mobile"] .jgm-minihead, html[data-jg-view="mobile"] .guess-row.jgm-mini {
-  display: grid; grid-template-columns: minmax(0, 2.3fr) repeat(7, minmax(0, 1fr)); gap: 3px;
+/* ---------- Une seule proposition à l'écran ---------- */
+html[data-jg-view="mobile"] .guess-row.jgm-old { display: none; }
+html[data-jg-view="mobile"].jgm-history-open .guess-row.jgm-old { display: grid; opacity: .82; }
+html[data-jg-view="mobile"] .board { position: relative; }
+html[data-jg-view="mobile"] .jgm-history {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  margin: 2px 0 12px; padding: 11px 14px; border-radius: 12px; cursor: pointer;
+  border: 1px solid rgba(146,139,220,.3); background: rgba(16,14,48,.7); color: #c4c6dd;
+  font: 800 11px Inter, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase;
 }
-html[data-jg-view="mobile"] .jgm-minihead { margin: 16px 0 6px; padding: 0 8px; }
-html[data-jg-view="mobile"] .jgm-minihead span {
-  font-size: 7.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #8d90b3;
-  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+html[data-jg-view="mobile"] .jgm-history i { font-style: normal; color: #a99bff; }
+/* Nouvelle carte : apparaît ; ancienne (copie) : s'efface par-dessus */
+html[data-jg-view="mobile"] .guess-row.is-pending:not(.jgm-old) { animation: jgmIn .38s var(--jg-ease) both; }
+html[data-jg-view="mobile"] .guess-row.jgm-ghost {
+  position: absolute; left: 0; right: 0; z-index: 4; margin: 0; pointer-events: none;
+  animation: jgmOut .38s ease-in both;
 }
-html[data-jg-view="mobile"] .jgm-minihead span:first-child { text-align: left; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini {
-  margin: 0 0 5px; padding: 5px 8px; border-radius: 11px; cursor: pointer;
-  background: rgba(16,14,48,.78); border-color: rgba(124,102,255,.2); box-shadow: none;
-}
-html[data-jg-view="mobile"] .guess-row.jgm-mini > .flip-cell { height: 30px; grid-column: auto; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini > .flip-cell::after { display: none; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .flip-face { padding: 0 2px; border-radius: 7px; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .flip-back::before { display: none; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .flip-front .flip-logo { width: 16px; height: 16px; border-radius: 4px; }
-/* Nom */
-html[data-jg-view="mobile"] .guess-row.jgm-mini > .flip-cell:nth-child(1) .player-cell { padding: 0 4px 0 8px; border-left-width: 2px; background: transparent; border-color: transparent; box-shadow: none; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .player-cell b { font-size: 12px; }
-/* Cases texte : seulement la couleur + ✓ / × au centre (lisible sans couleurs) */
-html[data-jg-view="mobile"] .guess-row.jgm-mini .flip-back.result:not(.num) > span { display: none; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .flip-back.result:not(.num)::after {
-  position: static; transform: none; display: grid; width: 15px; height: 15px; font-size: 9px; border-width: 1.5px; background: rgba(0,0,0,.25);
-}
-/* Âge / N° : on garde le chiffre et la flèche */
-html[data-jg-view="mobile"] .guess-row.jgm-mini .flip-back.num::after { display: none; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .fig { font-size: 13px; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .arw { width: 10px; height: 10px; margin-left: 1px; vertical-align: -1px; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .no-num { display: none; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .pending-cell { border-radius: 7px; }
-html[data-jg-view="mobile"] .guess-row.jgm-mini .pending-cell::after { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; }
+@keyframes jgmIn { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes jgmOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-14px) scale(.97); } }
