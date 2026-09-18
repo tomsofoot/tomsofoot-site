@@ -1,0 +1,371 @@
+@charset "UTF-8";
+/* =====================================================================
+   JOGADLE — VUE MOBILE (9:16, pensée pour le pouce)
+   Toutes les règles sont préfixées par html[data-jg-view="mobile"] :
+   sans cet attribut (ordinateur), ce fichier n'a STRICTEMENT aucun effet.
+   Le moteur (game.js) et ses règles ne sont pas modifiés.
+   ===================================================================== */
+
+html[data-jg-view="mobile"] {
+  --jgm-top: 108px; --jgm-dock: 150px; --jgm-vvh: 100dvh;
+  --jgm-w: 560px;
+  --jgm-panel: linear-gradient(160deg, rgba(30,26,80,.78), rgba(10,10,34,.84));
+  --jgm-line: rgba(124,102,255,.32);
+  scroll-padding-top: calc(var(--jgm-top) + 10px);
+  -webkit-text-size-adjust: 100%;
+}
+html[data-jg-view="mobile"] body { background: #0b0a24; overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+
+/* ---------- Mise en page générale ---------- */
+html[data-jg-view="mobile"] .jogadle-app-layout { display: block; }
+html[data-jg-view="mobile"] .jogadle-app-layout > .jogadle-game { height: auto; overflow: visible; }
+html[data-jg-view="mobile"] .jogadle {
+  min-height: 100dvh; overflow: visible;
+  padding: calc(var(--jgm-top) + 14px) 12px calc(var(--jgm-dock) + 20px);
+}
+/* Décor fixe (ne s'étire plus avec un plateau très long) + voile pour la lisibilité */
+html[data-jg-view="mobile"] .jogadle::before, html[data-jg-view="mobile"] .jogadle::after, html[data-jg-view="mobile"] .jogadle-stage { position: fixed; }
+html[data-jg-view="mobile"] .jogadle::before { background-position: 58% 30%; filter: saturate(.9) brightness(.8); }
+html[data-jg-view="mobile"] .jogadle-stage { opacity: 1; background: linear-gradient(180deg, rgba(10,8,34,.55), rgba(10,8,34,.25) 40%, rgba(8,6,26,.7)); }
+html[data-jg-view="mobile"] .td-hero, html[data-jg-view="mobile"] .game-shell { width: 100%; max-width: var(--jgm-w); margin-inline: auto; }
+
+/* ---------- BARRE DU HAUT ---------- */
+html[data-jg-view="mobile"] .jgm-top {
+  position: fixed; z-index: 900; top: 0; left: 0; right: 0;
+  padding: calc(env(safe-area-inset-top) + 8px) 12px 10px;
+  background: linear-gradient(180deg, rgba(16,13,48,.97), rgba(14,11,42,.9));
+  -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--jgm-line);
+  box-shadow: 0 10px 30px rgba(0,0,20,.35);
+  will-change: transform;
+}
+html[data-jg-view="mobile"] .jgm-top__row, html[data-jg-view="mobile"] .jgm-stats { max-width: var(--jgm-w); margin-inline: auto; }
+html[data-jg-view="mobile"] .jgm-top__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 38px; }
+html[data-jg-view="mobile"] .jgm-brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+html[data-jg-view="mobile"] .jgm-brand > b { font-family: "Archivo Black", Inter, sans-serif; font-weight: 400; font-size: 21px; letter-spacing: -.04em; color: #fff; line-height: 1; }
+html[data-jg-view="mobile"] .jgm-brand > b i { font-style: normal; color: var(--jg-red); }
+html[data-jg-view="mobile"] .jgm-brand .dm-edition { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #a9abc9; white-space: nowrap; }
+html[data-jg-view="mobile"] .jgm-brand .dm-edition strong { color: #fff; }
+
+html[data-jg-view="mobile"] .jgm-tools { display: flex; align-items: center; gap: 7px; }
+html[data-jg-view="mobile"] .jgm-tools .top-actions { margin: 0; gap: 7px; }
+html[data-jg-view="mobile"] .jgm-tools .icon-button { width: 36px; height: 36px; font-size: 14px; display: grid; place-items: center; padding: 0; }
+html[data-jg-view="mobile"] .jgm-tools .icon-button svg { width: 16px; height: 16px; }
+/* « Règlement & points » réduit à une pastille icône (le libellé reste lu par les lecteurs d'écran) */
+html[data-jg-view="mobile"] .jgm-tools .jg-rules-btn {
+  width: 36px; height: 36px; min-height: 0; margin: 0; padding: 0; border-radius: 50%;
+  display: grid; place-items: center; font-size: 0; letter-spacing: 0;
+  border: 1px solid rgba(176,170,228,.38); background: linear-gradient(145deg, rgba(28,27,69,.72), rgba(9,9,31,.7)); box-shadow: none;
+}
+html[data-jg-view="mobile"] .jgm-tools .jg-rules-btn .jg-rules-btn__warn { font-size: 14px; }
+
+html[data-jg-view="mobile"] .jgm-stats { display: flex; gap: 6px; margin-top: 8px; }
+html[data-jg-view="mobile"] .jgm-stat {
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px;
+  padding: 6px 9px 7px; border-radius: 11px;
+  border: 1px solid rgba(146,139,220,.24);
+  background: linear-gradient(180deg, rgba(40,34,100,.5), rgba(14,13,44,.55));
+}
+html[data-jg-view="mobile"] .jgm-stat > span, html[data-jg-view="mobile"] .jgm-stat--points #jg-points-live {
+  font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #9fa3c6; white-space: nowrap;
+}
+/* Essais */
+html[data-jg-view="mobile"] .jgm-stat .attempt-count {
+  width: auto; height: auto; margin: 0; display: block; border: 0; border-radius: 0; background: none; box-shadow: none;
+  font-family: "Archivo Black", Inter, sans-serif; font-weight: 400; font-size: 18px; line-height: 1; color: #fff; text-align: left;
+}
+/* Points en jeu (le libellé et la valeur viennent de game.js) */
+html[data-jg-view="mobile"] .jgm-stat--points:has(#jg-points-live[style*="none"]) { display: none; }
+html[data-jg-view="mobile"] .jgm-stat--points #jg-points-live {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: auto; margin: 0; padding: 0;
+  border: 0; border-radius: 0; background: none;
+}
+html[data-jg-view="mobile"] .jgm-stat--points #jg-points-live strong { font-family: "Archivo Black", Inter, sans-serif; font-weight: 400; font-size: 18px; line-height: 1; letter-spacing: -.01em; color: #fff; text-transform: none; }
+html[data-jg-view="mobile"] .jgm-stat--points #jg-points-live.is-perfect strong { color: #35e59a; }
+html[data-jg-view="mobile"] .jgm-stat--points #jg-points-live .jg-points-penalty { display: none; }
+/* Compte à rebours HH:MM:SS */
+html[data-jg-view="mobile"] .jgm-stat--clock { flex-grow: 1.35; }
+html[data-jg-view="mobile"] .jgm-stat--clock .td-countdown__tiles { display: flex; align-items: baseline; gap: 1px; }
+html[data-jg-view="mobile"] .jgm-stat--clock .cd-tile { min-width: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+html[data-jg-view="mobile"] .jgm-stat--clock .cd-tile strong { font-size: 18px; line-height: 1; text-shadow: none; color: #8fd0ff; }
+html[data-jg-view="mobile"] .jgm-stat--clock .cd-tile small { display: none; }
+html[data-jg-view="mobile"] .jgm-stat--clock .cd-colon { margin: 0; font-size: 15px; line-height: 1; color: #5a7fd6; }
+
+/* ---------- INTRO (visible tant qu'aucune proposition) ---------- */
+html[data-jg-view="mobile"] .daily-meta, html[data-jg-view="mobile"] .progress-row { display: none; }
+html[data-jg-view="mobile"] .td-hero { text-align: center; }
+html[data-jg-view="mobile"] .td-eyebrow { font-size: 10px; gap: 10px; }
+html[data-jg-view="mobile"] .td-eyebrow i { width: 18px; }
+html[data-jg-view="mobile"] .td-hero h1 { margin-top: 14px; }
+html[data-jg-view="mobile"] .td-hero h1 > span { font-size: clamp(28px, 8.4vw, 40px); }
+html[data-jg-view="mobile"] .td-hero h1 > em { margin-top: 6px; font-size: clamp(17px, 5.4vw, 26px); }
+html[data-jg-view="mobile"] .td-hero > p { margin-top: 14px; font-size: 13px; line-height: 1.55; max-width: 34em; }
+html[data-jg-view="mobile"] .hero-chips { gap: 8px; margin-top: 14px; }
+html[data-jg-view="mobile"] .found-today, html[data-jg-view="mobile"] .effectifs-maj { gap: 8px; padding: 7px 13px; font-size: 12px; }
+html[data-jg-view="mobile"] .found-today svg, html[data-jg-view="mobile"] .effectifs-maj svg { width: 15px; height: 15px; }
+html[data-jg-view="mobile"] .jogadle.has-guesses .td-hero { display: none; }
+html[data-jg-view="mobile"] .jogadle:not(.has-guesses) .game-shell { margin-top: 26px; }
+
+/* ---------- CONTENU : carte de fin en tête, puis plateau ---------- */
+html[data-jg-view="mobile"] .game-shell { display: flex; flex-direction: column; margin-top: 0; }
+html[data-jg-view="mobile"] #td-end { order: -1; margin: 0; }
+html[data-jg-view="mobile"] #td-end:not(:empty) { margin-bottom: 16px; }
+html[data-jg-view="mobile"] #td-board-area { margin-top: 0; }
+html[data-jg-view="mobile"] #td-board-area:empty::before {
+  content: "Tape le nom d'un joueur dans la barre en bas pour lancer ta première proposition.";
+  display: block; padding: 22px 20px; border-radius: 16px; text-align: center;
+  color: #c4c6dd; font-size: 13.5px; font-weight: 600; line-height: 1.5;
+  border: 1px dashed rgba(146,139,220,.4); background: rgba(12,11,40,.55);
+}
+html[data-jg-view="mobile"] #td-board-area:empty::after {
+  content: "↓"; display: block; margin-top: 10px; text-align: center; color: var(--jg-red);
+  font-family: "Archivo Black", Inter, sans-serif; font-size: 22px; animation: jgmNudge 1.6s ease-in-out infinite;
+}
+@keyframes jgmNudge { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(6px); opacity: 1; } }
+
+/* ---------- PLATEAU : une carte par proposition ---------- */
+html[data-jg-view="mobile"] .board-wrap { overflow: visible; margin: 0; padding: 0; }
+html[data-jg-view="mobile"] .board { min-width: 0; }
+html[data-jg-view="mobile"] .board-head { display: none; }
+html[data-jg-view="mobile"] .guess-row {
+  grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;
+  margin: 0 0 12px; padding: 8px; border-radius: 16px;
+  background: var(--jgm-panel); border: 1px solid var(--jgm-line);
+  box-shadow: 0 14px 34px rgba(0,0,18,.4);
+}
+html[data-jg-view="mobile"] .board-head + .guess-row { border-color: rgba(150,130,255,.55); box-shadow: 0 16px 40px rgba(0,0,18,.45), 0 0 0 1px rgba(111,85,255,.12); }
+html[data-jg-view="mobile"] .flip-cell { height: 62px; }
+html[data-jg-view="mobile"] .flip-cell::before { display: none; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(1) { grid-column: 1 / -1; height: 40px; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(6) { grid-column: span 2; }
+
+/* Libellé de chaque case (remplace l'en-tête de colonnes) */
+html[data-jg-view="mobile"] .guess-row > .flip-cell::after {
+  position: absolute; z-index: 3; top: 5px; left: 7px; right: 20px; pointer-events: none;
+  font-size: 8.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; line-height: 1;
+  color: rgba(255,255,255,.72); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(3)::after { content: "Club"; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(4)::after { content: "Ligue"; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(5)::after { content: "Nation"; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(6)::after { content: "Poste"; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(7)::after { content: "Âge"; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(8)::after { content: "N°"; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(2)::after { content: "Conf."; }
+
+html[data-jg-view="mobile"] .flip-face { padding: 16px 6px 6px; border-radius: 10px; }
+html[data-jg-view="mobile"] .flip-front .flip-logo { width: 26px; height: 26px; border-radius: 7px; }
+html[data-jg-view="mobile"] .flip-back { font-size: 11.5px; line-height: 1.15; font-weight: 800; letter-spacing: -.01em; }
+html[data-jg-view="mobile"] .flip-back::before { border-radius: 8px; }
+html[data-jg-view="mobile"] .flip-back > span {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto;
+}
+html[data-jg-view="mobile"] .flip-back.num > span { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; }
+html[data-jg-view="mobile"] .fig { font-size: 20px; }
+html[data-jg-view="mobile"] .arw { width: 16px; height: 16px; margin-left: 3px; vertical-align: -2px; }
+html[data-jg-view="mobile"] .result.num .no-num { font-size: 8px; margin-top: 2px; flex-basis: 100%; }
+/* Pastille ✓ / × : petite, en haut à droite */
+html[data-jg-view="mobile"] .flip-back.result::after {
+  left: auto; right: 5px; top: 5px; bottom: auto; transform: none;
+  width: 14px; height: 14px; font-size: 9px; border-width: 1.5px; box-shadow: none;
+}
+/* Case « joueur » : bandeau nom */
+html[data-jg-view="mobile"] .player-cell { padding: 0 12px; justify-content: flex-start; }
+html[data-jg-view="mobile"] .player-cell b { font-family: "Archivo Black", Inter, sans-serif; font-weight: 400; font-size: 16px; letter-spacing: -.01em; text-transform: uppercase; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(1) .flip-front { justify-content: flex-start; padding: 0 12px; }
+html[data-jg-view="mobile"] .guess-row.is-pending .pending-cell { border-radius: 10px; }
+
+/* ---------- Légende + « Révéler la réponse » (bas du contenu) ---------- */
+html[data-jg-view="mobile"] .legend { width: 100%; margin-top: 6px; padding: 10px 12px; gap: 8px 14px; border-radius: 14px; font-size: 11px; }
+html[data-jg-view="mobile"] .legend b { font-size: 13px; }
+html[data-jg-view="mobile"] .jg-reveal-btn { width: 100%; margin-top: 12px; padding: 13px 16px; border-radius: 12px; }
+
+/* ---------- CARTE DE FIN ---------- */
+html[data-jg-view="mobile"] .end-card { width: 100%; padding: 22px 18px; border-radius: 20px; }
+html[data-jg-view="mobile"] .end-card.jr { max-width: none; padding: 24px 18px 20px; border-radius: 22px; }
+html[data-jg-view="mobile"] .jr .jr-title { font-size: 23px; }
+html[data-jg-view="mobile"] .jr .jr-ring, html[data-jg-view="mobile"] .jr .jr-ring svg { width: 156px; height: 156px; }
+html[data-jg-view="mobile"] .jr .jr-ovr { font-size: 46px; }
+html[data-jg-view="mobile"] .jr .jr-pill { min-width: 0; width: 100%; min-height: 50px; }
+html[data-jg-view="mobile"] .jr .jr-links a { padding: 8px 4px; }
+
+/* ---------- BARRE DU BAS (zone du pouce) ---------- */
+html[data-jg-view="mobile"] .jgm-dock {
+  position: fixed; z-index: 900; left: 0; right: 0; bottom: 0;
+  padding: 10px 12px calc(env(safe-area-inset-bottom) + 10px);
+  background: linear-gradient(180deg, rgba(20,16,56,.98), rgba(10,9,32,.99));
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--jgm-line);
+  box-shadow: 0 -12px 30px rgba(0,0,20,.45);
+  will-change: transform;
+}
+html[data-jg-view="mobile"] .jgm-dock__in { max-width: var(--jgm-w); margin-inline: auto; display: flex; flex-direction: column; gap: 8px; }
+
+/* Joueurs déjà testés : une ligne de pastilles défilante */
+html[data-jg-view="mobile"] .jgm-dock .used-list {
+  margin: 0; flex-direction: row; flex-wrap: nowrap; justify-content: flex-start; gap: 6px; align-items: center;
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(90deg, #000 88%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+}
+html[data-jg-view="mobile"] .jgm-dock .used-list::-webkit-scrollbar { display: none; }
+html[data-jg-view="mobile"] .jgm-dock .used-list::before {
+  content: "Déjà testés"; flex: 0 0 auto; font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase;
+  color: #ffb3c1; padding: 5px 9px; border-radius: 999px; border: 1px solid rgba(240,73,111,.5); background: rgba(60,14,30,.6);
+}
+html[data-jg-view="mobile"] .jgm-dock .used-item { flex: 0 0 auto; gap: 0; padding: 5px 11px; border-radius: 999px; }
+html[data-jg-view="mobile"] .jgm-dock .used-item__tag, html[data-jg-view="mobile"] .jgm-dock .used-item__first { display: none; }
+html[data-jg-view="mobile"] .jgm-dock .used-item__name { font-size: 12.5px; white-space: nowrap; }
+
+/* Actions : Classement à gauche, Indice à droite */
+html[data-jg-view="mobile"] .jgm-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+html[data-jg-view="mobile"] .jgm-actions .jg-open-btn {
+  position: static; transform: none; left: auto; right: auto; bottom: auto;
+  min-height: 42px; padding: 0 16px; font-size: 12px; box-shadow: 0 8px 22px rgba(40,26,120,.45), inset 0 1px rgba(255,255,255,.25);
+}
+html[data-jg-view="mobile"] .jgm-actions .hint-fab { position: relative; right: auto; bottom: auto; margin-left: auto; }
+html[data-jg-view="mobile"] .jgm-actions .hint-fab__btn { min-height: 42px; padding: 0 16px; font-size: 12px; gap: 8px; }
+html[data-jg-view="mobile"] .jgm-actions .hint-fab__count { font-size: 11px; min-width: 34px; padding: 2px 7px; }
+html[data-jg-view="mobile"] .jgm-actions .hint-info { top: -8px; right: -6px; width: 24px; height: 24px; font-size: 12px; }
+html[data-jg-view="mobile"] .jgm-actions .hint-tip { right: 0; bottom: calc(100% + 12px); }
+
+/* Recherche */
+html[data-jg-view="mobile"] .jgm-dock .search-wrap { width: 100%; margin: 0; z-index: 20; }
+html[data-jg-view="mobile"] .jgm-dock .search-wrap > label {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+html[data-jg-view="mobile"] .jgm-dock .search-field { height: 54px; padding: 0 44px 0 50px; border-radius: 14px; }
+html[data-jg-view="mobile"] .jgm-dock .search-icon { left: 19px; width: 16px; height: 16px; }
+html[data-jg-view="mobile"] .jgm-dock .search-field input { font-size: 16px; } /* 16px : évite le zoom automatique d'iOS */
+html[data-jg-view="mobile"] .jgm-dock .field-corner { border-radius: 0 0 13px 0; }
+/* Suggestions : s'ouvrent VERS LE HAUT, grandes zones tactiles */
+html[data-jg-view="mobile"] .jgm-dock .suggestions {
+  top: auto; bottom: calc(100% + 8px);
+  max-height: min(56vh, calc(var(--jgm-vvh) - var(--jgm-top) - 110px)); overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 14px; box-shadow: 0 -18px 60px rgba(0,0,15,.6);
+}
+html[data-jg-view="mobile"] .jgm-dock .suggestions button, html[data-jg-view="mobile"] .jgm-dock .suggestions .sugg-used { min-height: 54px; padding: 0 16px; gap: 10px; }
+html[data-jg-view="mobile"] .jgm-dock .suggestions button span { font-size: 16px; }
+html[data-jg-view="mobile"] .jgm-dock .suggestions button:active { background: linear-gradient(90deg, rgba(87,63,194,.45), rgba(31,25,85,.45)); }
+
+/* Pendant la saisie : on libère la place pour les suggestions */
+html[data-jg-view="mobile"].jgm-typing .jgm-actions, html[data-jg-view="mobile"].jgm-typing .jgm-dock .used-list { display: none; }
+
+/* ---------- Superpositions existantes au-dessus des barres ---------- */
+html[data-jg-view="mobile"] .jg-league.is-open {
+  position: fixed; inset: 0; z-index: 2000; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: calc(env(safe-area-inset-top) + 58px) 14px calc(env(safe-area-inset-bottom) + 24px); border-radius: 0; border-left: 0;
+  background: linear-gradient(180deg, rgba(14,12,44,.97), rgba(8,8,28,.98));
+}
+html[data-jg-view="mobile"] .jg-league.is-open .jg-close-btn { position: fixed; top: calc(env(safe-area-inset-top) + 10px); right: 14px; }
+/* Partie terminée : la barre du bas ne garde que « Classement » (la carte de fin reste dégagée) */
+html[data-jg-view="mobile"].jgm-ended .jgm-dock .used-list, html[data-jg-view="mobile"].jgm-ended .jgm-actions .hint-fab { display: none; }
+html[data-jg-view="mobile"] .test-mode { top: auto; bottom: calc(var(--jgm-dock) + 8px); }
+
+/* Petits écrans (≤ 360 px) */
+@media (max-width: 360px) {
+  html[data-jg-view="mobile"] .jgm-stat { padding-inline: 7px; }
+  html[data-jg-view="mobile"] .jgm-stat .attempt-count, html[data-jg-view="mobile"] .jgm-stat--points #jg-points-live strong, html[data-jg-view="mobile"] .jgm-stat--clock .cd-tile strong { font-size: 16px; }
+  html[data-jg-view="mobile"] .flip-back { font-size: 10.5px; }
+  html[data-jg-view="mobile"] .jgm-brand .dm-edition { display: none; }
+}
+
+/* =====================================================================
+   V2 — lisibilité : historique compact, rouge adouci, barre du bas pleine
+   ===================================================================== */
+
+/* Rouge adouci : les cases fausses s'effacent, les vertes ressortent. */
+html[data-jg-view="mobile"] .flip-back.wrong {
+  border-color: rgba(240,73,111,.30);
+  background: linear-gradient(150deg, #3b1528 0%, #2a1020 60%, #1f0c19 100%);
+  color: #efd8df;
+  box-shadow: inset 0 1px rgba(255,255,255,.05);
+}
+html[data-jg-view="mobile"] .flip-back.wrong .arw { fill: #ff6b80; }
+html[data-jg-view="mobile"] .flip-back.correct { box-shadow: inset 0 1px rgba(255,255,255,.1), 0 0 16px rgba(34,202,114,.18); }
+
+/* Numéro d'essai dans le bandeau du nom */
+html[data-jg-view="mobile"] .guess-row > .flip-cell[data-n]::after {
+  content: "Essai " attr(data-n); left: auto; right: 12px; top: 50%; transform: translateY(-50%);
+  font-size: 9.5px; color: #9fa3c6; letter-spacing: .1em;
+}
+html[data-jg-view="mobile"] .board-head + .guess-row > .flip-cell[data-n]::after { color: #c9b8ff; }
+html[data-jg-view="mobile"] .guess-row > .flip-cell:nth-child(1) .player-cell { padding-right: 78px; }
+/* Dernière proposition mise en valeur */
+html[data-jg-view="mobile"] .board-head + .guess-row { border-color: rgba(160,140,255,.7); box-shadow: 0 16px 40px rgba(0,0,18,.45), 0 0 0 1px rgba(111,85,255,.18), 0 0 30px rgba(111,85,255,.16); }
+html[data-jg-view="mobile"] .guess-row.jgm-open { cursor: pointer; }
+
+/* ---------- Une seule proposition à l'écran ---------- */
+html[data-jg-view="mobile"] .guess-row.jgm-old { display: none; }
+html[data-jg-view="mobile"].jgm-history-open .guess-row.jgm-old { display: grid; opacity: .82; }
+html[data-jg-view="mobile"] .board { position: relative; }
+html[data-jg-view="mobile"] .jgm-history {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  margin: 2px 0 12px; padding: 11px 14px; border-radius: 12px; cursor: pointer;
+  border: 1px solid rgba(146,139,220,.3); background: rgba(16,14,48,.7); color: #c4c6dd;
+  font: 800 11px Inter, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase;
+}
+html[data-jg-view="mobile"] .jgm-history i { font-style: normal; color: #a99bff; }
+/* ---------- Transition réponse → réponse suivante ---------- */
+html[data-jg-view="mobile"], html[data-jg-view="mobile"] body { overflow-x: hidden; }
+html[data-jg-view="mobile"] .jogadle { overflow-x: clip; overflow-y: visible; }
+html[data-jg-view="mobile"] .guess-row.jgm-enter:not(.jgm-old) {
+  position: relative; z-index: 5; transform-origin: 50% 100%;
+  animation: jgmRise 1.37s cubic-bezier(.16,1,.3,1) both;
+}
+/* La nouvelle tentative monte depuis la barre de recherche, s'agrandit et se pose avec un halo */
+@keyframes jgmRise {
+  0%   { transform: translateY(var(--jgm-rise, 320px)) scale(.72); opacity: 0; filter: blur(6px) brightness(1.6); }
+  12%  { opacity: 1; }
+  62%  { transform: translateY(-10px) scale(1.025); filter: blur(0) brightness(1.15);
+         box-shadow: 0 0 0 1px rgba(170,150,255,.9), 0 0 46px rgba(111,85,255,.75), 0 30px 60px rgba(0,0,18,.55); }
+  80%  { transform: translateY(3px) scale(.995); }
+  100% { transform: none; opacity: 1; filter: none; }
+}
+/* Traînée lumineuse violette/bleue entre la barre et la carte */
+html[data-jg-view="mobile"] .jgm-beam {
+  position: absolute; left: 10%; right: 10%; z-index: 4; pointer-events: none; border-radius: 40px;
+  background: linear-gradient(0deg, rgba(111,85,255,0) 0%, rgba(111,85,255,.55) 35%, rgba(143,208,255,.75) 70%, rgba(255,255,255,0) 100%);
+  filter: blur(18px); transform-origin: 50% 100%;
+  animation: jgmBeam 1.3s cubic-bezier(.3,.7,.3,1) both;
+}
+@keyframes jgmBeam {
+  0%   { opacity: 0; transform: scaleY(.1); }
+  25%  { opacity: .9; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1) translateY(-8%); }
+}
+/* L'ancienne tentative s'efface vers le haut */
+html[data-jg-view="mobile"] .guess-row.jgm-ghost {
+  position: absolute; left: 0; right: 0; z-index: 3; margin: 0; pointer-events: none;
+  transform-origin: 50% 0%; animation: jgmLeave .72s cubic-bezier(.5,0,.75,0) both;
+}
+@keyframes jgmLeave {
+  0%   { opacity: 1; transform: none; filter: none; }
+  100% { opacity: 0; transform: translateY(-70px) scale(.9); filter: blur(8px); }
+}
+
+/* ---------- Victoire ---------- */
+html[data-jg-view="mobile"] .guess-row.jgm-win { animation: jgmWin 2.4s ease-out both; }
+html[data-jg-view="mobile"] .guess-row.jgm-win .flip-back.correct { animation: jgmWinCell 1.2s ease-out both; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(2) .flip-back { animation-delay: .05s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(3) .flip-back { animation-delay: .1s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(4) .flip-back { animation-delay: .15s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(5) .flip-back { animation-delay: .2s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(6) .flip-back { animation-delay: .25s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(7) .flip-back { animation-delay: .3s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(8) .flip-back { animation-delay: .35s; }
+@keyframes jgmWin {
+  0% { box-shadow: 0 0 0 0 rgba(34,202,114,0); border-color: rgba(160,140,255,.7); }
+  18% { box-shadow: 0 0 0 4px rgba(53,229,154,.55), 0 0 60px rgba(34,202,114,.65); border-color: #35e59a; transform: scale(1.02); }
+  100% { box-shadow: 0 0 0 1px rgba(53,229,154,.4), 0 0 30px rgba(34,202,114,.25); border-color: rgba(53,229,154,.6); transform: none; }
+}
+@keyframes jgmWinCell { 0% { filter: brightness(1); } 25% { filter: brightness(1.6) saturate(1.3); } 100% { filter: brightness(1); } }
+.jgm-flash {
+  position: fixed; inset: 0; z-index: 10040; pointer-events: none;
+  background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.75), rgba(111,85,255,.45) 35%, rgba(34,202,114,.2) 60%, transparent 80%);
+  animation: jgmFlash .8s ease-out both;
+}
+@keyframes jgmFlash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+html[data-jg-view="mobile"] #td-end .end-card { animation: jgmEndIn .6s cubic-bezier(.2,.9,.25,1.1) both; }
+@keyframes jgmEndIn { from { opacity: 0; transform: translateY(24px) scale(.94); } to { opacity: 1; transform: none; } }
+.jgm-confetti { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 10050; pointer-events: none; }
