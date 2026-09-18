@@ -89,6 +89,49 @@
     input.setAttribute("autocapitalize", "words");
   }
 
+  // ---------- Historique compact ----------
+  // game.js reconstruit le plateau à chaque proposition (la plus récente en premier).
+  // On garde la dernière en grand ; les précédentes passent sur une ligne compacte
+  // (un toucher la déplie). Numérotation « Essai N ». Purement visuel.
+  var boardArea = $("#td-board-area", root);
+  var expanded = {};
+  var MINI_HEAD = ["Joueur", "Conf.", "Club", "Ligue", "Nat.", "Poste", "Âge", "N°"];
+  function decorate() {
+    if (!boardArea) return;
+    var rows = boardArea.querySelectorAll(".guess-row");
+    var n = rows.length, firstMini = null;
+    for (var i = 0; i < n; i++) {
+      var r = rows[i], id = r.getAttribute("data-id") || "";
+      var first = r.querySelector(".flip-cell");
+      if (first) first.setAttribute("data-n", String(n - i));
+      var mini = i > 0 && !expanded[id];
+      r.classList.toggle("jgm-mini", mini);
+      r.classList.toggle("jgm-open", i > 0 && !!expanded[id]);
+      if (i > 0 && id) r.setAttribute("title", mini ? "Toucher pour déplier" : "Toucher pour replier");
+      if (mini && !firstMini) firstMini = r;
+    }
+    var head = boardArea.querySelector(".jgm-minihead");
+    if (!firstMini) { if (head) head.remove(); return; }
+    if (!head) {
+      head = el("div", "jgm-minihead", MINI_HEAD.map(function (h) { return "<span>" + h + "</span>"; }).join(""));
+      head.setAttribute("aria-hidden", "true");
+    }
+    if (head.nextSibling !== firstMini) firstMini.parentNode.insertBefore(head, firstMini);
+  }
+  if (boardArea) {
+    boardArea.addEventListener("click", function (e) {
+      var r = e.target.closest && e.target.closest(".guess-row");
+      if (!r || r.classList.contains("is-pending")) return;
+      var rows = boardArea.querySelectorAll(".guess-row");
+      if (r === rows[0]) return;                       // la dernière proposition reste ouverte
+      var id = r.getAttribute("data-id"); if (!id) return;
+      expanded[id] = !expanded[id];
+      decorate();
+    });
+    if (global.MutationObserver) new MutationObserver(decorate).observe(boardArea, { childList: true });
+    decorate();
+  }
+
   // ---------- Défilement automatique ----------
   // Nouvelle proposition (ligne en attente puis révélation) : on ramène le haut du plateau à l'écran.
   var board = $("#td-board-area", root), end = $("#td-end", root);
