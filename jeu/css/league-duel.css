@@ -4,11 +4,11 @@
    Sous 1100 px (tablette/téléphone), rien ne change : ces règles sont inactives.
    ===================================================================== */
 @media (min-width: 1100px) {
-  html.jgd-on:not([data-jg-view="mobile"]) { --jgd-w: 360px; }
+  html.jgd-on:not([data-jg-view="mobile"]) { --jgd-w: 360px; --jgd-pad: calc(var(--jgd-w) * 1.1 + 56px); }
 
   /* Le jeu reprend toute la largeur ; la carte flotte à droite. */
   html.jgd-on:not([data-jg-view="mobile"]) .jogadle-app-layout { display: block; }
-  html.jgd-on:not([data-jg-view="mobile"]) .jogadle { padding-right: calc(var(--jgd-w) + 56px); }
+  html.jgd-on:not([data-jg-view="mobile"]) .jogadle { padding-right: var(--jgd-pad); }
   /* La grille tient dans la largeur disponible (plus de défilement horizontal). */
   html.jgd-on:not([data-jg-view="mobile"]) .board { min-width: 0; }
   html.jgd-on:not([data-jg-view="mobile"]) .flip-back { overflow-wrap: break-word; hyphens: auto; }
@@ -31,7 +31,14 @@
   html.jgd-on.jgd-full:not([data-jg-view="mobile"]) .jgd-backdrop { opacity: 1; pointer-events: auto; }
 
   /* ---------- Carte ---------- */
-  html.jgd-on:not([data-jg-view="mobile"]) .jgd-card { display: flex; }
+  /* Carte collée à droite de la grille de jeu (au lieu du bord de l'écran) et agrandie de 10 %.
+     La zone de jeu fait au plus 1510 px de large, centrée dans l'espace laissé libre à gauche de la carte. */
+  html.jgd-on:not([data-jg-view="mobile"]) .jgd-card {
+    display: flex; right: auto;
+    left: min(calc((100vw - var(--jgd-pad)) / 2 + 755px + 48px), calc(100vw - var(--jgd-w) * 1.1 - 24px));
+    transform: translateY(-50%) scale(1.1); transform-origin: left center;
+    max-height: calc((100vh - 32px) / 1.1);
+  }
 }
 @keyframes jgdDrawer { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 
