@@ -95,10 +95,10 @@
   // Les essais précédents restent consultables via un bouton (fermé par défaut). Purement visuel.
   var boardArea = $("#td-board-area", root);
   var historyOpen = false;
-  function plural(k) { return k + " essai" + (k > 1 ? "s" : "") + " précédent" + (k > 1 ? "s" : ""); }
+  function label(open, k) { return k > 1 ? (open ? "Masquer les " : "Voir les ") + k + " essais précédents" : (open ? "Masquer" : "Voir") + " l'essai précédent"; }
   function decorate() {
     if (!boardArea) return;
-    var rows = boardArea.querySelectorAll(".guess-row");
+    var rows = boardArea.querySelectorAll(".guess-row:not(.jgm-ghost)");
     var n = rows.length;
     if (!n) historyOpen = false;
     for (var i = 0; i < n; i++) {
@@ -116,28 +116,98 @@
       btn.addEventListener("click", function () { historyOpen = !historyOpen; decorate(); });
     }
     btn.setAttribute("aria-expanded", String(historyOpen));
-    btn.innerHTML = (historyOpen ? "Masquer les " + plural(older) : "Voir les " + plural(older)) + ' <i aria-hidden="true">' + (historyOpen ? "▴" : "▾") + "</i>";
+    btn.innerHTML = label(historyOpen, older) + ' <i aria-hidden="true">' + (historyOpen ? "▴" : "▾") + "</i>";
     if (btn.previousSibling !== rows[0]) rows[0].parentNode.insertBefore(btn, rows[0].nextSibling);
   }
-  // Transition : l'ancienne carte s'efface pendant que la nouvelle (en attente) apparaît.
-  var lastTop = null;
+  // Transition « réponse → réponse suivante » : la nouvelle tentative monte depuis la barre de
+  // recherche (bas → haut) avec une traînée lumineuse et se pose avec un halo ; l'ancienne s'efface vers le haut.
+  var REDUCE = !!(global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var lastTop = null, sawReveal = false, enterAt = 0, rise = 0, ENTER_MS = 1370;
   function crossfade() {
     if (!boardArea) return;
     var rows = boardArea.querySelectorAll(".guess-row");
     var fresh = rows[0];
-    if (fresh && fresh.classList.contains("is-pending") && lastTop && !global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      var boardEl = fresh.parentNode;
-      var ghost = lastTop.cloneNode(true);
-      ghost.classList.remove("jgm-old");
-      ghost.classList.remove("revealing");
-      ghost.classList.add("jgm-ghost", "revealed");
-      ghost.style.top = fresh.offsetTop + "px";
-      boardEl.appendChild(ghost);
-      setTimeout(function () { if (ghost.parentNode) ghost.parentNode.removeChild(ghost); }, 420);
+    if (fresh && fresh.classList.contains("revealing") && !fresh.__jgmSeen) {
+      fresh.__jgmSeen = true; sawReveal = true;
+      // Victoire : toutes les cases vertes → la fête part quand la dernière case se retourne.
+      var res = fresh.querySelectorAll(".flip-back.result");
+      var allOk = res.length && Array.prototype.every.call(res, function (c) { return c.classList.contains("correct"); });
+      if (allOk && !REDUCE) setTimeout(function () { celebrate(fresh); }, 7 * 350 + 380);
     }
-    lastTop = fresh && !fresh.classList.contains("is-pending") ? fresh.cloneNode(true) : lastTop;
-    if (!fresh) lastTop = null;
+    if (fresh && fresh.classList.contains("is-pending") && !REDUCE && (lastTop || boardArea.querySelectorAll(".guess-row").length === 1)) {
+      var boardEl = fresh.parentNode, topPx = fresh.offsetTop + "px";
+      // Distance entre la carte et la barre de recherche : la nouvelle tentative « sort » de la barre.
+      var r = fresh.getBoundingClientRect();
+      rise = Math.max(160, Math.round((global.innerHeight - dock.offsetHeight + 24) - r.top));
+      fresh.style.setProperty("--jgm-rise", rise + "px");
+      fresh.classList.add("jgm-enter"); enterAt = Date.now();
+      var beam = el("div", "jgm-beam");
+      beam.style.top = topPx; beam.style.height = (rise + r.height) + "px";
+      boardEl.appendChild(beam);
+      var junk = [beam];
+      if (lastTop) {
+        var ghost = lastTop.cloneNode(true);
+        ghost.classList.remove("jgm-old", "revealing", "jgm-enter");
+        ghost.classList.add("jgm-ghost", "revealed");
+        ghost.style.top = topPx; ghost.style.animationDelay = "";
+        boardEl.appendChild(ghost); junk.push(ghost);
+      }
+      setTimeout(function () { junk.forEach(function (x) { if (x.parentNode) x.parentNode.removeChild(x); }); }, 1850);
+    } else if (fresh && fresh.classList.contains("revealing") && enterAt && Date.now() - enterAt < ENTER_MS) {
+      // La réponse du serveur arrive pendant la montée : on poursuit la même animation sans à-coup.
+      fresh.style.setProperty("--jgm-rise", rise + "px");
+      fresh.classList.add("jgm-enter"); fresh.style.animationDelay = (-(Date.now() - enterAt)) + "ms";
+    }
+    if (fresh && !fresh.classList.contains("is-pending")) { lastTop = fresh; }
+    if (!fresh) { lastTop = null; sawReveal = false; }
   }
+
+  // ---------- Victoire : flash + carte gagnante illuminée + confettis TomsoFoot ----------
+  function celebrate(win) {
+    if (REDUCE) return;
+    if (win) { win.classList.add("jgm-win"); setTimeout(function () { win.classList.remove("jgm-win"); }, 2600); }
+    var flash = el("div", "jgm-flash"); doc.body.appendChild(flash);
+    setTimeout(function () { flash.remove(); }, 900);
+    confetti();
+  }
+  function confetti() {
+    var cv = el("canvas", "jgm-confetti"); doc.body.appendChild(cv);
+    var dpr = Math.min(global.devicePixelRatio || 1, 2), W = global.innerWidth, H = global.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    var ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+    var COLORS = ["#6f55ff", "#335bff", "#f02f45", "#22ca72", "#ffffff", "#ffd76a", "#8fd0ff"];
+    var P = [];
+    function burst(x, y, angle, spread, n, speed) {
+      for (var i = 0; i < n; i++) {
+        var a = angle + (Math.random() - .5) * spread, v = speed * (.55 + Math.random() * .6);
+        P.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, w: 6 + Math.random() * 6, h: 9 + Math.random() * 8,
+          r: Math.random() * 6.28, vr: (Math.random() - .5) * .35, c: COLORS[(Math.random() * COLORS.length) | 0],
+          shape: Math.random() < .25 ? 1 : 0, life: 0, max: 150 + Math.random() * 70, wob: Math.random() * 6.28 });
+      }
+    }
+    burst(0, H * .92, -Math.PI / 3, .9, 90, 17);          // canon bas gauche
+    burst(W, H * .92, -Math.PI * 2 / 3, .9, 90, 17);      // canon bas droit
+    setTimeout(function () { burst(W / 2, H * .32, -Math.PI / 2, 6.28, 70, 9); }, 260);   // gerbe centrale
+    var t0 = null;
+    function step(ts) {
+      if (!t0) t0 = ts;
+      ctx.clearRect(0, 0, W, H);
+      var alive = 0;
+      for (var i = 0; i < P.length; i++) {
+        var p = P[i]; if (p.life > p.max) continue; alive++;
+        p.life++; p.vx *= .985; p.vy = p.vy * .985 + .32; p.wob += .12;
+        p.x += p.vx + Math.sin(p.wob) * .6; p.y += p.vy; p.r += p.vr;
+        var fade = p.life > p.max - 40 ? (p.max - p.life) / 40 : 1;
+        ctx.save(); ctx.globalAlpha = Math.max(0, fade); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c;
+        if (p.shape) { ctx.beginPath(); ctx.arc(0, 0, p.w / 2.4, 0, 6.28); ctx.fill(); }
+        else { ctx.scale(1, Math.cos(p.wob)); ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); }
+        ctx.restore();
+      }
+      if (alive && ts - t0 < 5000) requestAnimationFrame(step); else cv.remove();
+    }
+    requestAnimationFrame(step);
+  }
+
   if (boardArea) {
     if (global.MutationObserver) new MutationObserver(function () { crossfade(); decorate(); }).observe(boardArea, { childList: true });
     decorate();

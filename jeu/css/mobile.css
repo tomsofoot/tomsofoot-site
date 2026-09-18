@@ -306,11 +306,66 @@ html[data-jg-view="mobile"] .jgm-history {
   font: 800 11px Inter, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase;
 }
 html[data-jg-view="mobile"] .jgm-history i { font-style: normal; color: #a99bff; }
-/* Nouvelle carte : apparaît ; ancienne (copie) : s'efface par-dessus */
-html[data-jg-view="mobile"] .guess-row.is-pending:not(.jgm-old) { animation: jgmIn .38s var(--jg-ease) both; }
-html[data-jg-view="mobile"] .guess-row.jgm-ghost {
-  position: absolute; left: 0; right: 0; z-index: 4; margin: 0; pointer-events: none;
-  animation: jgmOut .38s ease-in both;
+/* ---------- Transition réponse → réponse suivante ---------- */
+html[data-jg-view="mobile"], html[data-jg-view="mobile"] body { overflow-x: hidden; }
+html[data-jg-view="mobile"] .jogadle { overflow-x: clip; overflow-y: visible; }
+html[data-jg-view="mobile"] .guess-row.jgm-enter:not(.jgm-old) {
+  position: relative; z-index: 5; transform-origin: 50% 100%;
+  animation: jgmRise 1.37s cubic-bezier(.16,1,.3,1) both;
 }
-@keyframes jgmIn { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
-@keyframes jgmOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-14px) scale(.97); } }
+/* La nouvelle tentative monte depuis la barre de recherche, s'agrandit et se pose avec un halo */
+@keyframes jgmRise {
+  0%   { transform: translateY(var(--jgm-rise, 320px)) scale(.72); opacity: 0; filter: blur(6px) brightness(1.6); }
+  12%  { opacity: 1; }
+  62%  { transform: translateY(-10px) scale(1.025); filter: blur(0) brightness(1.15);
+         box-shadow: 0 0 0 1px rgba(170,150,255,.9), 0 0 46px rgba(111,85,255,.75), 0 30px 60px rgba(0,0,18,.55); }
+  80%  { transform: translateY(3px) scale(.995); }
+  100% { transform: none; opacity: 1; filter: none; }
+}
+/* Traînée lumineuse violette/bleue entre la barre et la carte */
+html[data-jg-view="mobile"] .jgm-beam {
+  position: absolute; left: 10%; right: 10%; z-index: 4; pointer-events: none; border-radius: 40px;
+  background: linear-gradient(0deg, rgba(111,85,255,0) 0%, rgba(111,85,255,.55) 35%, rgba(143,208,255,.75) 70%, rgba(255,255,255,0) 100%);
+  filter: blur(18px); transform-origin: 50% 100%;
+  animation: jgmBeam 1.3s cubic-bezier(.3,.7,.3,1) both;
+}
+@keyframes jgmBeam {
+  0%   { opacity: 0; transform: scaleY(.1); }
+  25%  { opacity: .9; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1) translateY(-8%); }
+}
+/* L'ancienne tentative s'efface vers le haut */
+html[data-jg-view="mobile"] .guess-row.jgm-ghost {
+  position: absolute; left: 0; right: 0; z-index: 3; margin: 0; pointer-events: none;
+  transform-origin: 50% 0%; animation: jgmLeave .72s cubic-bezier(.5,0,.75,0) both;
+}
+@keyframes jgmLeave {
+  0%   { opacity: 1; transform: none; filter: none; }
+  100% { opacity: 0; transform: translateY(-70px) scale(.9); filter: blur(8px); }
+}
+
+/* ---------- Victoire ---------- */
+html[data-jg-view="mobile"] .guess-row.jgm-win { animation: jgmWin 2.4s ease-out both; }
+html[data-jg-view="mobile"] .guess-row.jgm-win .flip-back.correct { animation: jgmWinCell 1.2s ease-out both; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(2) .flip-back { animation-delay: .05s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(3) .flip-back { animation-delay: .1s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(4) .flip-back { animation-delay: .15s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(5) .flip-back { animation-delay: .2s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(6) .flip-back { animation-delay: .25s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(7) .flip-back { animation-delay: .3s; }
+html[data-jg-view="mobile"] .guess-row.jgm-win > .flip-cell:nth-child(8) .flip-back { animation-delay: .35s; }
+@keyframes jgmWin {
+  0% { box-shadow: 0 0 0 0 rgba(34,202,114,0); border-color: rgba(160,140,255,.7); }
+  18% { box-shadow: 0 0 0 4px rgba(53,229,154,.55), 0 0 60px rgba(34,202,114,.65); border-color: #35e59a; transform: scale(1.02); }
+  100% { box-shadow: 0 0 0 1px rgba(53,229,154,.4), 0 0 30px rgba(34,202,114,.25); border-color: rgba(53,229,154,.6); transform: none; }
+}
+@keyframes jgmWinCell { 0% { filter: brightness(1); } 25% { filter: brightness(1.6) saturate(1.3); } 100% { filter: brightness(1); } }
+.jgm-flash {
+  position: fixed; inset: 0; z-index: 10040; pointer-events: none;
+  background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.75), rgba(111,85,255,.45) 35%, rgba(34,202,114,.2) 60%, transparent 80%);
+  animation: jgmFlash .8s ease-out both;
+}
+@keyframes jgmFlash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+html[data-jg-view="mobile"] #td-end .end-card { animation: jgmEndIn .6s cubic-bezier(.2,.9,.25,1.1) both; }
+@keyframes jgmEndIn { from { opacity: 0; transform: translateY(24px) scale(.94); } to { opacity: 1; transform: none; } }
+.jgm-confetti { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 10050; pointer-events: none; }
