@@ -59,36 +59,43 @@
       '<span class="jgd-name">' + (r.me ? "Vous" : esc(r.name)) + '</span><span class="jgd-pts">' + fmt(r.pts) + (extra || "") + "</span></div>";
   }
 
+  function slot(pos) { return '<div class="jgd-row jgd-empty-row"><span class="jgd-pos">' + pos + '</span><span class="jgd-name">—</span><span class="jgd-pts">—</span></div>'; }
+  function zone(R, from, to) {
+    var h = ""; for (var p = from; p <= to; p++) h += R[p - 1] ? row(R[p - 1]) : slot(p); return h;
+  }
+  // Ligue du joueur connecté, lue dans le bloc identité (« Ligue ultimate · 190 pts »).
+  function myLeague() {
+    var m = /Ligue\s+(ultimate|pro|rookie|noob)\b/i.exec(txt("#jg-identity"));
+    return m ? m[1].toLowerCase() : null;
+  }
+  function leagueName(k) { for (var i = 0; i < LEAGUES.length; i++) if (LEAGUES[i][0] === k) return LEAGUES[i][1]; return k; }
+
   function render() {
-    var R = rows(), lg = currentLeague();
+    var R = rows(), lg = currentLeague(), mine = myLeague();
     var title = txt("#jg-league-title") || "Ligue Pro";
     var tabs = '<div class="jgd-tabs" role="tablist">' + LEAGUES.map(function (l) {
-      return '<button type="button" role="tab" data-jgd-league="' + l[0] + '" aria-selected="' + (l[0] === lg) + '"' + (l[0] === lg ? ' class="is-active"' : "") + ">" + l[1] + "</button>";
+      return '<button type="button" role="tab" data-jgd-league="' + l[0] + '" aria-selected="' + (l[0] === lg) + '"' + (l[0] === lg ? ' class="is-active"' : "") + ">" + l[1] + (l[0] === mine ? ' <i class="jgd-mine" title="Ta ligue"></i>' : "") + "</button>";
     }).join("") + "</div>";
     var h = '<div class="jgd-head"><div><div class="jgd-eyebrow">Championnat Jogadle</div><div class="jgd-title">' + esc(title) + '</div></div>' +
       '<span class="jgd-live"><i></i>En direct</span></div>' + tabs;
 
-    if (!R.length) {
-      card.innerHTML = h + '<div class="jgd-empty">Classement en cours de chargement…</div>' + footer();
-      return;
-    }
     var me = null; R.forEach(function (r) { if (r.me) me = r; });
-    var top = R.slice(0, 5), bottom = R.length >= 20 ? R.slice(15, 20) : [];
-    var shown = {}; top.concat(bottom).forEach(function (r) { shown[r.pos] = 1; });
     var upLabel = lg === "ultimate" ? "▲ Le haut du tableau" : "▲ Zone montée";
     var downLabel = lg === "noob" ? "▼ Bas de tableau" : "▼ Zone descente";
+    var shown = {}; R.forEach(function (r) { if (r.pos <= 5 || (r.pos >= 16 && r.pos <= 20)) shown[r.pos] = 1; });
 
-    h += '<section class="jgd-sec jgd-up"><div class="jgd-lab"><span>' + upLabel + '</span><small>1 – 5</small></div>' + top.map(function (r) { return row(r); }).join("") + "</section>";
+    // La structure reste toujours la même (comme sur la maquette) : 1–5, ta course, 16–20.
+    // Les places pas encore occupées s'affichent en « — ».
+    h += '<section class="jgd-sec jgd-up"><div class="jgd-lab"><span>' + upLabel + '</span><small>1 – 5</small></div>' + zone(R, 1, 5) + "</section>";
 
-    var g = potential();
+    var g = potential(), mid;
     if (me) {
       var a = R[me.pos - 2] || null, b = R[me.pos] || null;
       var gapA = a ? a.pts - me.pts : 0, gapB = b ? me.pts - b.pts : 0;
-      var mid = [a, me, b].filter(function (r) { return r && !shown[r.pos]; });
-      var inner = mid.map(function (r) {
+      var inner = [a, me, b].filter(function (r) { return r && !shown[r.pos]; }).map(function (r) {
         return row(r, r === a ? '<em class="jgd-gap up">↑' + gapA + "</em>" : r === b ? '<em class="jgd-gap down">↓' + gapB + "</em>" : "");
       }).join("");
-      var chase = "";
+      var chase;
       if (a) {
         var fill = Math.max(4, Math.min(100, 100 - (gapA / Math.max(gapA + gapB, 1)) * 100));
         var note = g == null ? "" : g >= gapA && gapA > 0
@@ -97,22 +104,38 @@
         chase = '<div class="jgd-chase"><p><b>' + gapA + " pts</b> pour doubler " + esc(a.name) + '</p>' +
           '<div class="jgd-track"><i style="width:' + fill + '%"></i><em style="left:' + fill + '%"></em></div>' + (note ? "<small>" + note + "</small>" : "") + "</div>";
       } else {
-        chase = '<div class="jgd-chase"><p><b>Tu es en tête</b> de la ' + esc(title) + " 🏆</p>" + (b ? "<small>" + gapB + " pts d'avance sur " + esc(b.name) + ".</small>" : "") + "</div>";
+        chase = '<div class="jgd-chase"><p><b>Tu es en tête</b> de la ' + esc(title) + " 🏆</p>" +
+          '<div class="jgd-track"><i style="width:100%"></i><em style="left:100%"></em></div>' +
+          "<small>" + (b ? gapB + " pts d'avance sur " + esc(b.name) + "." : "Personne derrière toi pour l'instant.") + (g != null ? " Trouve le joueur du jour : +" + g + " pts." : "") + "</small></div>";
       }
-      h += '<div class="jgd-dots">• • •</div><section class="jgd-sec jgd-mid"><div class="jgd-lab"><span>Ta course</span><small>' + me.pos + "e · " + fmt(me.pts) + " pts</small></div>" + inner + chase + '</section><div class="jgd-dots">• • •</div>';
+      mid = '<section class="jgd-sec jgd-mid"><div class="jgd-lab"><span>Ta course</span><small>' + me.pos + "e · " + fmt(me.pts) + " pts</small></div>" + inner + chase + "</section>";
+    } else if (mine && mine !== lg) {
+      // Le joueur est classé dans une autre ligue : on lui propose d'y revenir.
+      mid = '<section class="jgd-sec jgd-mid"><div class="jgd-lab"><span>Ta course</span><small>Ligue ' + esc(leagueName(mine)) + "</small></div>" +
+        '<div class="jgd-chase"><p>' + (R.length ? "Tu joues en <b>Ligue " + esc(leagueName(mine)) + "</b>." : "Personne n'est encore classé en " + esc(title) + ".") + "</p>" +
+        '<button type="button" class="jgd-join" data-jgd-league="' + mine + '">Voir ma ligue (' + esc(leagueName(mine)) + ")</button></div></section>";
     } else {
-      // Pas classé dans la ligue affichée : on reprend le bloc « Hors ligue » existant.
+      // Pas classé : on reprend le bloc « Hors ligue » existant.
       var rank = txt("#jg-unranked-rank"), pts = txt("#jg-unranked-points");
       var join = doc.querySelector("#jg-identity .jg-id-join");
-      h += '<div class="jgd-dots">• • •</div><section class="jgd-sec jgd-mid"><div class="jgd-lab"><span>Ta course</span><small>' + (rank && rank !== "—" ? "Hors ligue" : "") + "</small></div>" +
-        (rank && rank !== "—" ? '<div class="jgd-row is-me"><span class="jgd-pos">' + esc(rank) + '</span><span class="jgd-name">Vous</span><span class="jgd-pts">' + esc(pts) + "</span></div>" : "") +
-        '<div class="jgd-chase"><p>' + (join ? "Rejoins le championnat pour entrer dans la course." : "Continue à jouer pour entrer dans le top 20.") + "</p>" +
-        (join ? '<button type="button" class="jgd-join" data-jgd-join>Rejoindre le championnat</button>' : "") + '</div></section><div class="jgd-dots">• • •</div>';
+      var ranked = rank && rank !== "—";
+      mid = '<section class="jgd-sec jgd-mid"><div class="jgd-lab"><span>Ta course</span><small>' + (ranked ? "Hors ligue" : "") + "</small></div>" +
+        (ranked ? '<div class="jgd-row is-me"><span class="jgd-pos">' + esc(rank) + '</span><span class="jgd-name">Vous</span><span class="jgd-pts">' + esc(pts) + "</span></div>" : "") +
+        '<div class="jgd-chase"><p>' + (join ? "Rejoins le championnat pour entrer dans la course." : R.length ? "Continue à jouer pour entrer dans le top 20." : "Personne n'est encore classé en " + esc(title) + " : la première place est libre !") + "</p>" +
+        (join ? '<button type="button" class="jgd-join" data-jgd-join>Rejoindre le championnat</button>' : "") + "</div></section>";
     }
-
-    if (bottom.length) h += '<section class="jgd-sec jgd-down"><div class="jgd-lab"><span>' + downLabel + '</span><small>16 – 20</small></div>' + bottom.map(function (r) { return row(r); }).join("") + "</section>";
+    h += '<div class="jgd-dots">• • •</div>' + mid + '<div class="jgd-dots">• • •</div>';
+    h += '<section class="jgd-sec jgd-down"><div class="jgd-lab"><span>' + downLabel + '</span><small>16 – 20</small></div>' + zone(R, 16, 20) + "</section>";
     card.innerHTML = h + footer();
     R.forEach(function (r) { prevPos[r.id] = r.pos; });
+  }
+  // Au premier affichage, on ouvre la ligue du joueur connecté (une seule fois ; ses clics sur les onglets priment ensuite).
+  var autoDone = false;
+  function autoLeague() {
+    if (autoDone || !global.matchMedia("(min-width: 1100px)").matches) return;
+    var mine = myLeague(); if (!mine) return;
+    autoDone = true;
+    if (mine !== currentLeague()) { var real = league.querySelector('.jg-league-tabs [data-league="' + mine + '"]'); if (real) real.click(); }
   }
   function footer() { return '<button type="button" class="jgd-all" data-jgd-all>Voir tout le classement <span aria-hidden="true">→</span></button>'; }
 
@@ -122,7 +145,7 @@
   card.addEventListener("click", function (e) {
     var t = e.target.closest ? e.target : null; if (!t) return;
     var tab = t.closest("[data-jgd-league]");
-    if (tab) { var real = league.querySelector('.jg-league-tabs [data-league="' + tab.getAttribute("data-jgd-league") + '"]'); if (real) real.click(); return; }
+    if (tab) { autoDone = true; var real = league.querySelector('.jg-league-tabs [data-league="' + tab.getAttribute("data-jgd-league") + '"]'); if (real) real.click(); return; }
     if (t.closest("[data-jgd-all]")) { openFull(); return; }
     if (t.closest("[data-jgd-join]")) { var j = doc.querySelector("#jg-identity .jg-id-join"); if (j) j.click(); }
   });
@@ -133,7 +156,7 @@
 
   // ---------- Mise à jour en direct ----------
   var pending = false;
-  function schedule() { if (pending) return; pending = true; requestAnimationFrame(function () { pending = false; render(); }); }
+  function schedule() { if (pending) return; pending = true; requestAnimationFrame(function () { pending = false; autoLeague(); render(); }); }
   new MutationObserver(schedule).observe(ranking, { childList: true, subtree: true, characterData: true });
   var live = doc.getElementById("jg-points-live");
   if (live) new MutationObserver(schedule).observe(live, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["style"] });
@@ -143,5 +166,6 @@
   if (ttl) new MutationObserver(schedule).observe(ttl, { childList: true, characterData: true, subtree: true });
   var unr = doc.getElementById("jg-unranked");
   if (unr) new MutationObserver(schedule).observe(unr, { childList: true, characterData: true, subtree: true });
+  autoLeague();
   render();
 })(window);
