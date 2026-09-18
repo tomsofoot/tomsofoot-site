@@ -86,6 +86,9 @@ html[data-champ="off"] .jgd-card, html[data-champ="off"] .jgd-backdrop { display
 .jgd-row.is-me .jgd-pos, .jgd-row.is-me .jgd-pts { color: #fff; }
 .jgd-row.jgd-hot { animation: jgdHot 1.2s; }
 @keyframes jgdHot { 25% { background-color: rgba(90,255,201,.28); } }
+.jgd-row.jgd-empty-row { color: #5d6088; font-weight: 600; }
+.jgd-row.jgd-empty-row .jgd-pos, .jgd-row.jgd-empty-row .jgd-pts { color: #5d6088; }
+.jgd-mine { display: inline-block; width: 6px; height: 6px; margin-left: 4px; vertical-align: 2px; border-radius: 50%; background: #5affc9; box-shadow: 0 0 8px rgba(90,255,201,.7); }
 .jgd-dots { margin: 6px 0 -2px; text-align: center; color: #5d5f86; font-size: 12px; letter-spacing: .3em; line-height: 1; }
 
 .jgd-chase { margin: 8px 6px 2px; }
