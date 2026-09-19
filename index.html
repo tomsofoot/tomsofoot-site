@@ -242,6 +242,21 @@ html,body{max-width:100%;overflow-x:clip}
   document.addEventListener('gesturechange',function(e){ if(start*e.scale<1) e.preventDefault(); },{passive:false});
 })();
 </script>
+<style id="hero-mobile-photo">
+/* Accueil mobile : la photo de l'article à la une en haut, bien visible, puis le texte en dessous (au lieu du texte posé sur une photo assombrie). */
+@media (max-width:600px){
+  .hero,.hero .hero-inner{min-height:0}
+  .hero:before{
+    inset:0 0 auto 0;height:calc(min(100vw,600px) * .82);
+    background:
+      linear-gradient(0deg, var(--navy) 0%, rgba(6,19,43,.55) 18%, rgba(6,19,43,0) 42%),
+      var(--hero-img) 62% 28% / cover no-repeat;
+    animation:none;transform:none;
+  }
+  .hero .hero-inner{justify-content:flex-start;padding-top:calc(min(100vw,600px) * .82 - 34px);padding-bottom:44px}
+  .hero__rings{display:none}
+}
+</style>
 </head>
 <body>
   <div class="reading-progress" aria-hidden="true"><span class="reading-progress__value"></span></div>
