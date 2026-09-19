@@ -640,7 +640,7 @@ js=r'''
     var _qp=new URLSearchParams(location.search||'');
     ['amateur','pro','expert'].forEach(function(l){
       var want=_qp.get(l); if(!want) return;
-      var m=findByQid(l,want); if(m){ DAILY[l]=m; PREVIEW=true; }
+      var m=findByQid(l,want)||findByQid('amateur',want)||findByQid('pro',want)||findByQid('expert',want); if(m){ DAILY[l]=m; PREVIEW=true; }   // aperçu : n'importe quel joueur de la base, à n'importe quel niveau
     });
   }catch(e){}
 
