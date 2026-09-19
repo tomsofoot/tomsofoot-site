@@ -106,5 +106,9 @@
     content: ""; position: absolute; left: -2px; top: 9px; bottom: 9px; width: 1px; background: rgba(170,155,255,.3);
   }
   html:not([data-jg-view="mobile"]) .td-hero > .top-actions .sound-toggle svg { width: 17px; height: 17px; }
+
+  /* Rangée « Propositions » : on retire les deux rails de points (la place est gardée pour que
+     « Propositions », le compteur et « Essais illimités » ne bougent pas). */
+  html:not([data-jg-view="mobile"]) .progress-row > .progress-rail { visibility: hidden; }
 }
 
