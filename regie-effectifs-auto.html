@@ -87,6 +87,22 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media(max-width:560px){ .row2{grid-template-columns:1fr} .brand h1{font-size:16px} .tile .v{font-size:22px} th.hide-sm,td.hide-sm{display:none} }
   [hidden]{display:none!important}
+  /* Barre de progression des analyses */
+  .runs{display:grid;gap:10px;margin:0 0 14px}
+  .run{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .run.queued{opacity:.8}
+  .run-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .run-name{font-weight:600}
+  .run-pct{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+  .bar{position:relative;height:12px;border-radius:999px;background:#0f0c1a;border:1px solid var(--line);overflow:hidden}
+  .bar>i{position:absolute;inset:0 auto 0 0;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .8s ease}
+  .run.live .bar>i{background-image:linear-gradient(90deg,var(--accent),var(--accent2)),repeating-linear-gradient(45deg,rgba(255,255,255,.16) 0 10px,transparent 10px 20px);background-blend-mode:overlay;background-size:auto,28px 28px;animation:barmove 1s linear infinite}
+  @keyframes barmove{to{background-position:0 0,28px 0}}
+  .run-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--dim)}
+  .run-meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .minibar{display:inline-block;vertical-align:middle;width:70px;height:7px;border-radius:999px;background:#0f0c1a;border:1px solid var(--line);overflow:hidden;margin-right:6px}
+  .minibar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  @media (prefers-reduced-motion:reduce){ .run.live .bar>i{animation:none} }
 </style>
 </head>
 <body>
@@ -123,6 +139,7 @@
     <section id="tab-dash">
       <div class="card">
         <h2 class="sec">État général du système</h2>
+        <div class="runs" id="runs" hidden></div>
         <div class="tiles" id="tiles"></div>
         <div class="actions">
           <button class="primary" id="act-run">▶ Lancer maintenant</button>
@@ -246,7 +263,8 @@
   async function loadDashboard(){
     try{
       var d = MOCK ? MOCKDATA.dash : await computeDashboard();
-      renderTiles(d);
+      if(MOCK) state.batches=MOCKDATA.batches;
+      renderTiles(d); renderRuns(); startRunsTimer();
     }catch(e){ showMsg('dash-msg','err','Erreur chargement : '+(e.message||e)); }
   }
   async function computeDashboard(){
@@ -259,6 +277,60 @@
       certain:certain||'—', anomalies:anomalies||0, last: last?fmt(last.updated_at):'—', next:'—', dur:'—',
       stateLabel: batches.some(function(b){return b.status==='analyse_en_cours';})?'Analyse en cours':'Au repos' };
   }
+  // ---- Progression & temps restant des analyses ----
+  // Le worker serveur traite 4 clubs toutes les 15 min (tick planifié */15), un lot à la fois :
+  // un lot en file d'attente démarre quand le précédent est fini.
+  var CLUBS_PER_TICK=4, TICK_MS=15*60000, TICK_WORK_MS=2*60000, ACTIVE=['analyse_en_cours','planifie','interrompu'];
+  function nextTick(now){ return Math.ceil((now+1)/TICK_MS)*TICK_MS; }
+  function dur(ms){
+    if(ms<60000) return 'moins d\'1 min';
+    var m=Math.round(ms/60000), h=Math.floor(m/60); m=m%60;
+    return h ? (h+' h'+(m?' '+(m<10?'0':'')+m+' min':'')) : (m+' min');
+  }
+  function hhmm(t){ return new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
+  function dayhhmm(t){
+    var d=new Date(t), today=new Date();
+    return d.toDateString()===today.toDateString() ? ('vers '+hhmm(t)) : ('le '+d.toLocaleDateString('fr-FR',{weekday:'long'})+' vers '+hhmm(t));
+  }
+  function runQueue(batches, now){
+    var act=(batches||[]).filter(function(b){ return b.total>0 && (b.done||0)<b.total && ACTIVE.indexOf(b.status)>=0; });
+    // Lot en cours d'abord, puis les lots planifiés du plus ancien au plus récent (la liste arrive du plus récent au plus ancien).
+    var running=act.filter(function(b){return b.status==='analyse_en_cours';});
+    var waiting=act.filter(function(b){return b.status!=='analyse_en_cours';}).reverse();
+    // Un tick ne traite qu'un seul lot : chaque lot occupe ceil(restants / 4) ticks, l'un après l'autre.
+    var q=running.concat(waiting), ticksAhead=0, t0=nextTick(now);
+    return q.map(function(b){
+      var rest=b.total-(b.done||0), ticks=Math.ceil(rest/CLUBS_PER_TICK);
+      var r={ b:b, rest:rest, live:(ticksAhead===0), start:t0+ticksAhead*TICK_MS, end:t0+(ticksAhead+ticks-1)*TICK_MS+TICK_WORK_MS };
+      ticksAhead+=ticks; return r;
+    });
+  }
+  function renderRuns(){
+    var box=$('runs'), now=Date.now(), q=runQueue(state.batches, now);
+    if(!q.length){ box.hidden=true; box.innerHTML=''; return; }
+    box.hidden=false;
+    box.innerHTML=q.map(function(r){
+      var b=r.b, pct=Math.floor(100*(b.done||0)/b.total);
+      var left = r.live
+        ? ('Temps restant : <b>≈ '+dur(Math.max(0,r.end-now))+'</b>')
+        : ('En file d\'attente · démarre <b>'+dayhhmm(r.start)+'</b>');
+      return '<div class="run'+(r.live?' live':' queued')+'" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'" aria-label="'+esc(b.name)+'">'+
+        '<div class="run-head"><span class="run-name">'+(r.live?'⏳ ':'🕒 ')+esc(b.name)+'</span><span class="run-pct">'+pct+' %</span></div>'+
+        '<div class="bar"><i style="width:'+Math.max(pct,1)+'%"></i></div>'+
+        '<div class="run-meta"><span><b>'+(b.done||0)+'</b> / '+b.total+' clubs analysés · '+r.rest+' restant'+(r.rest>1?'s':'')+'</span>'+
+        '<span>'+left+'</span><span>Fin estimée : <b>'+dayhhmm(r.end)+'</b></span></div></div>';
+    }).join('');
+  }
+  var runsTimer=null, runsTick=0;
+  function startRunsTimer(){
+    if(runsTimer) return;
+    runsTimer=setInterval(function(){
+      if($('tab-dash').hidden) return;
+      runsTick++;
+      if(runsTick%2===0) loadDashboard(); else renderRuns();   // données rafraîchies chaque minute, compte à rebours toutes les 30 s
+    },30000);
+  }
+
   function fmt(x){ if(!x)return '—'; try{return new Date(x).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});}catch(e){return x;} }
 
   // ---- TRAVAUX EN COURS ----
@@ -271,8 +343,9 @@
     state.batches=batches;
     $('wip-body').innerHTML = batches.length ? batches.map(function(b){
       var prog=(b.done!=null&&b.total!=null)?(b.done+'/'+b.total):'—';
+      if(b.total>0) prog='<span class="minibar"><i style="width:'+Math.floor(100*(b.done||0)/b.total)+'%"></i></span>'+esc(prog);
       return '<tr><td><b>'+esc(b.name)+'</b></td><td class="mv">'+esc((b.leagues||[]).join(', '))+'</td><td>'+statusPill(b.status)+
-        '</td><td>'+esc(prog)+'</td><td class="hide-sm">'+esc(b.anomalies||0)+'</td><td class="hide-sm mv">'+fmt(b.updated_at)+
+        '</td><td>'+prog+'</td><td class="hide-sm">'+esc(b.anomalies||0)+'</td><td class="hide-sm mv">'+fmt(b.updated_at)+
         '</td><td><div class="row-actions"><button class="mini" data-open="'+esc(b.id)+'">Consulter</button>'+
         '<button class="mini" data-retry="'+esc(b.id)+'">Relancer erreurs</button></div></td></tr>';
     }).join('') : '<tr><td colspan="7" class="hint">Aucun lot. Lance une analyse depuis le tableau de bord.</td></tr>';
@@ -391,8 +464,8 @@
   $('act-run').onclick=async function(){
     showMsg('dash-msg','info','Lancement de l\'analyse (API-Sports)…');
     try{ var r=await launch({season:2026,leagues:LEAGUES,name:'Analyse '+new Date().toLocaleDateString('fr-FR')});
-      showMsg('dash-msg','good','Lot créé ('+(r.clubs||'—')+' clubs). L\'analyse tourne côté serveur ; tu peux fermer le navigateur.');
-      loadWip();
+      showMsg('dash-msg','good','Lot créé ('+(r.clubs||'—')+' clubs). L\'analyse tourne côté serveur ; tu peux fermer le navigateur. La barre ci-dessus indique le temps restant.');
+      loadDashboard();
     }catch(e){ showMsg('dash-msg','err','Erreur : '+(e.message||e)); }
   };
   $('act-review').onclick=function(){ selectTab('review'); };
@@ -410,7 +483,8 @@
   var MOCKDATA={
     dash:{season:2026,source:'API-Sports',leagues:8,clubs:'137',certain:64,anomalies:7,last:'03/09 22:10',next:'02/02/27 10:00',dur:'2 min 14 s',stateLabel:'Au repos'},
     batches:[{id:'b1',name:'Analyse mercato été 2026',leagues:['Premier League','Ligue 1','Bundesliga','Serie A','Liga','Süper Lig','Liga Portugal','Eredivisie'],status:'anomalies',done:137,total:137,anomalies:7,updated_at:new Date().toISOString()},
-             {id:'b2',name:'Contrôle Ligue 1',leagues:['Ligue 1'],status:'analyse_en_cours',done:11,total:18,anomalies:2,updated_at:new Date().toISOString()}],
+             {id:'b2',name:'Contrôle Ligue 1',leagues:['Ligue 1'],status:'analyse_en_cours',done:11,total:18,anomalies:2,updated_at:new Date().toISOString()},
+             {id:'b3',name:'Vérification complète des effectifs',leagues:['Premier League','Ligue 1','Bundesliga','Serie A','Liga','Süper Lig','Liga Portugal','Eredivisie'],status:'planifie',done:0,total:94,anomalies:0,updated_at:new Date().toISOString()}],
     proposals:[
       {id:1,player_name:'Malick Fofana',confidence:'certaine',club_from:'Olympique Lyonnais',club_to:'AFC Sunderland',reason:'nom + naissance concordants',evidence_url:'https://v3.football.api-sports.io',decision:'en_attente'},
       {id:2,player_name:'Aarón Anselmino',confidence:'certaine',club_from:'Chelsea',club_to:'Olympique Lyonnais',reason:'identifiant API connu',decision:'en_attente'},
