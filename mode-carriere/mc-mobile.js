@@ -103,6 +103,15 @@
   // les indices et la barre de recherche (≈ 63 px CSS par cm sur téléphone). Si la place manque,
   // la scène est réduite proportionnellement : la barre ne recouvre jamais les indices.
   var SAFE = 2 * 63;
+  // Hauteur d'écran STABLE : la barre d'adresse de Safari qui se masque/réapparaît fait varier la
+  // hauteur de ~50-100 px pendant le défilement. On ignore ces petites variations (sinon la scène se
+  // redimensionne à chaque geste → la page tremble) ; seule une vraie rotation / un vrai changement compte.
+  var stableH = 0, stableW = 0;
+  function stableHeight() {
+    var h = doc.documentElement.clientHeight || global.innerHeight, w = global.innerWidth;
+    if (!stableH || w !== stableW || Math.abs(h - stableH) > 140) { stableH = h; stableW = w; }
+    return stableH;
+  }
   var fitting = false;
   function fitStage() {
     if (fitting || !stage) return;
@@ -111,10 +120,14 @@
     if (!play) { stage.style.transform = ""; stage.style.marginBottom = ""; return; }
     if (html.classList.contains("mcm-typing")) return;          // clavier ouvert : on ne bouge rien
     fitting = true;
+    var prevT = stage.style.transform, prevM = stage.style.marginBottom;
     stage.style.transform = ""; stage.style.marginBottom = "";
     var natural = stage.offsetHeight;
-    var avail = global.innerHeight - top.offsetHeight - dock.offsetHeight - SAFE - 6;
+    var avail = stableHeight() - top.offsetHeight - dock.offsetHeight - SAFE - 6;
     var sc = natural > 0 ? Math.min(1, Math.max(0.45, avail / natural)) : 1;
+    // Écart minime (< 2 %) : on garde l'échelle actuelle, pour ne jamais « respirer » pendant un geste.
+    var prevSc = parseFloat((prevT.match(/scale\(([\d.]+)\)/) || [])[1] || "1");
+    if (Math.abs(sc - prevSc) < 0.02) { stage.style.transform = prevT; stage.style.marginBottom = prevM; fitting = false; return; }
     if (sc < 0.999) {
       stage.style.transform = "scale(" + sc.toFixed(4) + ")";
       stage.style.marginBottom = (-(natural * (1 - sc))).toFixed(1) + "px";
@@ -135,6 +148,9 @@
   function followKeyboard() {
     if (!vv) return;
     var hidden = Math.max(0, global.innerHeight - vv.height - vv.offsetTop);
+    // Anti-tremblement : hors saisie, on ne suit QUE le clavier (> 150 px), jamais les petites
+    // variations de la barre d'adresse de Safari qui apparaît/disparaît quand on fait défiler.
+    if (!html.classList.contains("mcm-typing") && hidden < 150) hidden = 0;
     var dockT = hidden > 1 ? "translate3d(0," + (-hidden) + "px,0)" : "";
     var topT = (vv.offsetTop > 1 && html.classList.contains("mcm-typing")) ? "translate3d(0," + vv.offsetTop + "px,0)" : "";
     if (dock.style.transform !== dockT) dock.style.transform = dockT;

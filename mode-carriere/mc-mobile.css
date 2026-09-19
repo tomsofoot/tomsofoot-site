@@ -493,3 +493,20 @@ html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 38px !imp
 html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 76px !important; }
 html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 36px !important; height: 36px !important; }
 html[data-mc-view="mobile"].mcm-many .career-track .club-name { -webkit-line-clamp: 2 !important; }
+
+/* =====================================================================
+   ANTI-TREMBLEMENT AU DÉFILEMENT (iPhone / Safari)
+   - Pendant la partie, la page est figée (body fixe) : plus de rebond élastique ni de
+     défilement du document qui ferait bouger la barre d'adresse et donc le bas de l'écran.
+   - Hauteurs stables : svh (petite hauteur d'écran, ne change pas quand la barre d'adresse
+     bouge) au lieu de dvh, avec repli vh.
+   - Barres fixes et cartes isolées en couche GPU ; calcul de mise en page confiné aux cases.
+   ===================================================================== */
+html[data-mc-view="mobile"] .jogadle-app { min-height: 100vh; min-height: 100svh; }
+html[data-mc-view="mobile"].mcm-play .jogadle-app { height: 100vh; height: 100svh; }
+html[data-mc-view="mobile"].mcm-play body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; overflow: hidden; overscroll-behavior: none; }
+html[data-mc-view="mobile"] .mcm-top,
+html[data-mc-view="mobile"] .mcm-dock { transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+html[data-mc-view="mobile"] .mcm-stage { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+html[data-mc-view="mobile"] .career-track .career-step { contain: layout; }
+html[data-mc-view="mobile"] .player-clues .clue-card { transform: translateZ(0); }
