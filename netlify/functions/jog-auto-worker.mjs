@@ -76,8 +76,9 @@ export default async (req) => {
   let batch;
   try {
     if (!batchId) {
-      // Tick planifié : prendre le plus ancien lot ayant encore des items à traiter.
-      const pend = await sbAdmin(`jog_auto_batch_items?status=in.(planifie,echec)&select=batch_id&limit=1`);
+      // Tick planifié : prendre le plus ancien lot ayant encore des items à traiter (ordre stable par id,
+      // le même que celui affiché dans la régie : « Prochains clubs »).
+      const pend = await sbAdmin(`jog_auto_batch_items?status=in.(planifie,echec)&select=batch_id&order=id.asc&limit=1`);
       if (!pend || !pend.length) return J(200, { ok: true, idle: true });
       batchId = pend[0].batch_id;
     }
@@ -88,7 +89,7 @@ export default async (req) => {
 
   // Items encore à traiter (planifie/echec), en petit lot.
   const items = await sbAdmin(
-    `jog_auto_batch_items?batch_id=eq.${batchId}&status=in.(planifie,echec)&select=id,apisports_team_id,club_name,league&limit=${max}`
+    `jog_auto_batch_items?batch_id=eq.${batchId}&status=in.(planifie,echec)&select=id,apisports_team_id,club_name,league&order=id.asc&limit=${max}`
   );
   if (!items || !items.length) {
     await sbAdmin(`jog_auto_batches?id=eq.${batchId}`, { method: 'PATCH', body: { status: 'analyse_terminee', updated_at: new Date().toISOString() } });

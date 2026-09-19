@@ -102,7 +102,26 @@
   .run-meta b{color:var(--ink);font-variant-numeric:tabular-nums}
   .minibar{display:inline-block;vertical-align:middle;width:70px;height:7px;border-radius:999px;background:#0f0c1a;border:1px solid var(--line);overflow:hidden;margin-right:6px}
   .minibar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
-  @media (prefers-reduced-motion:reduce){ .run.live .bar>i{animation:none} }
+  @media (prefers-reduced-motion:reduce){ .run.live .bar>i{animation:none} .chip.now{animation:none} }
+  /* Détail club par club */
+  .run-live{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);display:grid;gap:5px;font-size:13px;color:var(--dim)}
+  .run-live b{color:var(--ink);font-weight:600}
+  .run-live .now-line{color:#d8ccff}
+  .run-live .now-line b{color:#fff}
+  .run-live .fail-line{color:#fda4af}
+  .run details{margin-top:8px}
+  .run summary{cursor:pointer;color:var(--dim);font-size:13px;user-select:none}
+  .run summary:hover{color:var(--ink)}
+  .lg-block{margin-top:10px}
+  .lg-name{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-bottom:5px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:#120f1d;color:var(--dim)}
+  .chip.ok{background:var(--okbg);border-color:#1c5236;color:#bbf7d0}
+  .chip.now{background:#2a1f55;border-color:var(--accent);color:#fff;animation:pulse 1.4s ease-in-out infinite}
+  .chip.next{border-color:#3b3366;color:var(--ink)}
+  .chip.fail{background:var(--dangerbg);border-color:#6b2131;color:#fda4af}
+  .chip small{opacity:.75}
+  @keyframes pulse{50%{box-shadow:0 0 0 4px rgba(124,92,255,.25)}}
 </style>
 </head>
 <body>
@@ -264,6 +283,7 @@
     try{
       var d = MOCK ? MOCKDATA.dash : await computeDashboard();
       if(MOCK) state.batches=MOCKDATA.batches;
+      await loadRunItems();
       renderTiles(d); renderRuns(); startRunsTimer();
     }catch(e){ showMsg('dash-msg','err','Erreur chargement : '+(e.message||e)); }
   }
@@ -305,6 +325,62 @@
       ticksAhead+=ticks; return r;
     });
   }
+  // Détail club par club des lots actifs (lecture seule, droits admin).
+  state.items={}; state.openDetails={};
+  async function loadRunItems(){
+    var ids=runQueue(state.batches, Date.now()).map(function(r){return r.b.id;});
+    state.items={};
+    if(!ids.length) return;
+    var rows;
+    if(MOCK){ rows=MOCKDATA.items; }
+    else{
+      try{
+        var res=await sb.from('jog_auto_batch_items').select('id,batch_id,club_name,league,status,anomalies_count,last_saved_at').in('batch_id',ids).order('id',{ascending:true});
+        if(res.error) throw res.error; rows=res.data||[];
+      }catch(e){ rows=[]; }
+    }
+    rows.forEach(function(it){ (state.items[it.batch_id]=state.items[it.batch_id]||[]).push(it); });
+  }
+  function clubList(arr){ return arr.map(function(it){return '<b>'+esc(it.club_name)+'</b>';}).join(', '); }
+  function runDetail(r, now){
+    var items=state.items[r.b.id]; if(!items||!items.length) return '';
+    var now_=items.filter(function(i){return i.status==='en_cours';});
+    var done=items.filter(function(i){return i.status==='termine';});
+    var fails=items.filter(function(i){return i.status==='echec';});
+    var todo=items.filter(function(i){return i.status==='planifie'||i.status==='echec';});
+    var html='<div class="run-live">';
+    if(r.live){
+      if(now_.length){
+        html+='<div class="now-line">🔎 Analyse en cours : '+clubList(now_)+'</div>';
+      }else if(done.length){
+        var last=done.reduce(function(a,b){return (b.last_saved_at||'')>(a.last_saved_at||'')?b:a;});
+        var t=last.last_saved_at, batchLast=done.filter(function(i){return i.last_saved_at && Math.abs(new Date(i.last_saved_at)-new Date(t))<5*60000;}).slice(-CLUBS_PER_TICK);
+        html+='<div>✅ Derniers analysés'+(t?' ('+hhmm(t)+')':'')+' : '+clubList(batchLast)+'</div>';
+      }
+      var next=todo.slice(0, CLUBS_PER_TICK);
+      if(next.length && !now_.length) html+='<div>⏭ Prochains, <b>'+dayhhmm(nextTick(now))+'</b> : '+clubList(next)+'</div>';
+      else if(next.length) html+='<div>⏭ Ensuite : '+clubList(next)+'</div>';
+    }else{
+      html+='<div>⏭ Premiers clubs analysés : '+clubList(todo.slice(0,CLUBS_PER_TICK))+'</div>';
+    }
+    if(fails.length) html+='<div class="fail-line">⚠ À refaire (erreur, relancé automatiquement) : '+clubList(fails)+'</div>';
+    html+='</div>';
+    // Liste complète par championnat
+    var byLg={}, order=[];
+    items.forEach(function(i){ if(!byLg[i.league]){byLg[i.league]=[];order.push(i.league);} byLg[i.league].push(i); });
+    var nextIds={}; (r.live&&!now_.length?todo.slice(0,CLUBS_PER_TICK):[]).forEach(function(i){nextIds[i.id]=1;});
+    var chips=order.map(function(lg){
+      var arr=byLg[lg], ok=arr.filter(function(i){return i.status==='termine';}).length;
+      return '<div class="lg-block"><div class="lg-name">'+esc(lg)+' · '+ok+'/'+arr.length+'</div><div class="chips">'+arr.map(function(i){
+        if(i.status==='termine') return '<span class="chip ok" title="Analysé'+(i.last_saved_at?' à '+hhmm(i.last_saved_at):'')+'">✓ '+esc(i.club_name)+(i.anomalies_count?' <small>· '+i.anomalies_count+' à vérifier</small>':'')+'</span>';
+        if(i.status==='en_cours') return '<span class="chip now">🔎 '+esc(i.club_name)+'</span>';
+        if(i.status==='echec') return '<span class="chip fail" title="Erreur — sera refait au prochain passage">⚠ '+esc(i.club_name)+'</span>';
+        return '<span class="chip'+(nextIds[i.id]?' next':'')+'">'+(nextIds[i.id]?'⏭ ':'')+esc(i.club_name)+'</span>';
+      }).join('')+'</div></div>';
+    }).join('');
+    html+='<details data-batch="'+esc(r.b.id)+'"'+(state.openDetails[r.b.id]?' open':'')+'><summary>Voir les '+items.length+' clubs, championnat par championnat</summary>'+chips+'</details>';
+    return html;
+  }
   function renderRuns(){
     var box=$('runs'), now=Date.now(), q=runQueue(state.batches, now);
     if(!q.length){ box.hidden=true; box.innerHTML=''; return; }
@@ -314,12 +390,13 @@
       var left = r.live
         ? ('Temps restant : <b>≈ '+dur(Math.max(0,r.end-now))+'</b>')
         : ('En file d\'attente · démarre <b>'+dayhhmm(r.start)+'</b>');
-      return '<div class="run'+(r.live?' live':' queued')+'" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'" aria-label="'+esc(b.name)+'">'+
+      return '<div class="run'+(r.live?' live':' queued')+'">'+
         '<div class="run-head"><span class="run-name">'+(r.live?'⏳ ':'🕒 ')+esc(b.name)+'</span><span class="run-pct">'+pct+' %</span></div>'+
-        '<div class="bar"><i style="width:'+Math.max(pct,1)+'%"></i></div>'+
+        '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'" aria-label="'+esc(b.name)+'"><i style="width:'+Math.max(pct,1)+'%"></i></div>'+
         '<div class="run-meta"><span><b>'+(b.done||0)+'</b> / '+b.total+' clubs analysés · '+r.rest+' restant'+(r.rest>1?'s':'')+'</span>'+
-        '<span>'+left+'</span><span>Fin estimée : <b>'+dayhhmm(r.end)+'</b></span></div></div>';
+        '<span>'+left+'</span><span>Fin estimée : <b>'+dayhhmm(r.end)+'</b></span></div>'+runDetail(r, now)+'</div>';
     }).join('');
+    box.querySelectorAll('details[data-batch]').forEach(function(d){ d.ontoggle=function(){ state.openDetails[d.dataset.batch]=d.open; }; });
   }
   var runsTimer=null, runsTick=0;
   function startRunsTimer(){
@@ -327,8 +404,10 @@
     runsTimer=setInterval(function(){
       if($('tab-dash').hidden) return;
       runsTick++;
-      if(runsTick%2===0) loadDashboard(); else renderRuns();   // données rafraîchies chaque minute, compte à rebours toutes les 30 s
-    },30000);
+      // Données rafraîchies toutes les 15 s pendant qu'une analyse tourne (on voit le club en cours), sinon chaque minute.
+      var busy=runQueue(state.batches, Date.now()).length>0;
+      if(busy || runsTick%4===0) loadDashboard(); else renderRuns();
+    },15000);
   }
 
   function fmt(x){ if(!x)return '—'; try{return new Date(x).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});}catch(e){return x;} }
@@ -494,6 +573,14 @@
     ],
     sim:{accepted_to_apply:2,anomalies:2,locked_skipped:0}
   };
+  MOCKDATA.items=(function(){
+    var out=[], id=1, t=new Date(Date.now()-9*60000).toISOString();
+    ['Olympique Lyonnais','OGC Nice','RC Lens','LOSC Lille','Olympique de Marseille','AS Monaco','Paris Saint-Germain','Stade Rennais','FC Nantes','Stade Brestois','RC Strasbourg','Toulouse FC','AJ Auxerre','Angers SCO','Le Havre AC','FC Lorient','Paris FC','Le Mans FC']
+      .forEach(function(c,i){ out.push({id:id++,batch_id:'b2',club_name:c,league:'Ligue 1',status:i<11?'termine':(i===11?'echec':'planifie'),anomalies_count:i<11?(i*3)%7:0,last_saved_at:i<11?new Date(Date.now()-(i<7?24:9)*60000).toISOString():null}); });
+    [['Premier League',['Arsenal','Chelsea','Liverpool','Manchester City']],['Liga',['Real Madrid','FC Barcelone']],['Eredivisie',['Ajax Amsterdam','PSV Eindhoven']]]
+      .forEach(function(g){ g[1].forEach(function(c){ out.push({id:id++,batch_id:'b3',club_name:c,league:g[0],status:'planifie',anomalies_count:0,last_saved_at:null}); }); });
+    return out;
+  })();
   function mockRpc(fn){ if(fn==='jog_auto_list_batches')return MOCKDATA.batches; if(fn==='jog_auto_list_proposals')return MOCKDATA.proposals; if(fn==='jog_auto_simulate')return MOCKDATA.sim; return []; }
 
   // ---- Connexion ----
