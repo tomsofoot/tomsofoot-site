@@ -1,0 +1,141 @@
+/* =====================================================================
+   Jogadle — nouvelle affiche (ORDINATEUR, ≥ 1100 px, jamais sur la vue mobile).
+   Titre sur une seule ligne en haut, police Enforce ; « Le joueur du jour »
+   sous la carte du classement. Purement visuel : aucune règle ni donnée modifiée.
+   ===================================================================== */
+@font-face {
+  font-family: "Enforce";
+  src: url("../assets/enforce.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@media (min-width: 1100px) {
+  html:not([data-jg-view="mobile"]) .jogadle { padding-top: 20px; }
+  html:not([data-jg-view="mobile"]) .td-hero h1 {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: .55em; row-gap: 4px;
+    margin: 6px auto 0;
+    font-family: "Enforce", "Archivo Black", Inter, sans-serif; font-weight: 400;
+    letter-spacing: .015em; line-height: 1.05;
+  }
+  html:not([data-jg-view="mobile"]) .td-hero h1 > span,
+  html:not([data-jg-view="mobile"]) .td-hero h1 > em {
+    display: inline-block; width: auto; margin: 0;
+    font-size: clamp(24px, 2.35vw, 46px);
+  }
+  html:not([data-jg-view="mobile"]) .td-hero h1 > span { text-shadow: 0 4px 24px rgba(0, 0, 20, .45); }
+  html:not([data-jg-view="mobile"]) .td-hero > p { margin-top: 10px; font-size: 13px; }
+
+  /* « Le joueur du jour » : petite étiquette sous la carte du classement. */
+  html.jgd-on:not([data-jg-view="mobile"]) .td-hero > .td-eyebrow {
+    position: fixed; z-index: 1150;
+    top: var(--jgd-card-bottom, calc(100vh - 70px)); margin-top: 14px;
+    left: min(calc((100vw - var(--jgd-pad)) / 2 + 755px + 48px), calc(100vw - var(--jgd-w) * 1.1 - 24px));
+    width: calc(var(--jgd-w) * 1.1); box-sizing: border-box;
+    padding: 12px 14px; border-radius: 14px;
+    background: linear-gradient(160deg, rgba(26, 22, 72, .82), rgba(8, 9, 30, .9));
+    border: 1px solid rgba(140, 120, 255, .3);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    box-shadow: 0 18px 50px rgba(0, 0, 20, .45);
+    font-size: 11px;
+  }
+  html.jgd-on.jgd-full:not([data-jg-view="mobile"]) .td-hero > .td-eyebrow { display: none; }
+
+  /* Police Enforce sur tous les textes de la page, SAUF la grille (en-têtes Joueur, Confédération,
+     Club, Ligue, Nation, Poste, Âge, N° et cartes) et la liste de suggestions (noms de joueurs). */
+  html:not([data-jg-view="mobile"]) :is(.jogadle, .jgd-card, .jg-league, .hint-fab, .jga-tools) :not(.board, .board *, .suggestions, .suggestions *) {
+    font-family: "Enforce", Inter, Arial, sans-serif;
+    font-synthesis: none;
+  }
+  /* La grille et les suggestions gardent la police d'origine (elles en héritent). */
+  html:not([data-jg-view="mobile"]) :is(.board, .suggestions) { font-family: Inter, Arial, sans-serif; }
+
+  /* « Quel est le joueur mystère ? » + la phrase d'accroche sur la même ligne (voir affiche.js). */
+  html:not([data-jg-view="mobile"]) .jga-ask {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 22px; row-gap: 4px;
+    width: max-content; max-width: calc(100vw - var(--jgd-pad, 56px) - 48px);
+    margin: 0 0 12px 50%; transform: translateX(-50%);
+  }
+  html:not([data-jg-view="mobile"]) .jga-ask > label { margin: 0; text-shadow: 0 1px 2px rgba(0,0,20,.9); }
+  html:not([data-jg-view="mobile"]) .jga-ask > p { margin: 0; color: #c9cbe0; font-size: 12px; font-weight: 400; text-shadow: 0 1px 2px rgba(0,0,20,.9), 0 0 12px rgba(0,0,20,.7); }
+
+  /* Hero allégé : sous le titre, seulement « Édition » (minuteur et boutons sont déplacés par affiche.js). */
+  html:not([data-jg-view="mobile"]) .td-hero .daily-meta { margin-top: 10px; }
+  html:not([data-jg-view="mobile"]) .td-hero > .hero-chips:not(:has(> :not([hidden]))) { display: none; }
+
+  /* Minuteur dans la rangée Propositions, à gauche du compteur d'essais. */
+  html:not([data-jg-view="mobile"]) .progress-row > * { grid-row: 1; }
+  html:not([data-jg-view="mobile"]) .progress-row > span { grid-column: 1; }
+  html:not([data-jg-view="mobile"]) .progress-row > .progress-rail { grid-column: 2; }
+  html:not([data-jg-view="mobile"]) .progress-row > .attempt-count { grid-column: 3; }
+  html:not([data-jg-view="mobile"]) .progress-row > .attempt-count ~ .progress-rail { grid-column: 4; }
+  html:not([data-jg-view="mobile"]) .progress-row > strong { grid-column: 5; }
+  html:not([data-jg-view="mobile"]) .progress-row > .td-countdown { grid-column: 2; grid-row: 1; justify-self: start; margin-left: clamp(0px, 3vw, 60px); }
+
+  /* « Règlement & points » + « ? » / son : en haut à droite, au-dessus du classement. */
+  html:not([data-jg-view="mobile"]) .jga-tools {
+    position: fixed; z-index: 1210; top: 18px;
+    left: min(calc((100vw - var(--jgd-pad, 452px)) / 2 + 755px + 48px), calc(100vw - var(--jgd-w, 360px) * 1.1 - 24px));
+    width: calc(var(--jgd-w, 360px) * 1.1);
+    display: flex; justify-content: center; align-items: center; gap: 12px;
+  }
+  html:not([data-jg-view="mobile"]) .jga-tools > .jg-rules-btn { margin: 0; }
+  html:not([data-jg-view="mobile"]) .jga-tools > .top-actions { margin: 0; }
+  /* La carte descend un peu pour laisser la place aux boutons au-dessus. */
+  html.jgd-on:not([data-jg-view="mobile"]) .jgd-card { top: calc(50% + 30px); max-height: calc((100vh - 170px) / 1.1); }
+
+  /* Minuteur compact et horizontal (libellé à gauche des tuiles). */
+  html:not([data-jg-view="mobile"]) .td-countdown {
+    flex-direction: row; gap: 12px; padding: 8px 12px 8px 16px; border-radius: 16px;
+  }
+  html:not([data-jg-view="mobile"]) .td-countdown__label { max-width: 124px; text-align: left; font-size: 10px; line-height: 1.35; }
+  html:not([data-jg-view="mobile"]) .td-countdown__tiles { gap: 6px; }
+  html:not([data-jg-view="mobile"]) .cd-tile { min-width: 48px; padding: 6px 6px 5px; border-radius: 10px; }
+  html:not([data-jg-view="mobile"]) .cd-tile strong { font-size: 21px; }
+  html:not([data-jg-view="mobile"]) .cd-tile small { margin-top: 3px; font-size: 8px; }
+  html:not([data-jg-view="mobile"]) .cd-colon { font-size: 18px; margin-top: 5px; }
+
+  /* « ? » et son : une petite barre d'outils en verre, assortie au bouton Règlement. */
+  html:not([data-jg-view="mobile"]) .jga-tools > .top-actions {
+    gap: 2px; padding: 4px; border-radius: 999px;
+    background: linear-gradient(135deg, rgba(58,43,143,.55), rgba(16,14,48,.75));
+    border: 1px solid rgba(140,120,255,.45);
+    box-shadow: 0 14px 34px rgba(40,26,120,.4), inset 0 1px rgba(255,255,255,.16);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
+  html:not([data-jg-view="mobile"]) .jga-tools > .top-actions .icon-button {
+    display: grid; place-items: center; width: 38px; height: 38px; padding: 0;
+    border: 0; border-radius: 50%; background: transparent; box-shadow: none;
+    color: #e4dfff; font-size: 16px; line-height: 1;
+  }
+  html:not([data-jg-view="mobile"]) .jga-tools > .top-actions .icon-button:hover {
+    transform: none; background: rgba(140,120,255,.22); color: #fff;
+    box-shadow: 0 0 16px rgba(140,120,255,.45);
+  }
+  html:not([data-jg-view="mobile"]) .jga-tools > .top-actions .icon-button + .icon-button { position: relative; }
+  html:not([data-jg-view="mobile"]) .jga-tools > .top-actions .icon-button + .icon-button::before {
+    content: ""; position: absolute; left: -2px; top: 9px; bottom: 9px; width: 1px; background: rgba(170,155,255,.3);
+  }
+  html:not([data-jg-view="mobile"]) .jga-tools > .top-actions .sound-toggle svg { width: 17px; height: 17px; }
+
+  /* Rangée « Propositions » : on retire les deux rails de points (la place est gardée pour que
+     « Propositions », le compteur et « Essais illimités » ne bougent pas). */
+  html:not([data-jg-view="mobile"]) .progress-row > .progress-rail { visibility: hidden; }
+
+  /* Rangée « Propositions » sans bande violette ; « Tentative(s) » sous le compteur d'essais. */
+  html:not([data-jg-view="mobile"]) .progress-row { background: none; border-top: 0; border-bottom: 0; clip-path: none; padding-bottom: 20px; }
+  html:not([data-jg-view="mobile"]) .progress-row > .attempt-count::after {
+    content: "Tentative(s)"; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 7px;
+    color: #c0c2d9; font-size: 10px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0,0,20,.9);
+  }
+}
+
+/* Écrans moyens (1100–1499 px) : rangée Propositions resserrée pour que le minuteur tienne. */
+@media (min-width: 1100px) and (max-width: 1499px) {
+  html:not([data-jg-view="mobile"]) .progress-row { grid-template-columns: 118px 1fr 64px 1fr 118px; padding-inline: 10px; }
+  html:not([data-jg-view="mobile"]) .progress-row > span, html:not([data-jg-view="mobile"]) .progress-row > strong { font-size: 9.5px; letter-spacing: .03em; }
+  html:not([data-jg-view="mobile"]) .progress-row > .td-countdown { margin-left: 0; justify-self: center; padding: 6px 8px; }
+  html:not([data-jg-view="mobile"]) .progress-row > .td-countdown .td-countdown__label { display: none; }
+}

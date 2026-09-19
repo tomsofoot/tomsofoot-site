@@ -128,7 +128,11 @@
     h += '<section class="jgd-sec jgd-down"><div class="jgd-lab"><span>' + downLabel + '</span><small>16 – 20</small></div>' + zone(R, 16, 20) + "</section>";
     card.innerHTML = h + footer();
     R.forEach(function (r) { prevPos[r.id] = r.pos; });
+    placeBelow();
   }
+  // Bas de la carte : sert à poser l'étiquette « Le joueur du jour » juste en dessous (affiche.css).
+  function placeBelow() { var b = card.getBoundingClientRect().bottom; if (b > 0) html.style.setProperty("--jgd-card-bottom", Math.round(b) + "px"); }
+  global.addEventListener("resize", placeBelow, { passive: true });
   // Au premier affichage, on ouvre la ligue du joueur connecté (une seule fois ; ses clics sur les onglets priment ensuite).
   var autoDone = false;
   function autoLeague() {
