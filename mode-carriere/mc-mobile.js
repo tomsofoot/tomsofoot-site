@@ -104,7 +104,7 @@
     if (!vv) return;
     var hidden = Math.max(0, global.innerHeight - vv.height - vv.offsetTop);
     var dockT = hidden > 1 ? "translate3d(0," + (-hidden) + "px,0)" : "";
-    var topT = vv.offsetTop > 1 ? "translate3d(0," + vv.offsetTop + "px,0)" : "";
+    var topT = (vv.offsetTop > 1 && html.classList.contains("mcm-typing")) ? "translate3d(0," + vv.offsetTop + "px,0)" : "";
     if (dock.style.transform !== dockT) dock.style.transform = dockT;
     if (top.style.transform !== topT) top.style.transform = topT;
     html.style.setProperty("--mcm-vvh", Math.round(vv.height) + "px");
@@ -165,6 +165,12 @@
     var done = !!(result && result.classList.contains("show"));
     // Retour au jeu (niveau suivant, défi précédent…) : on remonte voir le nouveau parcours en entier.
     if (wasDone === true && !done) setTimeout(function () { global.scrollTo({ top: 0, behavior: "smooth" }); }, 60);
+    // Niveau terminé : on ferme le clavier et on libère la page pour afficher la carte du joueur.
+    if (done && !wasDone) {
+      var inp = $("#guessInput");
+      if (inp && doc.activeElement === inp) inp.blur();
+      html.classList.remove("mcm-typing"); unlockPage(); track(600);
+    }
     wasDone = done;
     html.classList.toggle("mcm-done", done);
     html.classList.toggle("mcm-has-msg", !!(msg && msg.textContent.trim()));
