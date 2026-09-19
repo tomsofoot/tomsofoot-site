@@ -21,6 +21,15 @@ function nextRun(sched, from) {
     case 'yearly': return addMonthsUTC(base, 12);
     case 'winter': { const y = base.getUTCFullYear() + (base.getUTCMonth() >= 1 ? 1 : 0); return new Date(Date.UTC(y, 1, 2, 9, 0)); } // ~2 févr.
     case 'summer': { const y = base.getUTCFullYear() + (base.getUTCMonth() >= 8 ? 1 : 0); return new Date(Date.UTC(y, 8, 2, 9, 0)); } // ~2 sept.
+    case 'custom': {
+      // Répétition régulière : config.every_days (ex. 7 = chaque semaine). On garde l'heure/jour
+      // d'origine en avançant depuis la date prévue, jamais avant « maintenant ».
+      const every = Number(sched.config && sched.config.every_days) || 0;
+      if (every <= 0) return null;
+      let t = sched.next_run_at ? new Date(sched.next_run_at) : base;
+      do { t = new Date(t.getTime() + every * 86400000); } while (t <= base);
+      return t;
+    }
     case 'after_each_mercato': return null; // piloté par delay_hours + dates de mercato (config)
     case 'once': default: return null;      // une seule fois : pas de prochaine
   }
@@ -38,7 +47,10 @@ export default async () => {
   const created = [];
   for (const s of due) {
     try {
-      const season = (s.config && s.config.season) || new Date().getUTCFullYear();
+      // Saison API-Sports = année de DÉBUT de saison (2026 pour 2026/27) : de juillet à décembre
+      // c'est l'année en cours, de janvier à juin l'année précédente.
+      const d = new Date();
+      const season = (s.config && s.config.season) || (d.getUTCMonth() >= 6 ? d.getUTCFullYear() : d.getUTCFullYear() - 1);
       const inList = (s.leagues || []).map(l => encodeURIComponent(l)).join(',');
       if (!inList) continue;
       const clubs = await sbAdmin(`jog_clubs?active=eq.true&apisports_team_id=not.is.null&league=in.(${inList})&select=canonical_name,league,apisports_team_id`) || [];
