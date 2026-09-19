@@ -41,4 +41,23 @@
     font-size: 11px;
   }
   html.jgd-on.jgd-full:not([data-jg-view="mobile"]) .td-hero > .td-eyebrow { display: none; }
+
+  /* Police Enforce sur tous les textes de la page, SAUF la grille (en-têtes Joueur, Confédération,
+     Club, Ligue, Nation, Poste, Âge, N° et cartes) et la liste de suggestions (noms de joueurs). */
+  html:not([data-jg-view="mobile"]) :is(.jogadle, .jgd-card, .jg-league, .hint-fab) :not(.board, .board *, .suggestions, .suggestions *) {
+    font-family: "Enforce", Inter, Arial, sans-serif;
+    font-synthesis: none;
+  }
+  /* La grille et les suggestions gardent la police d'origine (elles en héritent). */
+  html:not([data-jg-view="mobile"]) :is(.board, .suggestions) { font-family: Inter, Arial, sans-serif; }
+
+  /* « Quel est le joueur mystère ? » + la phrase d'accroche sur la même ligne (voir affiche.js). */
+  html:not([data-jg-view="mobile"]) .jga-ask {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 22px; row-gap: 4px;
+    width: max-content; max-width: calc(100vw - var(--jgd-pad, 56px) - 48px);
+    margin: 0 0 12px 50%; transform: translateX(-50%);
+  }
+  html:not([data-jg-view="mobile"]) .jga-ask > label { margin: 0; text-shadow: 0 1px 2px rgba(0,0,20,.9); }
+  html:not([data-jg-view="mobile"]) .jga-ask > p { margin: 0; color: #c9cbe0; font-size: 12px; font-weight: 400; text-shadow: 0 1px 2px rgba(0,0,20,.9), 0 0 12px rgba(0,0,20,.7); }
 }
+
