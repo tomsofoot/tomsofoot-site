@@ -121,7 +121,9 @@ export default async (req) => {
         const PROP_COLS = ['player_id','player_ext_id','player_name','movement_type','club_from','club_to','league_from','league_to','confidence','source','evidence_url','observed_at','second_source','reason'];
         const rows = proposals.map(p => {
           const row = { batch_id: batchId };
-          for (const c of PROP_COLS) if (p[c] !== undefined && p[c] !== null) row[c] = p[c];
+          // TOUTES les lignes doivent avoir exactement les mêmes clés, sinon PostgREST refuse le
+          // paquet entier (400 PGRST102 « All object keys must match ») : colonnes absentes = null.
+          for (const c of PROP_COLS) row[c] = (p[c] === undefined ? null : p[c]);
           return row;
         });
         await sbAdmin('jog_auto_proposals', {
