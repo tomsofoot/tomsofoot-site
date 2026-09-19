@@ -528,3 +528,6 @@ html[data-skin="glace"] .g-theme-btn--float{display:none}
   html[data-skin="glace"] .tsf-menu{max-width:var(--max) !important;margin:0 auto !important;padding-left:var(--pad) !important;padding-right:var(--pad) !important;box-sizing:border-box}
   html[data-skin="glace"] .tsf-menu .tsf-wrap{max-width:none !important;width:100% !important;padding:0 !important}
 }
+@media (min-width:769px){
+  html[data-skin="glace"] .tsf-menu .tmf-doc span{overflow-wrap:normal !important;word-break:normal !important;hyphens:none;font-size:clamp(12px,1.05vw,17px) !important;letter-spacing:-.01em}
+}
