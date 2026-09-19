@@ -462,3 +462,13 @@ html[data-mc-view="mobile"].mcm-many .career-track .career-period { margin-top: 
 html[data-mc-view="mobile"].mcm-many .career-track .career-card.is-active { transform: translateY(-2px) scale(1.05) !important; }
 html[data-mc-view="mobile"].mcm-many .career-section { margin-top: 0; padding-bottom: 4px; }
 html[data-mc-view="mobile"].mcm-many .mcm-hero .level-selector { margin-top: 8px; }
+
+/* =====================================================================
+   PARTIE EN COURS : la page ne défile plus, la scène tient à l'écran
+   (réduite si besoin par mc-mobile.js) avec ~2 cm de marge au-dessus de la
+   barre de recherche : celle-ci ne recouvre jamais les indices.
+   ===================================================================== */
+html[data-mc-view="mobile"].mcm-play, html[data-mc-view="mobile"].mcm-play body { overflow: hidden; overscroll-behavior: none; }
+html[data-mc-view="mobile"].mcm-play .jogadle-app { min-height: 0; height: 100dvh; padding-bottom: 0; overflow: hidden; }
+html[data-mc-view="mobile"] .mcm-stage { transform-origin: top center; will-change: transform; }
+html[data-mc-view="mobile"].mcm-play .game-result { display: none; }

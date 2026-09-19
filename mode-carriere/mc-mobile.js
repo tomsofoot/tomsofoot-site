@@ -77,6 +77,12 @@
   move($("#revealAnswerButton", app), actions);  // Révéler la réponse
   move($("#guessForm", app), dockIn);            // recherche + suggestions + VALIDER
 
+  // ---------- Scène de jeu : affiche + parcours + indices, toujours visibles d'un seul bloc ----------
+  var stage = el("div", "mcm-stage");
+  var careerSec = $(".career-section", app);
+  app.insertBefore(stage, hero);
+  [hero, careerSec, $(".career-caption", app), $(".game-controls", app)].forEach(function (n) { if (n) stage.appendChild(n); });
+
   doc.body.appendChild(top);
   doc.body.appendChild(dock);
   doc.body.appendChild(sheet);
@@ -89,6 +95,32 @@
   function syncHeights() {
     html.style.setProperty("--mcm-top", top.offsetHeight + "px");
     html.style.setProperty("--mcm-dock", dock.offsetHeight + "px");
+    fitStage();
+  }
+
+  // Pendant la partie, la page ne défile pas : la scène (titre, cases, indices) est ajustée pour tenir
+  // entre la barre du haut et la barre de recherche, avec une MARGE DE SÉCURITÉ d'environ 2 cm entre
+  // les indices et la barre de recherche (≈ 63 px CSS par cm sur téléphone). Si la place manque,
+  // la scène est réduite proportionnellement : la barre ne recouvre jamais les indices.
+  var SAFE = 2 * 63;
+  var fitting = false;
+  function fitStage() {
+    if (fitting || !stage) return;
+    var play = !html.classList.contains("mcm-done");
+    html.classList.toggle("mcm-play", play);
+    if (!play) { stage.style.transform = ""; stage.style.marginBottom = ""; return; }
+    if (html.classList.contains("mcm-typing")) return;          // clavier ouvert : on ne bouge rien
+    fitting = true;
+    stage.style.transform = ""; stage.style.marginBottom = "";
+    var natural = stage.offsetHeight;
+    var avail = global.innerHeight - top.offsetHeight - dock.offsetHeight - SAFE - 6;
+    var sc = natural > 0 ? Math.min(1, Math.max(0.45, avail / natural)) : 1;
+    if (sc < 0.999) {
+      stage.style.transform = "scale(" + sc.toFixed(4) + ")";
+      stage.style.marginBottom = (-(natural * (1 - sc))).toFixed(1) + "px";
+    }
+    html.style.setProperty("--mcm-stage-scale", sc.toFixed(4));
+    fitting = false;
   }
   syncHeights();
   if (global.ResizeObserver) { var ro = new ResizeObserver(syncHeights); ro.observe(top); ro.observe(dock); }
@@ -207,7 +239,7 @@
     steps.style.setProperty("--mcm-cols", cols);
     html.classList.toggle("mcm-many", n > 8);
     html.classList.toggle("mcm-multirow", n > cols);
-    setTimeout(fitNames, 0);
+    setTimeout(function () { fitNames(); fitStage(); }, 0);
   }
   // Noms de clubs : on réduit la police juste assez pour que le mot le plus long tienne dans la case
   // (« KAISERSLAUTERN », « FENERBAHÇE »…) au lieu de le couper au milieu.
@@ -226,7 +258,8 @@
     });
   }
   global.addEventListener("resize", function () { setTimeout(fitNames, 50); });
-  if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(fitNames);
+  if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { fitNames(); fitStage(); });
+  if (global.ResizeObserver) { var roStage = new ResizeObserver(function () { if (!fitting) fitStage(); }); [].forEach.call(stage.children, function (c) { roStage.observe(c); }); }
   if (steps && global.MutationObserver) new MutationObserver(layoutCareer).observe(steps, { childList: true });
   layoutCareer();
 
