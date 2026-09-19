@@ -232,17 +232,17 @@ def _emit(rel, raw):
     p = os.path.join(ASSETS_OUT, rel); os.makedirs(os.path.dirname(p), exist_ok=True)
     if not os.path.exists(p): open(p,"wb").write(raw)
     return "assets/"+rel
-def _to_webp(u, sub, lossless):
+def _to_webp(u, sub, lossless, quality=82):
     b = _dataurl_bytes(u)
     if b is None: return u                       # déjà une URL (ou vide) -> inchangé
-    ck = _hl.sha1(b).hexdigest()
+    ck = _hl.sha1(b).hexdigest() + ("" if quality==82 else "-q%d" % quality)
     if ck in _MEDIA_CACHE: return _MEDIA_CACHE[ck]
     try:
         im = _PILImage.open(_io.BytesIO(b))
         if im.mode == "P": im = im.convert("RGBA")   # palette -> RGBA (conserve la transparence)
         out = _io.BytesIO()
         if lossless: im.save(out, "WEBP", lossless=True, method=6)          # logos : sans perte, alpha conservé
-        else:        im.save(out, "WEBP", quality=82, method=6)             # photos/fonds : imperceptible
+        else:        im.save(out, "WEBP", quality=quality, method=6)        # photos/fonds : imperceptible (82 par défaut)
         data_out = out.getvalue()
         h = _hl.sha1(data_out).hexdigest()[:16]
         url = _emit(sub+"/"+h+".webp", data_out)
@@ -3122,6 +3122,10 @@ body.cal-open{overflow:hidden}
 # ===== Fond de page : la photo choisie (comme le jeu 1), sous un voile violet/navy conservé =====
 _pagebg = open("/tmp/pagebg.txt").read().strip() if os.path.exists("/tmp/pagebg.txt") else ""
 _pagebg = _to_webp(_pagebg, "bg", False)   # Phase 2 : fond de page externalisé en WebP
+# Version HD du même fond (3200 px, débruitée + agrandie x2) servie uniquement aux écrans d'ordinateur :
+# les téléphones gardent l'image légère (une image de fond dans une media query non active n'est pas téléchargée).
+_pagebg_hd = open("/tmp/pagebg_hd.txt").read().strip() if os.path.exists("/tmp/pagebg_hd.txt") else ""
+_pagebg_hd = _to_webp(_pagebg_hd, "bg", False, 90)
 page_bg_css = ""
 if _pagebg:
     page_bg_css = '''
@@ -3134,6 +3138,17 @@ body{
     url("__BG__") center 20%/cover no-repeat fixed !important;
 }
 '''.replace("__BG__", _pagebg)
+    if _pagebg_hd:
+        page_bg_css += '''
+@media (min-width:1025px){
+  html:not([data-mc-view="mobile"]) body{
+    background:
+      radial-gradient(circle at 50% 36%, rgba(178,60,255,.20), transparent 46rem),
+      linear-gradient(180deg, rgba(6,3,14,.52) 0%, rgba(9,4,20,.58) 46%, rgba(3,1,9,.82) 100%),
+      url("__BGHD__") center 20%/cover no-repeat fixed !important;
+  }
+}
+'''.replace("__BGHD__", _pagebg_hd)
 
 # ===== Écran de résultat EXPERT « EA-straight » (démonstrateur adapté, CSS scopé à #eaExpert) =====
 # Variables et couleurs du démonstrateur placées sur #eaExpert (n'affectent QUE cet écran).
