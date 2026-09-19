@@ -232,17 +232,17 @@ def _emit(rel, raw):
     p = os.path.join(ASSETS_OUT, rel); os.makedirs(os.path.dirname(p), exist_ok=True)
     if not os.path.exists(p): open(p,"wb").write(raw)
     return "assets/"+rel
-def _to_webp(u, sub, lossless):
+def _to_webp(u, sub, lossless, quality=82):
     b = _dataurl_bytes(u)
     if b is None: return u                       # déjà une URL (ou vide) -> inchangé
-    ck = _hl.sha1(b).hexdigest()
+    ck = _hl.sha1(b).hexdigest() + ("" if quality==82 else "-q%d" % quality)
     if ck in _MEDIA_CACHE: return _MEDIA_CACHE[ck]
     try:
         im = _PILImage.open(_io.BytesIO(b))
         if im.mode == "P": im = im.convert("RGBA")   # palette -> RGBA (conserve la transparence)
         out = _io.BytesIO()
         if lossless: im.save(out, "WEBP", lossless=True, method=6)          # logos : sans perte, alpha conservé
-        else:        im.save(out, "WEBP", quality=82, method=6)             # photos/fonds : imperceptible
+        else:        im.save(out, "WEBP", quality=quality, method=6)        # photos/fonds : imperceptible (82 par défaut)
         data_out = out.getvalue()
         h = _hl.sha1(data_out).hexdigest()[:16]
         url = _emit(sub+"/"+h+".webp", data_out)
@@ -2797,7 +2797,7 @@ daily_css='''
   overflow:hidden;border-radius:18px;margin:0 auto;position:relative;
   border:1px solid rgba(178,60,255,.5);background:linear-gradient(180deg,rgba(178,60,255,.10),rgba(16,11,24,.72));
   box-shadow:0 16px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
-.result-player-photo{width:100%;height:100%;object-fit:contain;object-position:center bottom;transform:none;
+.result-player-photo{width:100%;height:100%;object-fit:cover;object-position:center 22%;transform:none;   /* remplit toujours le cadre, visage centré (quelle que soit la taille de la photo) */
   border:0!important;box-shadow:none!important;border-radius:0!important;max-width:none!important;max-height:none!important;margin:0!important;display:block}
 .result-photo-fallback{width:58%;height:58%;color:rgba(207,150,255,.5);display:flex;align-items:center;justify-content:center}
 .result-photo-fallback svg{width:100%;height:100%}
@@ -3122,6 +3122,10 @@ body.cal-open{overflow:hidden}
 # ===== Fond de page : la photo choisie (comme le jeu 1), sous un voile violet/navy conservé =====
 _pagebg = open("/tmp/pagebg.txt").read().strip() if os.path.exists("/tmp/pagebg.txt") else ""
 _pagebg = _to_webp(_pagebg, "bg", False)   # Phase 2 : fond de page externalisé en WebP
+# Version HD du même fond (3200 px, débruitée + agrandie x2) servie uniquement aux écrans d'ordinateur :
+# les téléphones gardent l'image légère (une image de fond dans une media query non active n'est pas téléchargée).
+_pagebg_hd = open("/tmp/pagebg_hd.txt").read().strip() if os.path.exists("/tmp/pagebg_hd.txt") else ""
+_pagebg_hd = _to_webp(_pagebg_hd, "bg", False, 90)
 page_bg_css = ""
 if _pagebg:
     page_bg_css = '''
@@ -3134,6 +3138,17 @@ body{
     url("__BG__") center 20%/cover no-repeat fixed !important;
 }
 '''.replace("__BG__", _pagebg)
+    if _pagebg_hd:
+        page_bg_css += '''
+@media (min-width:1025px){
+  html:not([data-mc-view="mobile"]) body{
+    background:
+      radial-gradient(circle at 50% 36%, rgba(178,60,255,.20), transparent 46rem),
+      linear-gradient(180deg, rgba(6,3,14,.52) 0%, rgba(9,4,20,.58) 46%, rgba(3,1,9,.82) 100%),
+      url("__BGHD__") center 20%/cover no-repeat fixed !important;
+  }
+}
+'''.replace("__BGHD__", _pagebg_hd)
 
 # ===== Écran de résultat EXPERT « EA-straight » (démonstrateur adapté, CSS scopé à #eaExpert) =====
 # Variables et couleurs du démonstrateur placées sur #eaExpert (n'affectent QUE cet écran).
@@ -3492,7 +3507,7 @@ html=f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
         <img class="result-photo result-player-photo" id="resultPhoto" alt="" hidden>
         <div class="result-photo-fallback" id="resultPhotoFallback" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.4" r="4.3" fill="currentColor"/><path d="M3.4 21.5c0-4.75 3.85-8.6 8.6-8.6s8.6 3.85 8.6 8.6z" fill="currentColor"/></svg></div>
       </div>
-      <div class="photo-dims-hint" aria-hidden="true">Format idéal : <b>720 × 990 px</b> · portrait 8:11 · non recadrée</div>
+      <div class="photo-dims-hint" aria-hidden="true">Format idéal : <b>720 × 990 px</b> · portrait 8:11 · cadrage automatique</div>
       <button type="button" class="next-level-cta" id="nextLevelCta" data-act="next-level" hidden>
         <span class="nlc-text"><span class="nlc-kicker">Passe au</span><span class="nlc-target" id="nextLevelTarget">Niveau suivant</span></span>
         <span class="nlc-arrow" aria-hidden="true">→</span>
