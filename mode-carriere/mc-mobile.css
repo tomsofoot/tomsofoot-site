@@ -472,3 +472,24 @@ html[data-mc-view="mobile"].mcm-play, html[data-mc-view="mobile"].mcm-play body 
 html[data-mc-view="mobile"].mcm-play .jogadle-app { min-height: 0; height: 100dvh; padding-bottom: 0; overflow: hidden; }
 html[data-mc-view="mobile"] .mcm-stage { transform-origin: top center; will-change: transform; }
 html[data-mc-view="mobile"].mcm-play .game-result { display: none; }
+
+/* =====================================================================
+   RETOUCHE FRISE (cartes club) :
+   1) plus de petits traits parasites : les coins décoratifs (.card-decoration ::before/::after)
+      sont retirés sur mobile ;
+   2) logo plus grand, parfaitement centré, nom du club centré juste en dessous.
+   ===================================================================== */
+html[data-mc-view="mobile"] .career-track .card-decoration { display: none !important; }
+html[data-mc-view="mobile"] .career-track .club-content {
+  min-height: 0 !important; height: 100%; width: 100%; padding: 5px 3px !important; gap: 3px !important;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+html[data-mc-view="mobile"] .career-track .club-logo { width: 54px !important; height: 54px !important; margin: 0 auto; display: block; object-fit: contain; }
+html[data-mc-view="mobile"] .career-track .club-name { margin: 0 auto !important; text-align: center; width: 100%; }
+@media (max-height: 700px) {
+  html[data-mc-view="mobile"] .career-track .club-logo { width: 48px !important; height: 48px !important; }
+}
+html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 38px !important; height: 38px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 76px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 36px !important; height: 36px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .club-name { -webkit-line-clamp: 2 !important; }
