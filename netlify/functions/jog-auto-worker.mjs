@@ -33,6 +33,13 @@ async function apiSquad(teamId, season) {
   let page = 1, total = 1, out = [];
   do {
     const j = await api(`/players?team=${teamId}&season=${season}&page=${page}`);
+    // API-Sports signale quota dépassé / clé invalide / saison indisponible dans `errors` avec une
+    // réponse VIDE : on lève une erreur au lieu de traiter l'effectif comme vide (sinon tous les
+    // joueurs du club passeraient pour « partis »).
+    const errs = j && j.errors;
+    if (errs && (Array.isArray(errs) ? errs.length : Object.keys(errs).length)) {
+      throw new Error('api_sports: ' + JSON.stringify(errs).slice(0, 200));
+    }
     total = (j.paging && j.paging.total) || 1;
     (j.response || []).forEach(x => {
       const p = x.player || {};
@@ -84,6 +91,8 @@ export default async (req) => {
       await sbAdmin(`jog_auto_batch_items?id=eq.${it.id}`, { method: 'PATCH', body: { status: 'en_cours' } });
 
       const squad = await apiSquad(it.apisports_team_id, season);
+      // Pas de réponse = pas de conclusion : un effectif vide n'est jamais « tout le monde est parti ».
+      if (!squad.length) throw new Error('effectif API vide (saison ' + season + ') — club non analysé');
       // Roster jeu COMPLET (paginé : l'API Supabase plafonne à 1000 lignes par réponse), avec
       // l'identifiant API-Sports déjà connu → reconnaissance CERTAINE par id quand il existe.
       const rosterAll = await loadAllPlayers(sbAdmin, 'id,name,short_name,club,league,country,birth_date,apisports_id');
