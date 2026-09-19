@@ -1,19 +1,10 @@
 // netlify/functions/lib/jog-auto-core.mjs
-// Régie automatisée — MOTEUR DE COMPARAISON (pur, testable hors-ligne).
-//
-// Rôle : à partir d'un effectif externe (API-Sports) et du roster TomsoFoot d'un club,
-// détecter les mouvements et produire des PROPOSITIONS classées par niveau de confiance.
-// AUCUN accès réseau, AUCUNE écriture : uniquement de la logique déterministe.
-//
-// Règles clés (brief) :
-//   * Jamais de correspondance par nom SEUL : on corrobore avec date de naissance / nationalité
-//     / identifiant externe lorsqu'ils existent.
-//   * Une absence de réponse n'est jamais un départ (géré en amont : on ne compare que si la
-//     source a répondu pour ce club).
-//   * Confiance : certaine | probable | ambigue | bloquante. Les ambiguës/bloquantes ne sont
-//     jamais appliquées automatiquement (appliquées seulement après décision humaine).
+// Régie automatisée — MOTEUR DE COMPARAISON (pur, testable hors-ligne). VERSION DURCIE.
+// Règles : jamais de "certaine" sur un simple nom sans corroboration (date de naissance / id externe).
+// Une absence de réponse n'est jamais un départ (géré en amont). Confiance : certaine|probable|ambigue.
 
 const SPECIAL = { 'ø':'o','æ':'ae','œ':'oe','ł':'l','đ':'d','ð':'d','ı':'i','ß':'ss','þ':'th','ħ':'h','ŀ':'l','ŉ':'n' };
+const SUFFIX = new Set(['jr', 'junior', 'sr', 'senior', 'ii', 'iii', 'iv']);
 
 export function norm(s) {
   if (!s) return '';
@@ -23,6 +14,7 @@ export function norm(s) {
   s = s.replace(/[^a-z0-9]+/g, ' ').trim();
   return s.replace(/\s+/g, ' ');
 }
+function tokens(s) { return norm(s).split(' ').filter(t => t && !SUFFIX.has(t)); }
 
 // Nom exploitable : préfère prénom+nom (détails API), sinon le champ name.
 export function apiFullName(p) {
@@ -30,89 +22,96 @@ export function apiFullName(p) {
   if (fn && ln) return fn + ' ' + ln;
   return (p.name || '').trim();
 }
-
-// Normalise une nationalité API (anglais) vers une comparaison souple (on compare en interne
-// sur une forme réduite ; le mapping fin FR/EN vit dans la table d'alias en base).
 export function natKey(s) { return norm(s).replace(/\b(the|of|and|republic|dr)\b/g, '').replace(/\s+/g, ' ').trim(); }
-
-// Compare deux dates de naissance ISO (YYYY-MM-DD). Tolérant au null.
 function sameBirth(a, b) { return a && b && String(a).slice(0, 10) === String(b).slice(0, 10); }
 
-// Construit un index du roster jeu par nom normalisé (surname+prénom) pour le matching.
+// Formes normalisées d'un nom : ordre direct, ordre inversé (prénom/nom), et tri (insensible à l'ordre).
+function nameForms(full) {
+  const t = tokens(full), forms = new Set();
+  if (!t.length) return forms;
+  forms.add(t.join(' '));
+  forms.add([...t].reverse().join(' '));
+  forms.add([...t].sort().join(' '));
+  return forms;
+}
+function uniqById(list) { const m = new Map(); (list || []).forEach(g => m.set(g.id, g)); return [...m.values()]; }
+
 export function buildRosterIndex(roster) {
-  const byExt = new Map();       // apisports_id -> joueur jeu (si déjà connu)
-  const byName = new Map();      // nom normalisé -> [joueurs jeu]
+  const byExt = new Map();
+  const byName = new Map();
+  const byBirth = new Map(); // date de naissance -> [joueurs jeu] (rattrapage surnoms / noms d'usage)
+  const add = (k, g) => { if (!k) return; if (!byName.has(k)) byName.set(k, []); byName.get(k).push(g); };
   for (const g of roster) {
     if (g.apisports_id != null) byExt.set(Number(g.apisports_id), g);
-    const k = norm(g.name);
-    if (!byName.has(k)) byName.set(k, []);
-    byName.get(k).push(g);
-    // clé secondaire : nom de famille (dernier mot)
-    const last = norm(g.name).split(' ').filter(Boolean).pop();
-    if (last) { const lk = 'last:' + last; if (!byName.has(lk)) byName.set(lk, []); byName.get(lk).push(g); }
+    for (const f of nameForms(g.name)) add(f, g);
+    if (g.short_name) for (const f of nameForms(g.short_name)) add(f, g);
+    const t = tokens(g.name); const last = t[t.length - 1];
+    if (last) add('last:' + last, g);
+    const b = g.birth_date ? String(g.birth_date).slice(0, 10) : '';
+    if (b) { if (!byBirth.has(b)) byBirth.set(b, []); byBirth.get(b).push(g); }
   }
-  return { byExt, byName };
+  return { byExt, byName, byBirth };
 }
 
-// Détermine l'identité d'un joueur API dans le roster jeu + le niveau de confiance.
-// Retour : { match: joueurJeu|null, confidence, reason, candidates:[...] }
+// Identité d'un joueur API dans le roster jeu + niveau de confiance.
 export function identify(apiPlayer, idx) {
   const extId = Number(apiPlayer.ext_id);
-  // 1) Identifiant externe déjà connu → CERTAINE
   if (!Number.isNaN(extId) && idx.byExt.has(extId)) {
     return { match: idx.byExt.get(extId), confidence: 'certaine', reason: 'identifiant API-Sports connu' };
   }
   const full = apiFullName(apiPlayer);
-  const nk = norm(full);
-  let candidates = (idx.byName.get(nk) || []).slice();
-  // dédoublonnage par id
-  const seen = new Set(); candidates = candidates.filter(c => (seen.has(c.id) ? false : (seen.add(c.id), true)));
+  // Formes testées : nom complet (prénom + nom) ET nom d'usage API (« Pedri », « Vinícius Júnior »).
+  const forms = new Set([...nameForms(full), ...nameForms(apiPlayer.name)]);
+  let cand = [];
+  for (const f of forms) cand = cand.concat(idx.byName.get(f) || []);
+  cand = uniqById(cand);
 
-  if (candidates.length === 1) {
-    const g = candidates[0];
-    const birthOk = sameBirth(apiPlayer.birth, g.birth_date);
-    const natOk = apiPlayer.nat && g.country && natKey(apiPlayer.nat) && (natKey(apiPlayer.nat) === natKey(g.country) || true); // nationalité : corroboration souple (langues différentes)
-    if (birthOk) return { match: g, confidence: 'certaine', reason: 'nom + date de naissance concordants' };
+  if (cand.length === 1) {
+    const g = cand[0];
+    if (sameBirth(apiPlayer.birth, g.birth_date)) return { match: g, confidence: 'certaine', reason: 'nom + date de naissance concordants' };
     return { match: g, confidence: 'probable', reason: 'nom concordant (naissance non vérifiée)' };
   }
-  if (candidates.length > 1) {
-    // homonymes : on tente de départager par date de naissance
-    const byBirth = candidates.filter(g => sameBirth(apiPlayer.birth, g.birth_date));
+  if (cand.length > 1) {
+    const byBirth = cand.filter(g => sameBirth(apiPlayer.birth, g.birth_date));
     if (byBirth.length === 1) return { match: byBirth[0], confidence: 'certaine', reason: 'homonyme départagé par la date de naissance' };
-    return { match: null, confidence: 'ambigue', reason: 'plusieurs joueurs portent ce nom', candidates };
+    return { match: null, confidence: 'ambigue', reason: 'plusieurs joueurs portent ce nom', candidates: cand };
   }
-  // 2) rattrapage nom de famille unique
-  const last = nk.split(' ').filter(Boolean).pop();
-  const byLast = (idx.byName.get('last:' + last) || []);
-  const uniqLast = [...new Map(byLast.map(g => [g.id, g])).values()];
-  if (uniqLast.length === 1 && sameBirth(apiPlayer.birth, uniqLast[0].birth_date)) {
-    return { match: uniqLast[0], confidence: 'probable', reason: 'nom de famille + naissance concordants' };
+  // rattrapage 1 : même date de naissance + au moins un morceau de nom en commun, et UN SEUL
+  // joueur du jeu dans ce cas → certaine (ex. nom légal complet côté API vs nom d'usage côté jeu).
+  const b = apiPlayer.birth ? String(apiPlayer.birth).slice(0, 10) : '';
+  if (b && idx.byBirth && idx.byBirth.has(b)) {
+    const apiTok = new Set([...tokens(full), ...tokens(apiPlayer.name)].filter(x => x.length >= 3));
+    const hits = uniqById(idx.byBirth.get(b).filter(g =>
+      [...tokens(g.name), ...tokens(g.short_name)].some(x => apiTok.has(x))));
+    if (hits.length === 1) return { match: hits[0], confidence: 'certaine', reason: 'date de naissance + nom concordants (nom d\'usage)' };
   }
-  // 3) inconnu → nouveau joueur (à créer)
+  // rattrapage 2 : nom de famille unique + date de naissance
+  const t = tokens(full); const last = t[t.length - 1];
+  const byLast = uniqById(idx.byName.get('last:' + last) || []);
+  if (byLast.length === 1 && sameBirth(apiPlayer.birth, byLast[0].birth_date)) {
+    return { match: byLast[0], confidence: 'probable', reason: 'nom de famille + naissance concordants' };
+  }
   return { match: null, confidence: 'probable', reason: 'joueur non présent dans le jeu (recrue)', isNew: true };
 }
 
-// Compare l'effectif API d'un club à ce que le jeu enregistre pour ce club.
-// Entrées :
-//   apiSquad : [{ ext_id, firstname, lastname, name, birth, nat, position }]  (source API-Sports)
-//   gameRoster : TOUT le roster jeu (pour retrouver un joueur qui arrive d'un autre club)
-//   club, league : cibles canoniques côté jeu
-// Sortie : { proposals:[...], stats:{...} }
+// Compare l'effectif API d'un club au roster jeu → propositions classées + liens d'identifiants à poser.
 export function compareClub(apiSquad, gameRoster, club, league) {
   const idx = buildRosterIndex(gameRoster);
   const proposals = [];
   const matchedGameIds = new Set();
+  // Liens à enregistrer (players.apisports_id) : joueurs reconnus de façon CERTAINE qui n'ont
+  // pas encore d'identifiant API-Sports — y compris ceux déjà au bon club (le cas le plus courant).
+  const links = [];
 
   for (const ap of apiSquad) {
     const full = apiFullName(ap);
     const r = identify(ap, idx);
     if (r.match) {
       matchedGameIds.add(r.match.id);
-      if (r.match.club === club) {
-        // déjà au club → rien à proposer (on note l'id externe pour fiabiliser les prochains passages)
-        continue;
+      if (r.confidence === 'certaine' && r.match.apisports_id == null && ap.ext_id != null) {
+        links.push({ player_id: r.match.id, apisports_id: Number(ap.ext_id) });
       }
-      // ARRIVÉE : le joueur est au club côté API mais à un autre club côté jeu → mouvement
+      if (r.match.club === club) continue; // déjà au club
       proposals.push({
         player_id: r.match.id, player_ext_id: ap.ext_id, player_name: r.match.name,
         movement_type: 'transfer', club_from: r.match.club, club_to: club,
@@ -136,8 +135,6 @@ export function compareClub(apiSquad, gameRoster, club, league) {
     }
   }
 
-  // DÉPARTS : joueurs que le jeu place à ce club mais absents de l'effectif API.
-  // (Le club de destination est déterminé quand on traite CE club-là ; ici on SIGNALE seulement.)
   for (const g of gameRoster) {
     if (g.club === club && !matchedGameIds.has(g.id)) {
       proposals.push({
@@ -156,5 +153,5 @@ export function compareClub(apiSquad, gameRoster, club, league) {
     departures: proposals.filter(p => p.is_departure).length,
     ambiguous: proposals.filter(p => p.confidence === 'ambigue').length,
   };
-  return { proposals, stats };
+  return { proposals, stats, links };
 }

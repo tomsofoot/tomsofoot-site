@@ -15,6 +15,7 @@
 
 import { SUPABASE_URL, SERVICE_ROLE, sbAdmin } from './lib/x-core.mjs';
 import { compareClub } from './lib/jog-auto-core.mjs';
+import { loadAllPlayers } from './lib/jog-roster.mjs';
 
 export const config = { schedule: '*/15 * * * *' }; // tick planifié toutes les 15 min (respect quota) ; aussi appelable à la demande avec ?batch=
 
@@ -83,14 +84,21 @@ export default async (req) => {
       await sbAdmin(`jog_auto_batch_items?id=eq.${it.id}`, { method: 'PATCH', body: { status: 'en_cours' } });
 
       const squad = await apiSquad(it.apisports_team_id, season);
-      // roster jeu du club (service_role)
-      const roster = await sbAdmin(
-        `players?club=eq.${encodeURIComponent(it.club_name)}&select=id,name,club,league,country,birth_date`
-      );
-      // roster complet léger pour retrouver une arrivée venue d'un autre club
-      const rosterAll = await sbAdmin(`players?select=id,name,club,league,country,birth_date&limit=5000`);
+      // Roster jeu COMPLET (paginé : l'API Supabase plafonne à 1000 lignes par réponse), avec
+      // l'identifiant API-Sports déjà connu → reconnaissance CERTAINE par id quand il existe.
+      const rosterAll = await loadAllPlayers(sbAdmin, 'id,name,short_name,club,league,country,birth_date,apisports_id');
 
-      const { proposals, stats } = compareClub(squad, rosterAll || roster || [], it.club_name, it.league);
+      const { proposals, stats, links } = compareClub(squad, rosterAll, it.club_name, it.league);
+
+      // Auto-cicatrisation : enregistre l'id API-Sports des joueurs reconnus de façon certaine qui
+      // n'en ont pas encore. N'écrit QUE players.apisports_id. Non bloquant (un conflit d'unicité
+      // ou une erreur isolée n'arrête pas l'analyse).
+      for (const l of (links || [])) {
+        try {
+          await sbAdmin(`players?id=eq.${encodeURIComponent(l.player_id)}&apisports_id=is.null`,
+            { method: 'PATCH', body: { apisports_id: l.apisports_id }, prefer: 'return=minimal' });
+        } catch (_) { /* non bloquant */ }
+      }
 
       // écrire les propositions (nettoyage idempotent des propositions encore en attente de ce club)
       const extIds = proposals.map(p => p.player_ext_id).filter(x => x != null);
