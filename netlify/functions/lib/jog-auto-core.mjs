@@ -91,11 +91,27 @@ export function identify(apiPlayer, idx) {
   if (byLast.length === 1 && sameBirth(apiPlayer.birth, byLast[0].birth_date)) {
     return { match: byLast[0], confidence: 'probable', reason: 'nom de famille + naissance concordants' };
   }
+  // rattrapage 3 : nom complet API qui CONTIENT le nom du jeu (« Adam James Wharton » ⊃ « Adam Wharton »,
+  // « Jurriën David Norman Timber » ⊃ « Jurriën Timber »), même nom de famille, UN SEUL joueur du jeu.
+  // Sans date de naissance concordante → « probable » (un humain valide).
+  if (last) {
+    const apiAll = new Set([...t, ...tokens(apiPlayer.name)]);
+    const sub = byLast.filter(g => { const gt = tokens(g.name); return gt.length >= 2 && gt.every(x => apiAll.has(x)); });
+    if (sub.length === 1) {
+      return sameBirth(apiPlayer.birth, sub[0].birth_date)
+        ? { match: sub[0], confidence: 'certaine', reason: 'nom complet + date de naissance concordants' }
+        : { match: sub[0], confidence: 'probable', reason: 'nom complet API contenant le nom du jeu (naissance différente ou absente)' };
+    }
+  }
   return { match: null, confidence: 'probable', reason: 'joueur non présent dans le jeu (recrue)', isNew: true };
 }
 
 // Compare l'effectif API d'un club au roster jeu → propositions classées + liens d'identifiants à poser.
-export function compareClub(apiSquad, gameRoster, club, league) {
+// opts.official : effectif OFFICIEL actuel du club (API-Sports /players/squads) = [{ id, name }].
+// La liste « /players » (avec dates de naissance) ne contient que les joueurs déjà utilisés dans la
+// saison : un titulaire blessé en est absent. L'effectif officiel sert donc (a) à ne PAS proposer de
+// faux départs, (b) à repérer une arrivée d'un joueur déjà relié (par identifiant) qui n'a pas encore joué.
+export function compareClub(apiSquad, gameRoster, club, league, opts = {}) {
   const idx = buildRosterIndex(gameRoster);
   const proposals = [];
   const matchedGameIds = new Set();
@@ -135,12 +151,49 @@ export function compareClub(apiSquad, gameRoster, club, league) {
     }
   }
 
+  // Arrivées vues seulement dans l'effectif officiel (joueur déjà relié par identifiant, pas encore utilisé).
+  const official = Array.isArray(opts.official) ? opts.official : null;
+  const seenExt = new Set(apiSquad.map(ap => Number(ap.ext_id)));
+  if (official) {
+    for (const o of official) {
+      const id = Number(o.id);
+      if (seenExt.has(id) || !idx.byExt.has(id)) continue;
+      const g = idx.byExt.get(id);
+      matchedGameIds.add(g.id);
+      if (g.club === club) continue;
+      proposals.push({
+        player_id: g.id, player_ext_id: id, player_name: g.name,
+        movement_type: 'transfer', club_from: g.club, club_to: club,
+        league_from: g.league, league_to: league,
+        confidence: 'certaine', reason: 'identifiant API-Sports connu (effectif officiel)',
+        source: 'api-sports', observed_at: new Date().toISOString(),
+      });
+    }
+  }
+  // Noms de l'effectif officiel (formes courtes « W. Saliba ») pour les joueurs du jeu encore sans id.
+  const officialIds = new Set((official || []).map(o => Number(o.id)));
+  const officialLast = new Map();
+  for (const o of (official || [])) {
+    const ot = tokens(o.name); const l = ot[ot.length - 1]; if (!l) continue;
+    if (!officialLast.has(l)) officialLast.set(l, []);
+    officialLast.get(l).push(ot);
+  }
+  function inOfficial(g) {
+    if (!official) return false;
+    if (g.apisports_id != null && officialIds.has(Number(g.apisports_id))) return true;
+    const gt = tokens(g.name); const l = gt[gt.length - 1];
+    const cands = officialLast.get(l) || [];
+    // même nom de famille + même initiale de prénom (ou nom d'usage d'un seul mot)
+    return cands.some(ot => gt.length === 1 || ot.length === 1 || (ot[0] && gt[0] && ot[0][0] === gt[0][0]));
+  }
+
   for (const g of gameRoster) {
     if (g.club === club && !matchedGameIds.has(g.id)) {
+      if (inOfficial(g)) continue; // toujours dans l'effectif officiel : pas un départ
       proposals.push({
         player_id: g.id, player_ext_id: null, player_name: g.name,
         movement_type: 'unknown_club', club_from: club, club_to: null, league_from: league, league_to: null,
-        confidence: 'ambigue', reason: 'présent au club côté jeu mais absent de l\'effectif API — départ probable à confirmer',
+        confidence: 'ambigue', reason: official ? 'absent de l\'effectif officiel du club — départ probable à confirmer' : 'présent au club côté jeu mais absent de l\'effectif API — départ probable à confirmer',
         source: 'api-sports', observed_at: new Date().toISOString(), is_departure: true,
       });
     }

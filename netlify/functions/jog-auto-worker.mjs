@@ -53,6 +53,19 @@ async function apiSquad(teamId, season) {
   return out;
 }
 
+// Effectif OFFICIEL actuel (liste de l'équipe, sans dates de naissance) : [{ id, name }].
+// Sert à confirmer les départs et à repérer les arrivées pas encore utilisées. null si indisponible.
+async function apiOfficialSquad(teamId) {
+  try {
+    const j = await api(`/players/squads?team=${teamId}`);
+    const errs = j && j.errors;
+    if (errs && (Array.isArray(errs) ? errs.length : Object.keys(errs).length)) return null;
+    const t = (j.response || [])[0];
+    const list = (t && t.players) || [];
+    return list.length ? list.map(p => ({ id: p.id, name: p.name })) : null;
+  } catch (_) { return null; }
+}
+
 export default async (req) => {
   if (!APIKEY) return J(500, { error: 'no_apisports_key' });
 
@@ -97,7 +110,8 @@ export default async (req) => {
       // l'identifiant API-Sports déjà connu → reconnaissance CERTAINE par id quand il existe.
       const rosterAll = await loadAllPlayers(sbAdmin, 'id,name,short_name,club,league,country,birth_date,apisports_id');
 
-      const { proposals, stats, links } = compareClub(squad, rosterAll, it.club_name, it.league);
+      const official = await apiOfficialSquad(it.apisports_team_id);
+      const { proposals, stats, links } = compareClub(squad, rosterAll, it.club_name, it.league, { official });
 
       // Auto-cicatrisation : enregistre l'id API-Sports des joueurs reconnus de façon certaine qui
       // n'en ont pas encore. N'écrit QUE players.apisports_id. Non bloquant (un conflit d'unicité

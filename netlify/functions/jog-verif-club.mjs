@@ -49,6 +49,19 @@ async function apiSquad(teamId, season) {
 
 function currentSeason() { const d = new Date(); return d.getUTCMonth() >= 6 ? d.getUTCFullYear() : d.getUTCFullYear() - 1; }
 
+// Effectif OFFICIEL actuel (liste de l'équipe, sans dates de naissance) : [{ id, name }].
+// Sert à confirmer les départs et à repérer les arrivées pas encore utilisées. null si indisponible.
+async function apiOfficialSquad(teamId) {
+  try {
+    const j = await api(`/players/squads?team=${teamId}`);
+    const errs = j && j.errors;
+    if (errs && (Array.isArray(errs) ? errs.length : Object.keys(errs).length)) return null;
+    const t = (j.response || [])[0];
+    const list = (t && t.players) || [];
+    return list.length ? list.map(p => ({ id: p.id, name: p.name })) : null;
+  } catch (_) { return null; }
+}
+
 export default async (req) => {
   if (req.method === 'OPTIONS') return new Response('', { headers: CORS });
   if (req.method !== 'POST') return J(405, { error: 'method_not_allowed' });
@@ -71,7 +84,8 @@ export default async (req) => {
     try {
       const squad = await apiSquad(c.apisports_team_id, season);
       if (!squad.length) { results.push({ club: c.canonical_name, error: 'effectif API vide (saison ' + season + ')' }); continue; }
-      const { proposals, stats, links } = compareClub(squad, roster, c.canonical_name, c.league);
+      const official = await apiOfficialSquad(c.apisports_team_id);
+      const { proposals, stats, links } = compareClub(squad, roster, c.canonical_name, c.league, { official });
       const pick = p => ({ name: p.player_name, from: p.club_from, to: p.club_to, confidence: p.confidence, reason: p.reason,
                            player_id: p.player_id || null, ext_id: p.player_ext_id || null, birth: p.birth_date || null, position: p.position || null });
       results.push({
