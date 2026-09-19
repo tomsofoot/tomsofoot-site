@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,viewport-fit=cover">
   <meta name="description" content="TomsoFoot — le football raconté avec du fond, du style et une voix. Magazine, vidéos et directs.">
   <title>TomsoFoot — Le football, notre passion</title>
   <link rel="icon" href="/favicon.ico" sizes="any">
@@ -220,6 +220,17 @@
   .js [data-reveal],.js [data-stagger]>*{opacity:1!important;transform:none!important}
 }
 
+</style>
+<style id="mobile-no-dezoom">
+/* Mobile : rien ne doit dépasser la largeur de l'écran (sinon le téléphone permet de dézoomer et laisse une bande vide à droite) */
+html,body{max-width:100%;overflow-x:clip}
+@supports not (overflow-x:clip){html,body{overflow-x:hidden}}
+@media (max-width:760px){
+  .mc-ctrl{flex-wrap:wrap;width:100%;min-width:0;gap:10px}
+  .mc-dots{flex:1 1 0;min-width:0;gap:4px}
+  .mc-dot{flex:1 1 0;min-width:4px;width:auto}
+  .mc-rot{flex-basis:100%}
+}
 </style>
 </head>
 <body>
