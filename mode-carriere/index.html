@@ -2906,6 +2906,9 @@ body.sr-lock{overflow:hidden}
   // =====================================================================
   var DAILY_KEY='JOGADLE_DAILY_V1';         // clé fixe du moteur (ne pas changer sans vouloir décaler tout le calendrier)
   var LAUNCH_DATE='2026-08-04';             // <<< DATE DE LANCEMENT (modifiable) : jour 0 du calendrier
+  // Remplacement ponctuel des joueurs d'un jour précis (demande de l'admin). Les autres jours suivent la
+  // rotation normale. 19/09/2026 : nouveaux joueurs du jour sur les 3 niveaux (Weidenfeller / Lavezzi / Diomède remplacés).
+  var DAILY_OVERRIDE={'2026-09-19':{amateur:'Q59490',pro:'Q30036972',expert:'Q311925'}};
   function pad2(n){return (n<10?'0':'')+n;}
   // Date « du jour » dans le fuseau de Paris, au format AAAA-MM-JJ (DST géré par Intl).
   function parisDateStr(d){
@@ -2950,6 +2953,8 @@ body.sr-lock{overflow:hidden}
   // Sélection des 3 joueurs pour une date Paris donnée. Rotation : parcourt toute la
   // liste avant répétition ; +1 déterministe pour éviter qu'un QID soit choisi deux fois le même jour.
   function pickDaily(dateStr){
+    var ov=DAILY_OVERRIDE[dateStr];
+    if(ov){var o={};['amateur','pro','expert'].forEach(function(l){o[l]=findByQid(l,ov[l]);});if(o.amateur&&o.pro&&o.expert)return o;}
     var dayIdx=dateToIndex(dateStr)-dateToIndex(LAUNCH_DATE),out={},taken={};
     ['amateur','pro','expert'].forEach(function(l){
       var pool=sortedPool(l),n=pool.length;
