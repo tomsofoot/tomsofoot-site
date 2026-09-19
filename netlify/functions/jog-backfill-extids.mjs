@@ -37,6 +37,13 @@ async function apiSquad(teamId, season) {
   let page = 1, total = 1, out = [];
   do {
     const j = await api(`/players?team=${teamId}&season=${season}&page=${page}`);
+    // API-Sports signale quota dépassé / clé invalide / saison indisponible dans `errors` avec une
+    // réponse VIDE : on lève une erreur au lieu de traiter l'effectif comme vide (sinon tous les
+    // joueurs du club passeraient pour « partis »).
+    const errs = j && j.errors;
+    if (errs && (Array.isArray(errs) ? errs.length : Object.keys(errs).length)) {
+      throw new Error('api_sports: ' + JSON.stringify(errs).slice(0, 200));
+    }
     total = (j.paging && j.paging.total) || 1;
     (j.response || []).forEach(x => {
       const p = x.player || {};
@@ -114,6 +121,7 @@ export default async (req) => {
     let squad;
     try { squad = await apiSquad(c.apisports_team_id, season); }
     catch (e) { report.api_errors.push({ club: c.canonical_name, error: String(e.message || e) }); continue; }
+    if (!squad.length) { report.api_errors.push({ club: c.canonical_name, error: 'effectif API vide (saison ' + season + ')' }); continue; }
     report.clubs++;
     for (const ap of squad) {
       const label = (ap.firstname && ap.lastname) ? (ap.firstname + ' ' + ap.lastname) : (ap.name || '?');
