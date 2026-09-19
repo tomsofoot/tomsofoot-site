@@ -18,7 +18,7 @@
   // ---------- Barre du HAUT : marque + compte à rebours + menu, puis les 3 niveaux ----------
   var top = el("header", "mcm-top");
   var row = el("div", "mcm-top__row");
-  var brand = el("div", "mcm-brand", '<b>JOGADLE <i>2</i></b><span>Mode Carrière</span>');
+  var brand = el("div", "mcm-brand", '<b>JOGA<i>DLE</i> 2</b>');
   var tools = el("div", "mcm-tools");
   var clock = el("div", "mcm-clock", '<span class="mcm-clock__label">Nouveaux joueurs</span>');
   var menuBtn = el("button", "mcm-menu-btn", '<span aria-hidden="true"><i></i><i></i><i></i></span>');
@@ -29,7 +29,14 @@
   row.appendChild(brand); row.appendChild(tools);
   top.appendChild(row);
   move($("#timerValue", app), clock);            // HH:MM:SS (mis à jour par le jeu)
-  move($("#levelSelector", app), top);           // Amateur / Pro / Expert (même logique, mêmes verrous)
+
+  // ---------- AFFICHE (même esprit que l'affiche du jeu 1) : titre Enforce + question, puis les niveaux ----------
+  var hero = el("section", "mcm-hero",
+    '<p class="mcm-hero__kicker">Jogadle 2 · Mode Carrière</p>' +
+    '<h1 class="mcm-hero__title"><span>Un parcours.</span> <em>Un seul joueur.</em></h1>' +
+    '<p class="mcm-hero__ask">Quel est le joueur mystère ?</p>');
+  app.insertBefore(hero, app.firstChild);
+  move($("#levelSelector", app), hero);          // Amateur / Pro / Expert (même logique, mêmes verrous)
 
   // ---------- Menu (feuille qui monte du bas) : récompenses, défis précédents, joueurs d'hier ----------
   var sheet = el("div", "mcm-sheet");
@@ -73,6 +80,10 @@
   doc.body.appendChild(top);
   doc.body.appendChild(dock);
   doc.body.appendChild(sheet);
+
+  // Barre du haut transparente sur l'affiche, opaque dès qu'on fait défiler.
+  function onScroll() { html.classList.toggle("mcm-scrolled", (global.scrollY || 0) > 8); }
+  global.addEventListener("scroll", onScroll, { passive: true }); onScroll();
 
   // ---------- Hauteurs réelles des barres → marges du contenu ----------
   function syncHeights() {
@@ -124,6 +135,20 @@
     if (msg) new MutationObserver(syncState).observe(msg, { childList: true, characterData: true, subtree: true });
   }
   syncState();
+
+  // Écrans en superposition (tous les joueurs, calendrier, récompenses, partage…) : on masque les
+  // deux barres pendant qu'ils sont ouverts, pour qu'ils occupent tout l'écran.
+  var OVERLAYS = ".cal-overlay, .browse-overlay, .yd-overlay, .sr-overlay, .rw-overlay, .id-overlay, .cu-overlay";
+  function syncOverlay() {
+    var open = [].some.call(doc.querySelectorAll(OVERLAYS), function (o) { return o.getAttribute("aria-hidden") === "false"; });
+    html.classList.toggle("mcm-overlay", open);
+  }
+  if (global.MutationObserver) {
+    [].forEach.call(doc.querySelectorAll(OVERLAYS), function (o) {
+      new MutationObserver(syncOverlay).observe(o, { attributes: true, attributeFilter: ["aria-hidden", "class"] });
+    });
+  }
+  syncOverlay();
 
   // Changement de niveau : on remonte en haut pour voir le nouveau parcours.
   var sel = $("#levelSelector");
