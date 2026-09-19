@@ -308,9 +308,6 @@ html[data-mc-view="mobile"] .jogadle-app { padding-bottom: calc(var(--mcm-dock) 
 html[data-mc-view="mobile"].mcm-done .mcm-hero__title,
 html[data-mc-view="mobile"].mcm-done .mcm-hero__ask { display: none; }
 
-/* Pendant la saisie : l'affiche se fait discrète */
-html[data-mc-view="mobile"].mcm-typing .mcm-hero__title { font-size: 22px; }
-html[data-mc-view="mobile"].mcm-typing .mcm-hero__ask, html[data-mc-view="mobile"].mcm-typing .mcm-hero__kicker { display: none; }
 
 @media (max-width: 360px), (max-height: 700px) {
   html[data-mc-view="mobile"] .mcm-hero__title { font-size: 26px; }
@@ -445,3 +442,23 @@ html[data-mc-view="mobile"] .career-track .club-content { padding: 0 2px; }
 html[data-mc-view="mobile"].mcm-many .mcm-hero__title { font-size: min(5.6vw, 24px); }
 html[data-mc-view="mobile"].mcm-many .career-steps { row-gap: 2px; }
 html[data-mc-view="mobile"].mcm-many .career-track .career-card { margin-bottom: 18px !important; }
+
+/* Saisie : la barre suit le clavier image par image, sans transition (pas de rebond) ; l'affiche
+   derrière ne change pas de taille. */
+html[data-mc-view="mobile"] .mcm-dock, html[data-mc-view="mobile"] .mcm-top { transition: none !important; }
+html[data-mc-view="mobile"].mcm-locked { overflow: hidden; }
+html[data-mc-view="mobile"].mcm-locked body { overscroll-behavior: none; touch-action: none; }
+html[data-mc-view="mobile"].mcm-locked .mcm-dock .suggestions { touch-action: pan-y; }
+/* IMPORTANT : une case cachée ne montre JAMAIS le nom ni le logo du club (seulement « ? »). */
+html[data-mc-view="mobile"] .career-track .career-card.is-hidden .club-name,
+html[data-mc-view="mobile"] .career-track .career-card.is-hidden .club-logo,
+html[data-mc-view="mobile"] .career-track .career-card.is-hidden .club-logo-fallback { display: none !important; }
+/* 9 clubs et plus : cases compactes pour garder les indices visibles au-dessus de la barre du pouce */
+html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 66px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 28px !important; height: 28px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .hidden-club-symbol { font-size: 26px; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card { margin-bottom: 15px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-period { margin-top: 3px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card.is-active { transform: translateY(-2px) scale(1.05) !important; }
+html[data-mc-view="mobile"].mcm-many .career-section { margin-top: 0; padding-bottom: 4px; }
+html[data-mc-view="mobile"].mcm-many .mcm-hero .level-selector { margin-top: 8px; }

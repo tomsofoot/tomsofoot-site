@@ -94,26 +94,66 @@
   if (global.ResizeObserver) { var ro = new ResizeObserver(syncHeights); ro.observe(top); ro.observe(dock); }
   global.addEventListener("resize", syncHeights);
 
-  // ---------- Clavier virtuel : la barre du bas reste collée au-dessus du clavier ----------
+  // ---------- Clavier virtuel : la barre reste collée au clavier, SANS rebond ----------
+  // Sur iPhone, ouvrir le clavier fait défiler la page et décale la zone visible par à-coups.
+  // Pendant la saisie : 1) la page derrière est figée (elle ne glisse plus) ; 2) la barre est
+  // recalée à CHAQUE image (requestAnimationFrame) sur le bord haut du clavier, au lieu d'attendre
+  // les événements du navigateur qui arrivent en retard → elle monte une fois avec le clavier et y reste.
   var vv = global.visualViewport;
   function followKeyboard() {
     if (!vv) return;
     var hidden = Math.max(0, global.innerHeight - vv.height - vv.offsetTop);
-    dock.style.transform = hidden > 1 ? "translateY(" + (-hidden) + "px)" : "";
-    top.style.transform = vv.offsetTop > 1 ? "translateY(" + vv.offsetTop + "px)" : "";
+    var dockT = hidden > 1 ? "translate3d(0," + (-hidden) + "px,0)" : "";
+    var topT = vv.offsetTop > 1 ? "translate3d(0," + vv.offsetTop + "px,0)" : "";
+    if (dock.style.transform !== dockT) dock.style.transform = dockT;
+    if (top.style.transform !== topT) top.style.transform = topT;
     html.style.setProperty("--mcm-vvh", Math.round(vv.height) + "px");
   }
   if (vv) { vv.addEventListener("resize", followKeyboard); vv.addEventListener("scroll", followKeyboard); followKeyboard(); }
+
+  var raf = 0, rafUntil = 0;
+  function pump() { followKeyboard(); raf = (Date.now() < rafUntil || html.classList.contains("mcm-typing")) ? global.requestAnimationFrame(pump) : 0; }
+  function track(ms) { rafUntil = Math.max(rafUntil, Date.now() + (ms || 900)); if (!raf) raf = global.requestAnimationFrame(pump); }
+
+  // Page figée pendant la saisie (elle reprend exactement sa position ensuite)
+  var lockedY = null;
+  function lockPage() {
+    if (lockedY !== null) return;
+    lockedY = global.scrollY || 0;
+    var b = doc.body.style;
+    b.position = "fixed"; b.top = (-lockedY) + "px"; b.left = "0"; b.right = "0"; b.width = "100%";
+    html.classList.add("mcm-locked");
+  }
+  function unlockPage() {
+    if (lockedY === null) return;
+    var y = lockedY; lockedY = null;
+    var b = doc.body.style;
+    b.position = ""; b.top = ""; b.left = ""; b.right = ""; b.width = "";
+    html.classList.remove("mcm-locked");
+    global.scrollTo(0, y);
+  }
 
   var input = $("#guessInput");
   if (input) {
     // Le jeu place le curseur dans la recherche au chargement : on n'entre en « mode saisie » (barre
     // compacte, suggestions visibles) que lorsque le joueur touche vraiment la recherche ou tape.
-    var typing = function () { html.classList.add("mcm-typing"); setTimeout(followKeyboard, 60); };
+    var typing = function () { lockPage(); html.classList.add("mcm-typing"); track(1200); };
+    // Toucher la recherche : on donne le focus nous-mêmes SANS laisser Safari faire défiler la page.
+    input.addEventListener("touchend", function (e) {
+      if (doc.activeElement === input) return;
+      e.preventDefault(); typing();
+      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+    }, { passive: false });
     input.addEventListener("pointerdown", typing);
     input.addEventListener("input", typing);
     input.addEventListener("focus", function () { if (vv && global.innerHeight - vv.height > 120) typing(); });
-    input.addEventListener("blur", function () { setTimeout(function () { html.classList.remove("mcm-typing"); followKeyboard(); }, 120); });
+    input.addEventListener("blur", function () {
+      setTimeout(function () {
+        if (doc.activeElement === input) return;
+        html.classList.remove("mcm-typing"); unlockPage(); track(900);
+      }, 120);
+    });
+    if (vv) vv.addEventListener("resize", function () { track(700); });
     input.setAttribute("autocapitalize", "words");
   }
 
