@@ -232,6 +232,16 @@ html,body{max-width:100%;overflow-x:clip}
   .mc-rot{flex-basis:100%}
 }
 </style>
+<script id="mobile-no-dezoom-js">
+/* iPhone (Safari ignore minimum-scale pendant le pincement) : on bloque seulement le pincement qui ferait
+   descendre la page SOUS sa taille normale. Le zoom avant reste possible (lecture, accessibilité). */
+(function(){
+  var vv=window.visualViewport, start=1;
+  function cur(){ return vv ? vv.scale : 1; }
+  document.addEventListener('gesturestart',function(e){ start=cur(); if(start<=1.01 && e.scale<1) e.preventDefault(); },{passive:false});
+  document.addEventListener('gesturechange',function(e){ if(start*e.scale<1) e.preventDefault(); },{passive:false});
+})();
+</script>
 </head>
 <body>
   <div class="reading-progress" aria-hidden="true"><span class="reading-progress__value"></span></div>
