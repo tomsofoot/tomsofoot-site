@@ -369,3 +369,79 @@ html[data-mc-view="mobile"] .mcm-hero__title span, html[data-mc-view="mobile"] .
 }
 html[data-mc-view="mobile"].mcm-overlay .mcm-top,
 html[data-mc-view="mobile"].mcm-overlay .mcm-dock { visibility: hidden; }
+
+/* =====================================================================
+   PARCOURS EN PETITES CASES : tous les clubs tiennent à l'écran
+   (grille de 1 à 5 colonnes selon le nombre de clubs, rangées successives,
+   un trait relie les points d'une même rangée). Aucune règle du jeu modifiée.
+   ===================================================================== */
+html[data-mc-view="mobile"] .career-viewport { overflow: visible !important; }
+html[data-mc-view="mobile"] .career-track {
+  width: 100% !important; max-width: 420px; margin-inline: auto; padding-top: 16px !important;
+  --cw: 76px; --gap: 8px; --dot-bottom: 10px;
+}
+html[data-mc-view="mobile"] .career-track .career-line { display: none; }
+html[data-mc-view="mobile"] .career-steps {
+  grid-auto-flow: row; grid-auto-columns: auto;
+  grid-template-columns: repeat(var(--mcm-cols, 4), var(--cw));
+  justify-content: center; column-gap: var(--gap); row-gap: 6px;
+}
+html[data-mc-view="mobile"] .career-step { min-width: 0; }
+/* Trait entre deux points voisins d'une même rangée */
+html[data-mc-view="mobile"] .career-step::after {
+  content: ""; position: absolute; z-index: 1; left: 50%; bottom: var(--dot-bottom);
+  width: calc(100% + var(--gap)); height: 3px; transform: translateY(50%); border-radius: 3px;
+  background: linear-gradient(90deg, rgba(180,107,255,.75), rgba(180,107,255,.35));
+}
+html[data-mc-view="mobile"] .career-step:last-child::after,
+html[data-mc-view="mobile"] .career-steps[data-cols="2"] .career-step:nth-child(2n)::after,
+html[data-mc-view="mobile"] .career-steps[data-cols="3"] .career-step:nth-child(3n)::after,
+html[data-mc-view="mobile"] .career-steps[data-cols="4"] .career-step:nth-child(4n)::after,
+html[data-mc-view="mobile"] .career-steps[data-cols="5"] .career-step:nth-child(5n)::after { display: none; }
+
+/* La case */
+html[data-mc-view="mobile"] .career-track .career-card { width: 100% !important; margin-bottom: 24px !important; }
+html[data-mc-view="mobile"] .career-track .career-card-frame { height: 96px !important; border-radius: 10px; }
+html[data-mc-view="mobile"] .career-track .club-logo { width: 42px !important; height: 42px !important; }
+html[data-mc-view="mobile"] .career-track .club-logo-fallback { transform: scale(.7); }
+html[data-mc-view="mobile"] .career-track .club-name {
+  font-size: 8.5px !important; line-height: 1.12; margin-top: 4px; padding: 0 3px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;
+}
+html[data-mc-view="mobile"] .career-track .hidden-club-symbol { font-size: 34px; }
+html[data-mc-view="mobile"] .career-track .career-period { margin-top: 5px !important; font-size: 10px !important; white-space: nowrap; }
+html[data-mc-view="mobile"] .career-track .career-period::before { display: none; }
+html[data-mc-view="mobile"] .career-track .timeline-node { width: 11px; height: 11px; border-width: 2px; }
+html[data-mc-view="mobile"] .career-track .timeline-node.is-active { width: 15px; height: 15px; }
+html[data-mc-view="mobile"] .career-track .card-decoration { transform: scale(.6); transform-origin: center; }
+/* La case active se soulève à peine (pas de chevauchement entre rangées) */
+html[data-mc-view="mobile"] .career-track .career-card.is-active { transform: translateY(-4px) scale(1.06) !important; z-index: 3; }
+
+/* Beaucoup de clubs (9 et plus) : cases encore plus petites, affiche plus compacte */
+html[data-mc-view="mobile"].mcm-many .career-steps[data-cols="5"] { --cw: 64px; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 80px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 34px !important; height: 34px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card { margin-bottom: 20px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-period { font-size: 9px !important; }
+html[data-mc-view="mobile"].mcm-many .mcm-hero__kicker,
+html[data-mc-view="mobile"].mcm-many .mcm-hero__ask { display: none; }
+html[data-mc-view="mobile"].mcm-many .mcm-hero__title { font-size: min(6.4vw, 28px); }
+
+@media (max-height: 700px) {
+  html[data-mc-view="mobile"] .career-track .career-card-frame { height: 86px !important; }
+  html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 72px !important; }
+  html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 30px !important; height: 30px !important; }
+}
+@media (max-width: 360px) {
+  html[data-mc-view="mobile"] .career-track { --cw: 64px; --gap: 6px; }
+  html[data-mc-view="mobile"].mcm-many .career-steps[data-cols="5"] { --cw: 54px; }
+}
+/* Noms de clubs : coupés entre les mots (pas au milieu), jusqu'à 3 lignes */
+html[data-mc-view="mobile"] .career-track .club-name {
+  -webkit-line-clamp: 3 !important; word-break: normal !important; overflow-wrap: normal; hyphens: manual;
+  font-size: 7.6px !important; letter-spacing: -.02em; text-transform: uppercase;
+}
+html[data-mc-view="mobile"] .career-track .club-content { padding: 0 2px; }
+html[data-mc-view="mobile"].mcm-many .mcm-hero__title { font-size: min(5.6vw, 24px); }
+html[data-mc-view="mobile"].mcm-many .career-steps { row-gap: 2px; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card { margin-bottom: 18px !important; }

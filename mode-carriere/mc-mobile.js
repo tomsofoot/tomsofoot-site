@@ -150,6 +150,40 @@
   }
   syncOverlay();
 
+  // ---------- Parcours : tous les clubs à l'écran, sur plusieurs rangées si besoin ----------
+  // (ex. Anelka : 12 clubs → 4 colonnes × 3 rangées de petites cases). Purement visuel.
+  var steps = $("#careerSteps");
+  function layoutCareer() {
+    if (!steps) return;
+    var n = steps.children.length;
+    var cols = n <= 4 ? Math.max(n, 1) : (n <= 8 ? 4 : (n <= 12 ? 4 : 5));
+    steps.setAttribute("data-cols", String(cols));
+    steps.style.setProperty("--mcm-cols", cols);
+    html.classList.toggle("mcm-many", n > 8);
+    html.classList.toggle("mcm-multirow", n > cols);
+    setTimeout(fitNames, 0);
+  }
+  // Noms de clubs : on réduit la police juste assez pour que le mot le plus long tienne dans la case
+  // (« KAISERSLAUTERN », « FENERBAHÇE »…) au lieu de le couper au milieu.
+  var cvs = doc.createElement("canvas").getContext("2d");
+  function fitNames() {
+    if (!steps) return;
+    [].forEach.call(steps.querySelectorAll(".club-name"), function (el) {
+      el.style.fontSize = "";
+      var card = el.closest(".career-card"); if (!card) return;
+      var cs = global.getComputedStyle(el), size = parseFloat(cs.fontSize) || 8;
+      var avail = card.clientWidth - 8; if (avail <= 0) return;
+      var words = (el.textContent || "").toUpperCase().split(/\s+/), longest = 0;
+      cvs.font = cs.fontWeight + " " + size + "px " + cs.fontFamily;
+      words.forEach(function (w) { longest = Math.max(longest, cvs.measureText(w).width * (1 + (parseFloat(cs.letterSpacing) || 0) / size)); });
+      if (longest > avail) el.style.fontSize = Math.max(5.6, size * avail / longest).toFixed(2) + "px";
+    });
+  }
+  global.addEventListener("resize", function () { setTimeout(fitNames, 50); });
+  if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(fitNames);
+  if (steps && global.MutationObserver) new MutationObserver(layoutCareer).observe(steps, { childList: true });
+  layoutCareer();
+
   // Changement de niveau : on remonte en haut pour voir le nouveau parcours.
   var sel = $("#levelSelector");
   if (sel) sel.addEventListener("click", function (e) {
