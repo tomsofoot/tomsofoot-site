@@ -2797,7 +2797,7 @@ daily_css='''
   overflow:hidden;border-radius:18px;margin:0 auto;position:relative;
   border:1px solid rgba(178,60,255,.5);background:linear-gradient(180deg,rgba(178,60,255,.10),rgba(16,11,24,.72));
   box-shadow:0 16px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
-.result-player-photo{width:100%;height:100%;object-fit:contain;object-position:center bottom;transform:none;
+.result-player-photo{width:100%;height:100%;object-fit:cover;object-position:center 22%;transform:none;   /* remplit toujours le cadre, visage centré (quelle que soit la taille de la photo) */
   border:0!important;box-shadow:none!important;border-radius:0!important;max-width:none!important;max-height:none!important;margin:0!important;display:block}
 .result-photo-fallback{width:58%;height:58%;color:rgba(207,150,255,.5);display:flex;align-items:center;justify-content:center}
 .result-photo-fallback svg{width:100%;height:100%}
@@ -3507,7 +3507,7 @@ html=f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
         <img class="result-photo result-player-photo" id="resultPhoto" alt="" hidden>
         <div class="result-photo-fallback" id="resultPhotoFallback" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.4" r="4.3" fill="currentColor"/><path d="M3.4 21.5c0-4.75 3.85-8.6 8.6-8.6s8.6 3.85 8.6 8.6z" fill="currentColor"/></svg></div>
       </div>
-      <div class="photo-dims-hint" aria-hidden="true">Format idéal : <b>720 × 990 px</b> · portrait 8:11 · non recadrée</div>
+      <div class="photo-dims-hint" aria-hidden="true">Format idéal : <b>720 × 990 px</b> · portrait 8:11 · cadrage automatique</div>
       <button type="button" class="next-level-cta" id="nextLevelCta" data-act="next-level" hidden>
         <span class="nlc-text"><span class="nlc-kicker">Passe au</span><span class="nlc-target" id="nextLevelTarget">Niveau suivant</span></span>
         <span class="nlc-arrow" aria-hidden="true">→</span>
