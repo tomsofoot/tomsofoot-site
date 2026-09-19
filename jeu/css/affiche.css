@@ -110,5 +110,13 @@
   /* Rangée « Propositions » : on retire les deux rails de points (la place est gardée pour que
      « Propositions », le compteur et « Essais illimités » ne bougent pas). */
   html:not([data-jg-view="mobile"]) .progress-row > .progress-rail { visibility: hidden; }
+
+  /* Rangée « Propositions » sans bande violette ; « Tentative(s) » sous le compteur d'essais. */
+  html:not([data-jg-view="mobile"]) .progress-row { background: none; border-top: 0; border-bottom: 0; clip-path: none; padding-bottom: 20px; }
+  html:not([data-jg-view="mobile"]) .progress-row > .attempt-count::after {
+    content: "Tentative(s)"; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 7px;
+    color: #c0c2d9; font-size: 10px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0,0,20,.9);
+  }
 }
 
