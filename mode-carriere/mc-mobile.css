@@ -1,0 +1,512 @@
+@charset "UTF-8";
+/* =====================================================================
+   JOGADLE 2 · MODE CARRIÈRE — VUE MOBILE (pensée pour le pouce, comme le jeu 1)
+   Toutes les règles sont préfixées par html[data-mc-view="mobile"] :
+   sans cet attribut (ordinateur), ce fichier n'a STRICTEMENT aucun effet.
+   Aucune règle du jeu n'est modifiée : on réorganise seulement l'écran.
+   ===================================================================== */
+
+html[data-mc-view="mobile"] {
+  --mcm-top: 112px; --mcm-dock: 170px; --mcm-vvh: 100dvh; --mcm-w: 560px;
+  --mcm-line: rgba(var(--violet-rgb, 145,45,255), .34);
+  scroll-padding-top: calc(var(--mcm-top) + 12px);
+  -webkit-text-size-adjust: 100%;
+}
+html[data-mc-view="mobile"] body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+
+/* ---------- Mise en page : le parcours au centre, rien à faire défiler pour jouer ---------- */
+html[data-mc-view="mobile"] .jogadle-app {
+  min-height: 100dvh;
+  padding: calc(var(--mcm-top) + 6px) 12px calc(var(--mcm-dock) + 18px);
+}
+html[data-mc-view="mobile"] .game-header,
+html[data-mc-view="mobile"] .daily-bar,
+html[data-mc-view="mobile"] .career-caption,
+html[data-mc-view="mobile"] .game-footer,
+html[data-mc-view="mobile"] .sg-browse { display: none !important; }
+
+html[data-mc-view="mobile"] .career-section { min-height: 0; display: flex; align-items: center; padding: 0 0 10px; }
+html[data-mc-view="mobile"] .career-viewport { width: 100%; }
+html[data-mc-view="mobile"] .career-track { padding-top: 60px; }
+html[data-mc-view="mobile"] .career-section, html[data-mc-view="mobile"] .career-viewport { overflow: visible; }
+
+/* Indices (Nationalité / Poste) : sous le parcours, côte à côte, pleine largeur */
+html[data-mc-view="mobile"] .game-controls { display: block; margin: 0; padding: 0 0 8px; min-height: 0; }
+html[data-mc-view="mobile"] .player-clues { grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 auto; max-width: var(--mcm-w); }
+html[data-mc-view="mobile"] .player-clues .clue-card { min-width: 0; width: 100%; padding: 10px 12px; }
+html[data-mc-view="mobile"] .player-clues .clue-label { font-size: 10px; }
+html[data-mc-view="mobile"] .player-clues .clue-value { font-size: 16px; }
+
+/* ---------- BARRE DU HAUT ---------- */
+html[data-mc-view="mobile"] .mcm-top {
+  position: fixed; z-index: 900; top: 0; left: 0; right: 0;
+  padding: calc(env(safe-area-inset-top) + 8px) 12px 10px;
+  background: linear-gradient(180deg, rgba(22,10,44,.97), rgba(16,8,34,.9));
+  -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--mcm-line);
+  box-shadow: 0 10px 30px rgba(8,0,20,.4);
+  will-change: transform;
+}
+html[data-mc-view="mobile"] .mcm-top__row,
+html[data-mc-view="mobile"] .mcm-top .level-selector { max-width: var(--mcm-w); margin-inline: auto; }
+html[data-mc-view="mobile"] .mcm-top__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
+html[data-mc-view="mobile"] .mcm-brand { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
+html[data-mc-view="mobile"] .mcm-brand b { font-family: Montserrat, Inter, sans-serif; font-weight: 700; font-size: 19px; letter-spacing: .02em; color: #fff; }
+html[data-mc-view="mobile"] .mcm-brand b i { font-style: normal; color: var(--violet-light, #c084fc); }
+html[data-mc-view="mobile"] .mcm-brand span { margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #bfa9e6; }
+html[data-mc-view="mobile"] .mcm-tools { display: flex; align-items: center; gap: 8px; }
+html[data-mc-view="mobile"] .mcm-clock {
+  display: flex; flex-direction: column; align-items: flex-end; line-height: 1.05;
+  padding: 5px 10px; border-radius: 10px; border: 1px solid var(--mcm-line); background: rgba(40,14,72,.55);
+}
+html[data-mc-view="mobile"] .mcm-clock__label { font-size: 8.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #bfa9e6; }
+html[data-mc-view="mobile"] .mcm-clock .dt-value { font-size: 16px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+html[data-mc-view="mobile"] .mcm-menu-btn {
+  width: 44px; height: 44px; border-radius: 12px; padding: 0; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--mcm-line); background: rgba(40,14,72,.55); color: #fff;
+}
+html[data-mc-view="mobile"] .mcm-menu-btn span { display: grid; gap: 4px; }
+html[data-mc-view="mobile"] .mcm-menu-btn i { display: block; width: 18px; height: 2px; border-radius: 2px; background: currentColor; }
+
+/* Les 3 niveaux : une rangée segmentée, facile à toucher */
+html[data-mc-view="mobile"] .mcm-top .level-selector {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 9px; padding: 0; width: auto;
+}
+html[data-mc-view="mobile"] .mcm-top .level-button { min-height: 44px; padding: 6px 4px; border-radius: 11px; margin: 0; }
+html[data-mc-view="mobile"] .mcm-top .level-button-name { font-size: 13px; letter-spacing: .06em; }
+html[data-mc-view="mobile"] .mcm-top .level-button-description { font-size: 9.5px; line-height: 1.15; margin-top: 2px; }
+
+/* ---------- MENU (feuille qui monte du bas, à portée de pouce) ---------- */
+html[data-mc-view="mobile"] .mcm-sheet {
+  position: fixed; inset: 0; z-index: 1500; display: flex; align-items: flex-end;
+  background: rgba(6,2,16,.55); opacity: 0; pointer-events: none; transition: opacity .2s ease;
+}
+html[data-mc-view="mobile"].mcm-sheet-open .mcm-sheet { opacity: 1; pointer-events: auto; }
+html[data-mc-view="mobile"] .mcm-sheet__in {
+  width: 100%; max-width: var(--mcm-w); margin-inline: auto;
+  padding: 10px 14px calc(env(safe-area-inset-bottom) + 18px);
+  border-radius: 20px 20px 0 0; border: 1px solid var(--mcm-line); border-bottom: 0;
+  background: linear-gradient(180deg, rgba(34,14,64,.99), rgba(14,6,30,.99));
+  transform: translateY(100%); transition: transform .26s cubic-bezier(.2,.85,.25,1);
+}
+html[data-mc-view="mobile"].mcm-sheet-open .mcm-sheet__in { transform: none; }
+html[data-mc-view="mobile"] .mcm-sheet__grab { width: 40px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.28); margin: 0 auto 10px; }
+html[data-mc-view="mobile"] .mcm-sheet__title { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #bfa9e6; margin: 0 4px 10px; }
+html[data-mc-view="mobile"] .mcm-sheet .daily-links { display: grid; gap: 8px; margin: 0; }
+html[data-mc-view="mobile"] .mcm-sheet .daily-cal-link { width: 100%; min-height: 54px; justify-content: flex-start; font-size: 13px; margin: 0; }
+html[data-mc-view="mobile"] .mcm-sheet__note { margin: 12px 4px 0; font-size: 12px; color: #a893cf; }
+
+/* ---------- BARRE DU BAS (zone du pouce) ---------- */
+html[data-mc-view="mobile"] .mcm-dock {
+  position: fixed; z-index: 900; left: 0; right: 0; bottom: 0;
+  padding: 10px 12px calc(env(safe-area-inset-bottom) + 10px);
+  background: linear-gradient(180deg, rgba(26,10,52,.98), rgba(12,5,26,.99));
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--mcm-line);
+  box-shadow: 0 -12px 30px rgba(8,0,20,.5);
+  will-change: transform;
+}
+html[data-mc-view="mobile"] .mcm-dock__in { max-width: var(--mcm-w); margin-inline: auto; display: flex; flex-direction: column; gap: 8px; }
+
+/* Joueurs déjà utilisés : une ligne de pastilles qui défile */
+html[data-mc-view="mobile"] .mcm-dock .used-players { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+html[data-mc-view="mobile"] .mcm-dock .up-head { display: none; }
+html[data-mc-view="mobile"] .mcm-dock .up-list {
+  display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; margin: 0;
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(90deg, #000 88%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+}
+html[data-mc-view="mobile"] .mcm-dock .up-list::-webkit-scrollbar { display: none; }
+html[data-mc-view="mobile"] .mcm-dock .up-list::before {
+  content: "Déjà testés"; flex: 0 0 auto; font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  color: #ffb3c1; padding: 5px 9px; border-radius: 999px; border: 1px solid rgba(240,73,111,.5); background: rgba(60,14,30,.6);
+}
+html[data-mc-view="mobile"] .mcm-dock .up-chip { flex: 0 0 auto; white-space: nowrap; font-size: 12.5px; padding: 5px 11px; border-radius: 999px; margin: 0; }
+
+/* Message du jeu : une ligne courte au-dessus des actions */
+html[data-mc-view="mobile"] .mcm-dock .game-message { margin: 0; font-size: 14px; line-height: 1.3; min-height: 0; text-align: center; }
+html[data-mc-view="mobile"] .mcm-dock .game-message:empty { display: none; }
+
+/* Actions : Indice · Tous les joueurs · Révéler */
+html[data-mc-view="mobile"] .mcm-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: stretch; }
+html[data-mc-view="mobile"] .mcm-actions .game-action-button {
+  min-height: 46px; height: auto; margin: 0; padding: 4px 8px; gap: 6px; width: 100%; justify-content: center; text-align: left;
+  font-size: 11px; line-height: 1.1; letter-spacing: .04em; border-radius: 12px;
+}
+html[data-mc-view="mobile"] .mcm-actions .game-action-button .button-icon { flex: 0 0 auto; }
+html[data-mc-view="mobile"] .mcm-actions .game-action-button svg { width: 18px; height: 18px; }
+html[data-mc-view="mobile"] .mcm-browse {
+  min-height: 46px; padding: 4px 8px; border-radius: 12px; cursor: pointer; line-height: 1.1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-align: left;
+  font: 700 11px/1.1 Montserrat, Inter, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff;
+  border: 1px solid var(--mcm-line); background: rgba(40,14,72,.6);
+}
+html[data-mc-view="mobile"] .mcm-browse span { color: var(--violet-light, #c084fc); font-size: 16px; }
+
+/* Recherche + VALIDER */
+html[data-mc-view="mobile"] .mcm-dock .answer-form { display: flex; gap: 8px; margin: 0; width: 100%; max-width: none; }
+html[data-mc-view="mobile"] .mcm-dock .autocomplete { flex: 1 1 auto; min-width: 0; position: relative; }
+html[data-mc-view="mobile"] .mcm-dock .guess-input { height: 54px; font-size: 16px; padding: 0 16px; border-radius: 14px; width: 100%; } /* 16px : pas de zoom auto iOS */
+html[data-mc-view="mobile"] .mcm-dock .validate-button { flex: 0 0 auto; height: 54px; min-width: 96px; padding: 0 14px; border-radius: 14px; font-size: 13px; }
+/* Suggestions : s'ouvrent VERS LE HAUT, grandes zones tactiles */
+html[data-mc-view="mobile"] .mcm-dock .suggestions {
+  top: auto; bottom: calc(100% + 8px); left: 0; right: -104px;
+  max-height: min(56vh, calc(var(--mcm-vvh) - var(--mcm-top) - 110px)); overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 14px; box-shadow: 0 -18px 60px rgba(6,0,15,.65);
+}
+html[data-mc-view="mobile"] .mcm-dock .suggestion-item { min-height: 54px; font-size: 16px; }
+html[data-mc-view="mobile"]:not(.mcm-typing) .mcm-dock .suggestions,
+html[data-mc-view="mobile"] .mcm-dock .suggestions:empty { display: none !important; }
+
+/* Pendant la saisie : on libère la place pour les suggestions */
+html[data-mc-view="mobile"].mcm-typing .mcm-actions,
+html[data-mc-view="mobile"].mcm-typing .mcm-dock .used-players,
+html[data-mc-view="mobile"].mcm-typing .mcm-dock .game-message { display: none; }
+
+/* ---------- Niveau terminé : la carte du joueur prend la place, la barre du bas se replie ---------- */
+html[data-mc-view="mobile"].mcm-done .mcm-dock { display: none; }
+html[data-mc-view="mobile"].mcm-done { --mcm-dock: 0px; }
+html[data-mc-view="mobile"].mcm-done .career-section { min-height: 0; }
+html[data-mc-view="mobile"] .game-result.show { margin-top: 6px; }
+html[data-mc-view="mobile"] .result-actions { display: grid; gap: 8px; }
+html[data-mc-view="mobile"] .result-actions .rds-action { min-height: 52px; width: 100%; }
+html[data-mc-view="mobile"] .next-level-cta { min-height: 56px; }
+
+/* ---------- Superpositions (calendrier, récompenses, partage…) au-dessus des barres ---------- */
+html[data-mc-view="mobile"] .cal-overlay,
+html[data-mc-view="mobile"] .browse-overlay,
+html[data-mc-view="mobile"] .yd-overlay,
+html[data-mc-view="mobile"] .sr-overlay,
+html[data-mc-view="mobile"] .rw-overlay,
+html[data-mc-view="mobile"] .id-overlay,
+html[data-mc-view="mobile"] .cu-overlay { z-index: 2000; }
+html[data-mc-view="mobile"] .replay-banner { top: auto; bottom: calc(var(--mcm-dock) + 8px); z-index: 950; }
+html[data-mc-view="mobile"] .share-toast { z-index: 2100; bottom: calc(var(--mcm-dock) + 14px); }
+
+/* Petits écrans (≤ 360 px) */
+@media (max-width: 360px), (max-height: 640px) {
+  html[data-mc-view="mobile"] .career-track { --card-width: 94px; --gap: 10px; padding-top: 44px; }
+  html[data-mc-view="mobile"] .career-track .career-card { margin-bottom: 20px; }
+}
+@media (max-width: 360px) {
+  html[data-mc-view="mobile"] .mcm-clock__label { display: none; }
+  html[data-mc-view="mobile"] .mcm-top .level-button-description { display: none; }
+  html[data-mc-view="mobile"] .mcm-browse { font-size: 0; padding: 0 14px; }
+  html[data-mc-view="mobile"] .mcm-browse span { font-size: 16px; margin: 0; }
+  html[data-mc-view="mobile"] .mcm-actions .game-action-button { font-size: 10.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-mc-view="mobile"] .mcm-sheet, html[data-mc-view="mobile"] .mcm-sheet__in { transition: none; }
+}
+
+/* =====================================================================
+   AFFICHE MOBILE — même esprit que l'affiche du jeu 1 (police Enforce,
+   grand titre, question, joueur en fond plein écran). Purement visuel.
+   ===================================================================== */
+@font-face {
+  font-family: "Enforce";
+  src: url("/jeu/assets/enforce.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+html[data-mc-view="mobile"] { --mcm-violet: #b46bff; --mcm-violet2: #7c3aed; --mcm-glass: rgba(18,8,38,.72); }
+
+/* Police Enforce partout, sauf noms des clubs sur les cartes, suggestions et listes de joueurs */
+html[data-mc-view="mobile"] :is(.mcm-top, .mcm-hero, .mcm-dock, .mcm-sheet, .game-controls, .game-result) :not(.suggestions, .suggestions *, .up-chip, .guess-input, .result-player-name) {
+  font-family: "Enforce", Montserrat, Inter, sans-serif; font-synthesis: none;
+}
+
+/* Fond : le joueur plein écran, voilé en haut (titre) et en bas (barre du pouce) */
+html[data-mc-view="mobile"] body::after {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(12,4,28,.94) 0%, rgba(12,4,28,.55) 26%, rgba(12,4,28,.12) 46%, rgba(12,4,28,.35) 70%, rgba(10,3,24,.92) 100%),
+    radial-gradient(120% 60% at 50% 55%, transparent 40%, rgba(40,6,80,.45) 100%);
+}
+html[data-mc-view="mobile"] .jogadle-app { position: relative; z-index: 1; padding-top: calc(var(--mcm-top) + 2px); }
+
+/* Barre du haut : fine et transparente, fondue dans l'affiche */
+html[data-mc-view="mobile"] .mcm-top {
+  padding: calc(env(safe-area-inset-top) + 8px) 14px 8px;
+  background: linear-gradient(180deg, rgba(12,4,28,.92), rgba(12,4,28,.0));
+  border-bottom: 0; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+html[data-mc-view="mobile"] .mcm-brand b { font-family: "Enforce", Montserrat, sans-serif; font-weight: 400; font-size: 20px; letter-spacing: .02em; }
+html[data-mc-view="mobile"] .mcm-brand b i { color: var(--mcm-violet); }
+html[data-mc-view="mobile"] .mcm-clock { background: rgba(20,8,42,.55); border-color: rgba(180,107,255,.35); border-radius: 999px; padding: 5px 12px; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+html[data-mc-view="mobile"] .mcm-clock__label { font-size: 8px; }
+html[data-mc-view="mobile"] .mcm-clock .dt-value { font-family: "Enforce", Montserrat, sans-serif; font-weight: 400; font-size: 15px; }
+html[data-mc-view="mobile"] .mcm-menu-btn { width: 42px; height: 42px; border-radius: 50%; background: rgba(20,8,42,.55); border-color: rgba(180,107,255,.35); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+
+/* Titre d'affiche */
+html[data-mc-view="mobile"] .mcm-hero { text-align: center; max-width: var(--mcm-w); margin: 0 auto; padding: 2px 4px 0; }
+html[data-mc-view="mobile"] .mcm-hero__kicker {
+  margin: 0 0 6px; font-size: 10.5px; letter-spacing: .28em; text-transform: uppercase; color: #cdb6ff; opacity: .9;
+}
+html[data-mc-view="mobile"] .mcm-hero__title {
+  margin: 0; line-height: .98; font-weight: 400; letter-spacing: .01em; text-transform: uppercase;
+  font-size: clamp(30px, 9.4vw, 44px);
+}
+html[data-mc-view="mobile"] .mcm-hero__title span { display: block; color: #fff; text-shadow: 0 4px 24px rgba(0,0,20,.6); }
+html[data-mc-view="mobile"] .mcm-hero__title em {
+  display: block; font-style: normal;
+  background: linear-gradient(90deg, #e3b5ff, var(--mcm-violet) 45%, #ff5fa2);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 18px rgba(160,70,255,.55));
+}
+html[data-mc-view="mobile"] .mcm-hero__ask { margin: 9px 0 0; font-size: 13px; letter-spacing: .06em; color: #fff; text-shadow: 0 1px 3px rgba(0,0,20,.9); }
+
+/* Niveaux : 3 pastilles sous le titre */
+html[data-mc-view="mobile"] .mcm-hero .level-selector {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px auto 0; padding: 4px; width: auto; max-width: 380px;
+  border-radius: 999px; background: rgba(16,6,36,.6); border: 1px solid rgba(180,107,255,.28);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+html[data-mc-view="mobile"] .mcm-hero .level-button {
+  min-height: 38px; padding: 0 6px; margin: 0; border-radius: 999px; border: 0; background: transparent; box-shadow: none;
+  display: flex; align-items: center; justify-content: center;
+}
+html[data-mc-view="mobile"] .mcm-hero .level-button.is-active {
+  background: linear-gradient(135deg, var(--mcm-violet2), #a855f7); box-shadow: 0 6px 20px rgba(124,58,237,.55), inset 0 1px rgba(255,255,255,.3);
+}
+html[data-mc-view="mobile"] .mcm-hero .level-button-name { font-size: 13px; letter-spacing: .08em; }
+html[data-mc-view="mobile"] .mcm-hero .level-button-description { display: none; }
+
+/* Parcours : cartes un peu plus compactes, bien centrées sous le titre */
+html[data-mc-view="mobile"] .career-track { --card-width: 110px; --gap: 12px; padding-top: 44px; }
+html[data-mc-view="mobile"] .career-track .career-card { margin-bottom: 22px; }
+
+/* Indices : verre sombre, libellés Enforce */
+html[data-mc-view="mobile"] .player-clues .clue-card { background: var(--mcm-glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-radius: 14px; }
+
+/* Barre du pouce : panneau de verre aux coins arrondis */
+html[data-mc-view="mobile"] .mcm-dock {
+  left: 8px; right: 8px; bottom: 8px; border-radius: 22px;
+  padding: 10px 10px calc(env(safe-area-inset-bottom) * .6 + 10px);
+  background: linear-gradient(180deg, rgba(30,12,60,.86), rgba(14,5,30,.92));
+  border: 1px solid rgba(180,107,255,.3);
+  box-shadow: 0 -10px 40px rgba(8,0,20,.55), inset 0 1px rgba(255,255,255,.08);
+}
+html[data-mc-view="mobile"] .mcm-actions .game-action-button,
+html[data-mc-view="mobile"] .mcm-browse {
+  min-height: 40px; border-radius: 999px; font-size: 11px; letter-spacing: .05em;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(180,107,255,.32);
+}
+html[data-mc-view="mobile"] .mcm-actions .game-action-button svg { width: 16px; height: 16px; }
+html[data-mc-view="mobile"] .mcm-dock .guess-input {
+  height: 52px; border-radius: 999px; padding: 0 20px;
+  background: rgba(8,2,20,.7); border: 1.5px solid rgba(180,107,255,.55); box-shadow: 0 0 0 4px rgba(124,58,237,.12), 0 0 26px rgba(124,58,237,.25);
+}
+html[data-mc-view="mobile"] .mcm-dock .validate-button {
+  height: 52px; border-radius: 999px; min-width: 104px; letter-spacing: .08em; font-size: 14px;
+  background: linear-gradient(135deg, var(--mcm-violet2), #c026d3); border: 0; box-shadow: 0 8px 24px rgba(160,40,220,.5), inset 0 1px rgba(255,255,255,.3);
+}
+html[data-mc-view="mobile"] .mcm-dock .suggestions { border-radius: 18px; right: -112px; }
+html[data-mc-view="mobile"] .jogadle-app { padding-bottom: calc(var(--mcm-dock) + 26px); }
+
+/* Niveau terminé : l'affiche laisse la place à la carte du joueur */
+html[data-mc-view="mobile"].mcm-done .mcm-hero__title,
+html[data-mc-view="mobile"].mcm-done .mcm-hero__ask { display: none; }
+
+
+@media (max-width: 360px), (max-height: 700px) {
+  html[data-mc-view="mobile"] .mcm-hero__title { font-size: 26px; }
+  html[data-mc-view="mobile"] .mcm-hero__kicker { display: none; }
+  html[data-mc-view="mobile"] .career-track { --card-width: 92px; --gap: 10px; padding-top: 36px; }
+}
+
+/* --- Ajustements affiche --- */
+html[data-mc-view="mobile"] .mcm-dock .suggestions,
+html[data-mc-view="mobile"] .mcm-dock .suggestions *,
+html[data-mc-view="mobile"] .mcm-dock .guess-input,
+html[data-mc-view="mobile"] .up-chip { font-family: Inter, Montserrat, Arial, sans-serif !important; }
+html[data-mc-view="mobile"] .mcm-dock .guess-input { font-size: 16px; letter-spacing: 0; }
+html[data-mc-view="mobile"] .mcm-actions .game-action-button,
+html[data-mc-view="mobile"] .mcm-browse { font-size: 10px; letter-spacing: .02em; padding: 4px 8px; }
+html[data-mc-view="mobile"] .career-section { margin-top: 18px; }
+html[data-mc-view="mobile"] .career-track { --card-width: 96px; --gap: 10px; padding-top: 40px; }
+html[data-mc-view="mobile"] .career-track .career-card { margin-bottom: 18px; }
+/* Barre du haut : devient opaque dès qu'on fait défiler (le contenu ne passe plus sous la marque) */
+html[data-mc-view="mobile"].mcm-scrolled .mcm-top {
+  background: linear-gradient(180deg, rgba(14,5,32,.97), rgba(14,5,32,.9));
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(180,107,255,.22); box-shadow: 0 10px 30px rgba(8,0,20,.4);
+}
+html[data-mc-view="mobile"] .career-track .career-card-frame { height: 150px !important; }
+html[data-mc-view="mobile"] .career-track .club-logo { width: 58px !important; height: 58px !important; }
+html[data-mc-view="mobile"] .career-track .club-name { font-size: 11px !important; line-height: 1.15; }
+html[data-mc-view="mobile"] .career-track .career-card.is-active { transform: translateY(-22px) scale(1.04); }
+html[data-mc-view="mobile"] .mcm-hero__title { font-size: clamp(28px, 8.6vw, 40px); }
+html[data-mc-view="mobile"] .mcm-hero__ask { margin-top: 7px; }
+html[data-mc-view="mobile"] .mcm-hero .level-selector { margin-top: 10px; }
+html[data-mc-view="mobile"] .career-section { margin-top: 6px; }
+html[data-mc-view="mobile"] .career-track { padding-top: 34px; }
+html[data-mc-view="mobile"] .career-track .career-card { margin-bottom: 34px; }
+html[data-mc-view="mobile"] .player-clues .clue-card { padding: 8px 10px; }
+html[data-mc-view="mobile"] .player-clues .clue-label { font-size: 8.5px; letter-spacing: .05em; white-space: nowrap; }
+html[data-mc-view="mobile"] .player-clues .clue-value { font-size: 15px; }
+/* Titre toujours sur deux lignes nettes */
+html[data-mc-view="mobile"] .mcm-hero__title { font-size: min(7.8vw, 38px); }
+html[data-mc-view="mobile"] .mcm-hero__title span, html[data-mc-view="mobile"] .mcm-hero__title em { white-space: nowrap; }
+/* Téléphones à écran court (Safari avec barres, SE…) : affiche plus compacte pour tout voir sans défiler */
+@media (max-height: 700px) {
+  html[data-mc-view="mobile"] .mcm-hero__kicker { display: none; }
+  html[data-mc-view="mobile"] .mcm-hero__title { font-size: min(7vw, 30px); }
+  html[data-mc-view="mobile"] .mcm-hero__ask { font-size: 11.5px; margin-top: 5px; }
+  html[data-mc-view="mobile"] .mcm-hero .level-button { min-height: 34px; }
+  html[data-mc-view="mobile"] .career-track { padding-top: 28px; }
+  html[data-mc-view="mobile"] .career-track .career-card-frame { height: 128px !important; }
+  html[data-mc-view="mobile"] .career-track .club-logo { width: 50px !important; height: 50px !important; }
+  html[data-mc-view="mobile"] .career-track .career-card { margin-bottom: 28px; }
+  html[data-mc-view="mobile"] .career-track .career-card.is-active { transform: translateY(-16px) scale(1.03); }
+}
+@media (max-width: 360px) {
+  html[data-mc-view="mobile"] .mcm-brand b { font-size: 16px; white-space: nowrap; }
+  html[data-mc-view="mobile"] .mcm-hero .level-button-name { font-size: 11px; }
+}
+html[data-mc-view="mobile"].mcm-overlay .mcm-top,
+html[data-mc-view="mobile"].mcm-overlay .mcm-dock { visibility: hidden; }
+
+/* =====================================================================
+   PARCOURS EN PETITES CASES : tous les clubs tiennent à l'écran
+   (grille de 1 à 5 colonnes selon le nombre de clubs, rangées successives,
+   un trait relie les points d'une même rangée). Aucune règle du jeu modifiée.
+   ===================================================================== */
+html[data-mc-view="mobile"] .career-viewport { overflow: visible !important; }
+html[data-mc-view="mobile"] .career-track {
+  width: 100% !important; max-width: 420px; margin-inline: auto; padding-top: 16px !important;
+  --cw: 76px; --gap: 8px; --dot-bottom: 10px;
+}
+html[data-mc-view="mobile"] .career-track .career-line { display: none; }
+html[data-mc-view="mobile"] .career-steps {
+  grid-auto-flow: row; grid-auto-columns: auto;
+  grid-template-columns: repeat(var(--mcm-cols, 4), var(--cw));
+  justify-content: center; column-gap: var(--gap); row-gap: 6px;
+}
+html[data-mc-view="mobile"] .career-step { min-width: 0; }
+/* Trait entre deux points voisins d'une même rangée */
+html[data-mc-view="mobile"] .career-step::after {
+  content: ""; position: absolute; z-index: 1; left: 50%; bottom: var(--dot-bottom);
+  width: calc(100% + var(--gap)); height: 3px; transform: translateY(50%); border-radius: 3px;
+  background: linear-gradient(90deg, rgba(180,107,255,.75), rgba(180,107,255,.35));
+}
+html[data-mc-view="mobile"] .career-step:last-child::after,
+html[data-mc-view="mobile"] .career-steps[data-cols="2"] .career-step:nth-child(2n)::after,
+html[data-mc-view="mobile"] .career-steps[data-cols="3"] .career-step:nth-child(3n)::after,
+html[data-mc-view="mobile"] .career-steps[data-cols="4"] .career-step:nth-child(4n)::after,
+html[data-mc-view="mobile"] .career-steps[data-cols="5"] .career-step:nth-child(5n)::after { display: none; }
+
+/* La case */
+html[data-mc-view="mobile"] .career-track .career-card { width: 100% !important; margin-bottom: 24px !important; }
+html[data-mc-view="mobile"] .career-track .career-card-frame { height: 96px !important; border-radius: 10px; }
+html[data-mc-view="mobile"] .career-track .club-logo { width: 42px !important; height: 42px !important; }
+html[data-mc-view="mobile"] .career-track .club-logo-fallback { transform: scale(.7); }
+html[data-mc-view="mobile"] .career-track .club-name {
+  font-size: 8.5px !important; line-height: 1.12; margin-top: 4px; padding: 0 3px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;
+}
+html[data-mc-view="mobile"] .career-track .hidden-club-symbol { font-size: 34px; }
+html[data-mc-view="mobile"] .career-track .career-period { margin-top: 5px !important; font-size: 10px !important; white-space: nowrap; }
+html[data-mc-view="mobile"] .career-track .career-period::before { display: none; }
+html[data-mc-view="mobile"] .career-track .timeline-node { width: 11px; height: 11px; border-width: 2px; }
+html[data-mc-view="mobile"] .career-track .timeline-node.is-active { width: 15px; height: 15px; }
+html[data-mc-view="mobile"] .career-track .card-decoration { transform: scale(.6); transform-origin: center; }
+/* La case active se soulève à peine (pas de chevauchement entre rangées) */
+html[data-mc-view="mobile"] .career-track .career-card.is-active { transform: translateY(-4px) scale(1.06) !important; z-index: 3; }
+
+/* Beaucoup de clubs (9 et plus) : cases encore plus petites, affiche plus compacte */
+html[data-mc-view="mobile"].mcm-many .career-steps[data-cols="5"] { --cw: 64px; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 80px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 34px !important; height: 34px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card { margin-bottom: 20px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-period { font-size: 9px !important; }
+html[data-mc-view="mobile"].mcm-many .mcm-hero__kicker,
+html[data-mc-view="mobile"].mcm-many .mcm-hero__ask { display: none; }
+html[data-mc-view="mobile"].mcm-many .mcm-hero__title { font-size: min(6.4vw, 28px); }
+
+@media (max-height: 700px) {
+  html[data-mc-view="mobile"] .career-track .career-card-frame { height: 86px !important; }
+  html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 72px !important; }
+  html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 30px !important; height: 30px !important; }
+}
+@media (max-width: 360px) {
+  html[data-mc-view="mobile"] .career-track { --cw: 64px; --gap: 6px; }
+  html[data-mc-view="mobile"].mcm-many .career-steps[data-cols="5"] { --cw: 54px; }
+}
+/* Noms de clubs : coupés entre les mots (pas au milieu), jusqu'à 3 lignes */
+html[data-mc-view="mobile"] .career-track .club-name {
+  -webkit-line-clamp: 3 !important; word-break: normal !important; overflow-wrap: normal; hyphens: manual;
+  font-size: 7.6px !important; letter-spacing: -.02em; text-transform: uppercase;
+}
+html[data-mc-view="mobile"] .career-track .club-content { padding: 0 2px; }
+html[data-mc-view="mobile"].mcm-many .mcm-hero__title { font-size: min(5.6vw, 24px); }
+html[data-mc-view="mobile"].mcm-many .career-steps { row-gap: 2px; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card { margin-bottom: 18px !important; }
+
+/* Saisie : la barre suit le clavier image par image, sans transition (pas de rebond) ; l'affiche
+   derrière ne change pas de taille. */
+html[data-mc-view="mobile"] .mcm-dock, html[data-mc-view="mobile"] .mcm-top { transition: none !important; }
+html[data-mc-view="mobile"].mcm-locked { overflow: hidden; }
+html[data-mc-view="mobile"].mcm-locked body { overscroll-behavior: none; touch-action: none; }
+html[data-mc-view="mobile"].mcm-locked .mcm-dock .suggestions { touch-action: pan-y; }
+/* IMPORTANT : une case cachée ne montre JAMAIS le nom ni le logo du club (seulement « ? »). */
+html[data-mc-view="mobile"] .career-track .career-card.is-hidden .club-name,
+html[data-mc-view="mobile"] .career-track .career-card.is-hidden .club-logo,
+html[data-mc-view="mobile"] .career-track .career-card.is-hidden .club-logo-fallback { display: none !important; }
+/* 9 clubs et plus : cases compactes pour garder les indices visibles au-dessus de la barre du pouce */
+html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 66px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 28px !important; height: 28px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .hidden-club-symbol { font-size: 26px; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card { margin-bottom: 15px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-period { margin-top: 3px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card.is-active { transform: translateY(-2px) scale(1.05) !important; }
+html[data-mc-view="mobile"].mcm-many .career-section { margin-top: 0; padding-bottom: 4px; }
+html[data-mc-view="mobile"].mcm-many .mcm-hero .level-selector { margin-top: 8px; }
+
+/* =====================================================================
+   PARTIE EN COURS : la page ne défile plus, la scène tient à l'écran
+   (réduite si besoin par mc-mobile.js) avec ~2 cm de marge au-dessus de la
+   barre de recherche : celle-ci ne recouvre jamais les indices.
+   ===================================================================== */
+html[data-mc-view="mobile"].mcm-play, html[data-mc-view="mobile"].mcm-play body { overflow: hidden; overscroll-behavior: none; }
+html[data-mc-view="mobile"].mcm-play .jogadle-app { min-height: 0; height: 100dvh; padding-bottom: 0; overflow: hidden; }
+html[data-mc-view="mobile"] .mcm-stage { transform-origin: top center; will-change: transform; }
+html[data-mc-view="mobile"].mcm-play .game-result { display: none; }
+
+/* =====================================================================
+   RETOUCHE FRISE (cartes club) :
+   1) plus de petits traits parasites : les coins décoratifs (.card-decoration ::before/::after)
+      sont retirés sur mobile ;
+   2) logo plus grand, parfaitement centré, nom du club centré juste en dessous.
+   ===================================================================== */
+html[data-mc-view="mobile"] .career-track .card-decoration { display: none !important; }
+html[data-mc-view="mobile"] .career-track .club-content {
+  min-height: 0 !important; height: 100%; width: 100%; padding: 5px 3px !important; gap: 3px !important;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+html[data-mc-view="mobile"] .career-track .club-logo { width: 54px !important; height: 54px !important; margin: 0 auto; display: block; object-fit: contain; }
+html[data-mc-view="mobile"] .career-track .club-name { margin: 0 auto !important; text-align: center; width: 100%; }
+@media (max-height: 700px) {
+  html[data-mc-view="mobile"] .career-track .club-logo { width: 48px !important; height: 48px !important; }
+}
+html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 38px !important; height: 38px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .career-card-frame { height: 76px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .club-logo { width: 36px !important; height: 36px !important; }
+html[data-mc-view="mobile"].mcm-many .career-track .club-name { -webkit-line-clamp: 2 !important; }
+
+/* =====================================================================
+   ANTI-TREMBLEMENT AU DÉFILEMENT (iPhone / Safari)
+   - Pendant la partie, la page est figée (body fixe) : plus de rebond élastique ni de
+     défilement du document qui ferait bouger la barre d'adresse et donc le bas de l'écran.
+   - Hauteurs stables : svh (petite hauteur d'écran, ne change pas quand la barre d'adresse
+     bouge) au lieu de dvh, avec repli vh.
+   - Barres fixes et cartes isolées en couche GPU ; calcul de mise en page confiné aux cases.
+   ===================================================================== */
+html[data-mc-view="mobile"] .jogadle-app { min-height: 100vh; min-height: 100svh; }
+html[data-mc-view="mobile"].mcm-play .jogadle-app { height: 100vh; height: 100svh; }
+html[data-mc-view="mobile"].mcm-play body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; overflow: hidden; overscroll-behavior: none; }
+html[data-mc-view="mobile"] .mcm-top,
+html[data-mc-view="mobile"] .mcm-dock { transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+html[data-mc-view="mobile"] .mcm-stage { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+html[data-mc-view="mobile"] .career-track .career-step { contain: layout; }
+html[data-mc-view="mobile"] .player-clues .clue-card { transform: translateZ(0); }
