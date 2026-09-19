@@ -1,0 +1,200 @@
+@charset "UTF-8";
+/* =====================================================================
+   JOGADLE 2 · MODE CARRIÈRE — VUE MOBILE (pensée pour le pouce, comme le jeu 1)
+   Toutes les règles sont préfixées par html[data-mc-view="mobile"] :
+   sans cet attribut (ordinateur), ce fichier n'a STRICTEMENT aucun effet.
+   Aucune règle du jeu n'est modifiée : on réorganise seulement l'écran.
+   ===================================================================== */
+
+html[data-mc-view="mobile"] {
+  --mcm-top: 112px; --mcm-dock: 170px; --mcm-vvh: 100dvh; --mcm-w: 560px;
+  --mcm-line: rgba(var(--violet-rgb, 145,45,255), .34);
+  scroll-padding-top: calc(var(--mcm-top) + 12px);
+  -webkit-text-size-adjust: 100%;
+}
+html[data-mc-view="mobile"] body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+
+/* ---------- Mise en page : le parcours au centre, rien à faire défiler pour jouer ---------- */
+html[data-mc-view="mobile"] .jogadle-app {
+  min-height: 100dvh;
+  padding: calc(var(--mcm-top) + 6px) 12px calc(var(--mcm-dock) + 18px);
+}
+html[data-mc-view="mobile"] .game-header,
+html[data-mc-view="mobile"] .daily-bar,
+html[data-mc-view="mobile"] .career-caption,
+html[data-mc-view="mobile"] .game-footer,
+html[data-mc-view="mobile"] .sg-browse { display: none !important; }
+
+html[data-mc-view="mobile"] .career-section { min-height: 0; display: flex; align-items: center; padding: 0 0 10px; }
+html[data-mc-view="mobile"] .career-viewport { width: 100%; }
+html[data-mc-view="mobile"] .career-track { padding-top: 60px; }
+html[data-mc-view="mobile"] .career-section, html[data-mc-view="mobile"] .career-viewport { overflow: visible; }
+
+/* Indices (Nationalité / Poste) : sous le parcours, côte à côte, pleine largeur */
+html[data-mc-view="mobile"] .game-controls { display: block; margin: 0; padding: 0 0 8px; min-height: 0; }
+html[data-mc-view="mobile"] .player-clues { grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 auto; max-width: var(--mcm-w); }
+html[data-mc-view="mobile"] .player-clues .clue-card { min-width: 0; width: 100%; padding: 10px 12px; }
+html[data-mc-view="mobile"] .player-clues .clue-label { font-size: 10px; }
+html[data-mc-view="mobile"] .player-clues .clue-value { font-size: 16px; }
+
+/* ---------- BARRE DU HAUT ---------- */
+html[data-mc-view="mobile"] .mcm-top {
+  position: fixed; z-index: 900; top: 0; left: 0; right: 0;
+  padding: calc(env(safe-area-inset-top) + 8px) 12px 10px;
+  background: linear-gradient(180deg, rgba(22,10,44,.97), rgba(16,8,34,.9));
+  -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--mcm-line);
+  box-shadow: 0 10px 30px rgba(8,0,20,.4);
+  will-change: transform;
+}
+html[data-mc-view="mobile"] .mcm-top__row,
+html[data-mc-view="mobile"] .mcm-top .level-selector { max-width: var(--mcm-w); margin-inline: auto; }
+html[data-mc-view="mobile"] .mcm-top__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
+html[data-mc-view="mobile"] .mcm-brand { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
+html[data-mc-view="mobile"] .mcm-brand b { font-family: Montserrat, Inter, sans-serif; font-weight: 700; font-size: 19px; letter-spacing: .02em; color: #fff; }
+html[data-mc-view="mobile"] .mcm-brand b i { font-style: normal; color: var(--violet-light, #c084fc); }
+html[data-mc-view="mobile"] .mcm-brand span { margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #bfa9e6; }
+html[data-mc-view="mobile"] .mcm-tools { display: flex; align-items: center; gap: 8px; }
+html[data-mc-view="mobile"] .mcm-clock {
+  display: flex; flex-direction: column; align-items: flex-end; line-height: 1.05;
+  padding: 5px 10px; border-radius: 10px; border: 1px solid var(--mcm-line); background: rgba(40,14,72,.55);
+}
+html[data-mc-view="mobile"] .mcm-clock__label { font-size: 8.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #bfa9e6; }
+html[data-mc-view="mobile"] .mcm-clock .dt-value { font-size: 16px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+html[data-mc-view="mobile"] .mcm-menu-btn {
+  width: 44px; height: 44px; border-radius: 12px; padding: 0; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--mcm-line); background: rgba(40,14,72,.55); color: #fff;
+}
+html[data-mc-view="mobile"] .mcm-menu-btn span { display: grid; gap: 4px; }
+html[data-mc-view="mobile"] .mcm-menu-btn i { display: block; width: 18px; height: 2px; border-radius: 2px; background: currentColor; }
+
+/* Les 3 niveaux : une rangée segmentée, facile à toucher */
+html[data-mc-view="mobile"] .mcm-top .level-selector {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 9px; padding: 0; width: auto;
+}
+html[data-mc-view="mobile"] .mcm-top .level-button { min-height: 44px; padding: 6px 4px; border-radius: 11px; margin: 0; }
+html[data-mc-view="mobile"] .mcm-top .level-button-name { font-size: 13px; letter-spacing: .06em; }
+html[data-mc-view="mobile"] .mcm-top .level-button-description { font-size: 9.5px; line-height: 1.15; margin-top: 2px; }
+
+/* ---------- MENU (feuille qui monte du bas, à portée de pouce) ---------- */
+html[data-mc-view="mobile"] .mcm-sheet {
+  position: fixed; inset: 0; z-index: 1500; display: flex; align-items: flex-end;
+  background: rgba(6,2,16,.55); opacity: 0; pointer-events: none; transition: opacity .2s ease;
+}
+html[data-mc-view="mobile"].mcm-sheet-open .mcm-sheet { opacity: 1; pointer-events: auto; }
+html[data-mc-view="mobile"] .mcm-sheet__in {
+  width: 100%; max-width: var(--mcm-w); margin-inline: auto;
+  padding: 10px 14px calc(env(safe-area-inset-bottom) + 18px);
+  border-radius: 20px 20px 0 0; border: 1px solid var(--mcm-line); border-bottom: 0;
+  background: linear-gradient(180deg, rgba(34,14,64,.99), rgba(14,6,30,.99));
+  transform: translateY(100%); transition: transform .26s cubic-bezier(.2,.85,.25,1);
+}
+html[data-mc-view="mobile"].mcm-sheet-open .mcm-sheet__in { transform: none; }
+html[data-mc-view="mobile"] .mcm-sheet__grab { width: 40px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.28); margin: 0 auto 10px; }
+html[data-mc-view="mobile"] .mcm-sheet__title { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #bfa9e6; margin: 0 4px 10px; }
+html[data-mc-view="mobile"] .mcm-sheet .daily-links { display: grid; gap: 8px; margin: 0; }
+html[data-mc-view="mobile"] .mcm-sheet .daily-cal-link { width: 100%; min-height: 54px; justify-content: flex-start; font-size: 13px; margin: 0; }
+html[data-mc-view="mobile"] .mcm-sheet__note { margin: 12px 4px 0; font-size: 12px; color: #a893cf; }
+
+/* ---------- BARRE DU BAS (zone du pouce) ---------- */
+html[data-mc-view="mobile"] .mcm-dock {
+  position: fixed; z-index: 900; left: 0; right: 0; bottom: 0;
+  padding: 10px 12px calc(env(safe-area-inset-bottom) + 10px);
+  background: linear-gradient(180deg, rgba(26,10,52,.98), rgba(12,5,26,.99));
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--mcm-line);
+  box-shadow: 0 -12px 30px rgba(8,0,20,.5);
+  will-change: transform;
+}
+html[data-mc-view="mobile"] .mcm-dock__in { max-width: var(--mcm-w); margin-inline: auto; display: flex; flex-direction: column; gap: 8px; }
+
+/* Joueurs déjà utilisés : une ligne de pastilles qui défile */
+html[data-mc-view="mobile"] .mcm-dock .used-players { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+html[data-mc-view="mobile"] .mcm-dock .up-head { display: none; }
+html[data-mc-view="mobile"] .mcm-dock .up-list {
+  display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; margin: 0;
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(90deg, #000 88%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+}
+html[data-mc-view="mobile"] .mcm-dock .up-list::-webkit-scrollbar { display: none; }
+html[data-mc-view="mobile"] .mcm-dock .up-list::before {
+  content: "Déjà testés"; flex: 0 0 auto; font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  color: #ffb3c1; padding: 5px 9px; border-radius: 999px; border: 1px solid rgba(240,73,111,.5); background: rgba(60,14,30,.6);
+}
+html[data-mc-view="mobile"] .mcm-dock .up-chip { flex: 0 0 auto; white-space: nowrap; font-size: 12.5px; padding: 5px 11px; border-radius: 999px; margin: 0; }
+
+/* Message du jeu : une ligne courte au-dessus des actions */
+html[data-mc-view="mobile"] .mcm-dock .game-message { margin: 0; font-size: 14px; line-height: 1.3; min-height: 0; text-align: center; }
+html[data-mc-view="mobile"] .mcm-dock .game-message:empty { display: none; }
+
+/* Actions : Indice · Tous les joueurs · Révéler */
+html[data-mc-view="mobile"] .mcm-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: stretch; }
+html[data-mc-view="mobile"] .mcm-actions .game-action-button {
+  min-height: 46px; height: auto; margin: 0; padding: 4px 8px; gap: 6px; width: 100%; justify-content: center; text-align: left;
+  font-size: 11px; line-height: 1.1; letter-spacing: .04em; border-radius: 12px;
+}
+html[data-mc-view="mobile"] .mcm-actions .game-action-button .button-icon { flex: 0 0 auto; }
+html[data-mc-view="mobile"] .mcm-actions .game-action-button svg { width: 18px; height: 18px; }
+html[data-mc-view="mobile"] .mcm-browse {
+  min-height: 46px; padding: 4px 8px; border-radius: 12px; cursor: pointer; line-height: 1.1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-align: left;
+  font: 700 11px/1.1 Montserrat, Inter, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff;
+  border: 1px solid var(--mcm-line); background: rgba(40,14,72,.6);
+}
+html[data-mc-view="mobile"] .mcm-browse span { color: var(--violet-light, #c084fc); font-size: 16px; }
+
+/* Recherche + VALIDER */
+html[data-mc-view="mobile"] .mcm-dock .answer-form { display: flex; gap: 8px; margin: 0; width: 100%; max-width: none; }
+html[data-mc-view="mobile"] .mcm-dock .autocomplete { flex: 1 1 auto; min-width: 0; position: relative; }
+html[data-mc-view="mobile"] .mcm-dock .guess-input { height: 54px; font-size: 16px; padding: 0 16px; border-radius: 14px; width: 100%; } /* 16px : pas de zoom auto iOS */
+html[data-mc-view="mobile"] .mcm-dock .validate-button { flex: 0 0 auto; height: 54px; min-width: 96px; padding: 0 14px; border-radius: 14px; font-size: 13px; }
+/* Suggestions : s'ouvrent VERS LE HAUT, grandes zones tactiles */
+html[data-mc-view="mobile"] .mcm-dock .suggestions {
+  top: auto; bottom: calc(100% + 8px); left: 0; right: -104px;
+  max-height: min(56vh, calc(var(--mcm-vvh) - var(--mcm-top) - 110px)); overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 14px; box-shadow: 0 -18px 60px rgba(6,0,15,.65);
+}
+html[data-mc-view="mobile"] .mcm-dock .suggestion-item { min-height: 54px; font-size: 16px; }
+html[data-mc-view="mobile"]:not(.mcm-typing) .mcm-dock .suggestions,
+html[data-mc-view="mobile"] .mcm-dock .suggestions:empty { display: none !important; }
+
+/* Pendant la saisie : on libère la place pour les suggestions */
+html[data-mc-view="mobile"].mcm-typing .mcm-actions,
+html[data-mc-view="mobile"].mcm-typing .mcm-dock .used-players,
+html[data-mc-view="mobile"].mcm-typing .mcm-dock .game-message { display: none; }
+
+/* ---------- Niveau terminé : la carte du joueur prend la place, la barre du bas se replie ---------- */
+html[data-mc-view="mobile"].mcm-done .mcm-dock { display: none; }
+html[data-mc-view="mobile"].mcm-done { --mcm-dock: 0px; }
+html[data-mc-view="mobile"].mcm-done .career-section { min-height: 0; }
+html[data-mc-view="mobile"] .game-result.show { margin-top: 6px; }
+html[data-mc-view="mobile"] .result-actions { display: grid; gap: 8px; }
+html[data-mc-view="mobile"] .result-actions .rds-action { min-height: 52px; width: 100%; }
+html[data-mc-view="mobile"] .next-level-cta { min-height: 56px; }
+
+/* ---------- Superpositions (calendrier, récompenses, partage…) au-dessus des barres ---------- */
+html[data-mc-view="mobile"] .cal-overlay,
+html[data-mc-view="mobile"] .browse-overlay,
+html[data-mc-view="mobile"] .yd-overlay,
+html[data-mc-view="mobile"] .sr-overlay,
+html[data-mc-view="mobile"] .rw-overlay,
+html[data-mc-view="mobile"] .id-overlay,
+html[data-mc-view="mobile"] .cu-overlay { z-index: 2000; }
+html[data-mc-view="mobile"] .replay-banner { top: auto; bottom: calc(var(--mcm-dock) + 8px); z-index: 950; }
+html[data-mc-view="mobile"] .share-toast { z-index: 2100; bottom: calc(var(--mcm-dock) + 14px); }
+
+/* Petits écrans (≤ 360 px) */
+@media (max-width: 360px), (max-height: 640px) {
+  html[data-mc-view="mobile"] .career-track { --card-width: 94px; --gap: 10px; padding-top: 44px; }
+  html[data-mc-view="mobile"] .career-track .career-card { margin-bottom: 20px; }
+}
+@media (max-width: 360px) {
+  html[data-mc-view="mobile"] .mcm-clock__label { display: none; }
+  html[data-mc-view="mobile"] .mcm-top .level-button-description { display: none; }
+  html[data-mc-view="mobile"] .mcm-browse { font-size: 0; padding: 0 14px; }
+  html[data-mc-view="mobile"] .mcm-browse span { font-size: 16px; margin: 0; }
+  html[data-mc-view="mobile"] .mcm-actions .game-action-button { font-size: 10.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-mc-view="mobile"] .mcm-sheet, html[data-mc-view="mobile"] .mcm-sheet__in { transition: none; }
+}

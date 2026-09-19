@@ -3399,6 +3399,8 @@ else:
 
 html=f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>(function(){{try{{var d=document.documentElement,q=(location.search.match(/[?&]vue=(mobile|pc)\\b/)||[])[1];try{{if(q)sessionStorage.setItem("mc-vue",q);else q=sessionStorage.getItem("mc-vue");}}catch(e){{}}var m=q?q==="mobile":(Math.min(screen.width,screen.height)<=820&&(matchMedia("(pointer:coarse)").matches||navigator.maxTouchPoints>0));if(m)d.setAttribute("data-mc-view","mobile");}}catch(e){{}}}})();</script>
+<link rel="stylesheet" href="/mode-carriere/mc-mobile.css">
 <title>Jogadle 2 — Mode Carrière</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3748,6 +3750,7 @@ html=f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 {testreset_html}
 <script defer src="/assets/js/jeux/continue-popup.js"></script>
 <script defer src="game.js"></script>
+<script src="/mode-carriere/mc-mobile.js"></script>
 </body></html>'''
 _out={"test":"/tmp/Jogadle2-Mode-Carriere-TEST.html","prod":"/tmp/Jogadle2-Mode-Carriere-PROD.html"}[BUILD_MODE]
 open("/tmp/jogadle-complet.html","w",encoding="utf-8").write(html)   # copie de travail (dernier build)
