@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,viewport-fit=cover">
   <meta name="description" content="TomsoFoot — le football raconté avec du fond, du style et une voix. Magazine, vidéos et directs.">
   <title>TomsoFoot — Le football, notre passion</title>
   <link rel="icon" href="/favicon.ico" sizes="any">
@@ -221,6 +221,27 @@
 }
 
 </style>
+<style id="mobile-no-dezoom">
+/* Mobile : rien ne doit dépasser la largeur de l'écran (sinon le téléphone permet de dézoomer et laisse une bande vide à droite) */
+html,body{max-width:100%;overflow-x:clip}
+@supports not (overflow-x:clip){html,body{overflow-x:hidden}}
+@media (max-width:760px){
+  .mc-ctrl{flex-wrap:wrap;width:100%;min-width:0;gap:10px}
+  .mc-dots{flex:1 1 0;min-width:0;gap:4px}
+  .mc-dot{flex:1 1 0;min-width:4px;width:auto}
+  .mc-rot{flex-basis:100%}
+}
+</style>
+<script id="mobile-no-dezoom-js">
+/* iPhone (Safari ignore minimum-scale pendant le pincement) : on bloque seulement le pincement qui ferait
+   descendre la page SOUS sa taille normale. Le zoom avant reste possible (lecture, accessibilité). */
+(function(){
+  var vv=window.visualViewport, start=1;
+  function cur(){ return vv ? vv.scale : 1; }
+  document.addEventListener('gesturestart',function(e){ start=cur(); if(start<=1.01 && e.scale<1) e.preventDefault(); },{passive:false});
+  document.addEventListener('gesturechange',function(e){ if(start*e.scale<1) e.preventDefault(); },{passive:false});
+})();
+</script>
 </head>
 <body>
   <div class="reading-progress" aria-hidden="true"><span class="reading-progress__value"></span></div>
