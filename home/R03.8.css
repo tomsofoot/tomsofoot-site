@@ -1,0 +1,28 @@
+/* 2a : même carte, en deux plans ; les ressources d’origine restent intactes. */
+#jogadle-card{--player-width:107px;--player-height:177px;--player-offset:29px}
+#jogadle-card .fc-main{grid-template-columns:minmax(0,1fr) calc(var(--player-width) + var(--player-offset));gap:8px}
+#jogadle-card .fc-player-stack{position:relative;isolation:isolate;justify-self:end;width:calc(var(--player-width) + var(--player-offset));height:calc(var(--player-height) + 32px);margin-right:3px;pointer-events:none}
+#jogadle-card .fc-player-stack .fc-player{position:absolute;width:var(--player-width);height:var(--player-height);transition:transform .65s cubic-bezier(.2,.75,.25,1),filter .6s}
+#jogadle-card .fc-player-front{left:0;bottom:0;z-index:2;transform:rotate(-3deg)}
+#jogadle-card .fc-player-back{left:var(--player-offset);top:0;z-index:1;transform:rotate(11deg);filter:drop-shadow(0 5px 12px #0005)}
+/* Le blanc du fichier fourni se fond dans le bleu de la carte sans retoucher le PNG. */
+#jogadle-card .fc-player-back .mystery-player{mix-blend-mode:multiply;object-fit:cover;object-position:53% top}
+#jogadle-card .fc-player-back .fc-player-question{top:10px;left:auto;right:11px;font-size:27px}
+@media(hover:hover) and (pointer:fine){
+  #jogadle-card.is-hovered .fc-player-front{transform:translateY(-4px) rotate(-2deg)}
+  #jogadle-card.is-hovered .fc-player-back{transform:translateY(-5px) rotate(12deg)}
+}
+@media(min-width:1700px){
+  #jogadle-card{--player-width:clamp(155px,9vw,225px);--player-height:clamp(240px,14vw,345px);--player-offset:38px}
+  #jogadle-card .fc-player-stack{height:calc(var(--player-height) + 40px)}
+  #jogadle-card .fc-player-back .fc-player-question{font-size:34px;right:17px;top:13px}
+}
+@media(max-width:699px){
+  #jogadle-card{--player-width:104px;--player-height:178px;--player-offset:22px}
+  #jogadle-card .fc-player-stack{height:calc(var(--player-height) + 28px);margin-right:4px}
+}
+@media(prefers-reduced-motion:reduce){
+  #jogadle-card .fc-player-stack .fc-player{transition:none}
+  #jogadle-card.is-hovered .fc-player-front{transform:rotate(-3deg)}
+  #jogadle-card.is-hovered .fc-player-back{transform:rotate(11deg)}
+}

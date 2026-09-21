@@ -1,0 +1,5 @@
+/* Le nouveau visuel remplit l'image du choix Jogadle, en gardant les trois visages. */
+body[data-proposal="R03"] #game-choice .game-options .jogadle-choice-image {
+  object-fit: cover;
+  object-position: center 22%;
+}

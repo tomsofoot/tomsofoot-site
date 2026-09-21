@@ -1,0 +1,25 @@
+.home-live{padding-top:20px;padding-bottom:65px}
+.twitch-stage{position:relative;isolation:isolate;overflow:hidden;border:1px solid #7041a8;border-radius:22px;min-height:390px;background:#160d29}
+.twitch-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:75% center;z-index:-3;opacity:.7}
+.twitch-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,#170a30 5%,#29104de0 44%,#2e0e4150),linear-gradient(0deg,#0c0819ad,transparent)}
+.twitch-content{padding:38px 48px;max-width:800px;position:relative}
+.twitch-topline{display:flex;gap:22px;align-items:center;margin-bottom:30px;flex-wrap:wrap}
+.twitch-wordmark{display:inline-flex;align-items:center;gap:9px;font:800 20px Inter,sans-serif;color:white;letter-spacing:-.04em}
+.twitch-wordmark svg{width:25px;height:25px;color:#c79aff;overflow:visible}
+.twitch-status{display:flex;align-items:center;gap:7px;border:1px solid #ba8def55;background:#3921517a;border-radius:40px;padding:7px 11px;color:#d3b9ef;font:700 9px Inter,sans-serif;letter-spacing:.07em}
+.twitch-status i{width:6px;height:6px;background:#ad91c9;border-radius:50%}
+.is-on-air .twitch-status{color:white;border-color:#ff4b6270;background:#b11d3b40}
+.is-on-air .twitch-status i{background:#ff425d;animation:twitchPulse 1.8s ease-in-out infinite}
+.twitch-eyebrow{color:#c0a4df;text-transform:uppercase;font:700 9px Inter,sans-serif;letter-spacing:.17em}
+.twitch-stage h2{font:400 clamp(35px,4vw,56px)/1.03 'Archivo Black',sans-serif;letter-spacing:-.04em;margin:13px 0 17px;color:white}
+.twitch-stage h2 em{font-style:normal;color:#d1a3ff}
+.twitch-title{font:500 16px/1.6 Inter,sans-serif;color:#ede1ff;max-width:560px;margin:0 0 28px}
+.twitch-bottom{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.twitch-watch{display:inline-flex;gap:30px;align-items:center;min-height:48px;padding:14px 20px;background:#a565f2;border:1px solid #c7a0ff;border-radius:9px;font:800 12px Inter,sans-serif;color:#fff;transition:box-shadow .3s,background .3s}
+.twitch-watch:hover{background:#b278ff;box-shadow:0 0 30px #b066ff50}.twitch-watch:focus-visible{outline:3px solid white;outline-offset:4px}
+.twitch-viewers,.twitch-offline-note{font:500 11px/1.6 Inter,sans-serif;color:#d1b7eb;max-width:210px}
+.twitch-orbit{position:absolute;width:370px;height:370px;right:3%;top:12%;border:1px solid #be7cff44;border-radius:50%;z-index:-1;box-shadow:0 0 70px #9633ee22,inset 0 0 70px #9c40ed22}
+.twitch-orbit::before,.twitch-orbit::after{content:'';position:absolute;inset:22px;border:1px solid #ca8fff30;border-radius:50%}.twitch-orbit::after{inset:44px}
+@keyframes twitchPulse{50%{box-shadow:0 0 0 5px #ff425d00;opacity:.65}0%,100%{box-shadow:0 0 0 0 #ff425d70}}
+@media(max-width:699px){.home-live{padding-bottom:35px}.twitch-stage{border-radius:17px;min-height:405px}.twitch-content{padding:28px 23px}.twitch-topline{gap:14px;margin-bottom:32px}.twitch-wordmark{font-size:18px}.twitch-stage h2{font-size:38px}.twitch-title{font-size:14px}.twitch-bottom{gap:15px}.twitch-watch{width:100%;justify-content:space-between}.twitch-backdrop{object-position:65% center;opacity:.45}.twitch-shade{background:linear-gradient(100deg,#1c0c32e6,#260d4170),linear-gradient(0deg,#160c24,transparent)}.twitch-orbit{width:280px;height:280px;right:-120px;top:80px}.twitch-status{font-size:8px}.twitch-offline-note{max-width:none}}
+@media(prefers-reduced-motion:reduce){.twitch-status i{animation:none!important}.twitch-watch{transition:none}}

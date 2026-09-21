@@ -1,0 +1,26 @@
+:root{--ink:#e8f0ff;--paper:#060e1d;--muted:#9baec7;--line:#26354d;--red:#76d6ff}
+body{overflow-wrap:anywhere}
+.a-topbar{background:#081326ed;border-bottom:1px solid var(--line);backdrop-filter:blur(16px)}
+.a-main{max-width:1160px;grid-template-columns:minmax(0,780px) 240px;gap:44px;padding-top:50px}
+.a-deck,.a-h3{color:#b9cbe3}.a-body{color:#d6e1f1;line-height:1.85}.a-body a{color:#80d5ff}
+.a-share,.a-side__box,.a-related,.a-stats,.a-table thead th{background:#0e1c30;color:var(--ink)}
+.a-cta--ghost{border-color:var(--line);color:var(--ink)}
+.a-hero img{border:1px solid var(--line)}.a-brand span{color:#76d6ff}
+.article-view-count{font-size:12px;color:#9dc6e8;margin:14px 0;display:flex;align-items:center;gap:8px}
+.article-view-count::before{content:'';width:6px;height:6px;border-radius:50%;background:#76d6ff}
+.article-view-count[hidden],.reading-gate[hidden],.reading-status[hidden]{display:none}
+.reading-initial .a-body{visibility:hidden;max-height:40vh;overflow:hidden}
+.reading-gate{position:relative;margin:30px 0 45px;padding:32px;text-align:center;border:1px solid #37719b;border-radius:18px;background:radial-gradient(ellipse at 50% 0,#173758,transparent 80%),#0b182b}
+.reading-gate::before{content:'';position:absolute;top:-25px;height:25px;left:0;right:0;background:linear-gradient(transparent,#060e1d)}
+.reading-eyebrow{color:#80d5ff;font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800}
+.reading-gate h2{font:800 24px/1.25 Inter,Arial,sans-serif;margin:13px 0 10px;letter-spacing:-.025em}
+.reading-gate p{font-size:14px;color:#a9bdd5;margin:0 0 24px}
+.reading-more{border:1px solid #87dcff;border-radius:9px;background:#9ee1ff;color:#071527;padding:15px 30px;font:800 14px Inter,sans-serif;cursor:pointer;visibility:hidden;opacity:0;transform:translateY(8px);transition:transform .3s,opacity .3s,box-shadow .3s}
+.is-reached .reading-more{visibility:visible;opacity:1;transform:none}.reading-more span{margin-left:20px}
+.reading-more:hover{box-shadow:0 0 30px #67ccff40}.reading-more:focus-visible{outline:3px solid white;outline-offset:4px}
+.reading-status{font:13px/1.6 Inter,sans-serif;color:var(--muted);padding:20px;border:1px solid var(--line);border-radius:12px}
+.reading-status button{display:block;border:0;background:none;color:#80d5ff;font:inherit;padding:8px 0;text-decoration:underline;cursor:pointer}
+@media(max-width:900px){.a-main{grid-template-columns:1fr;gap:24px;max-width:800px;padding-top:25px}}
+@media(max-width:560px){.a-title{font-size:32px}.a-body{font-size:17px}.a-main{padding:25px 18px}.a-deck{font-size:18px}.reading-gate{padding:28px 19px}.reading-gate h2{font-size:22px}.reading-more{width:100%}.a-hero img{height:auto}.a-side{min-width:0}}
+@media(prefers-reduced-motion:reduce){.reading-more{transition:none}}
+.reading-gate{scroll-margin-top:150px}

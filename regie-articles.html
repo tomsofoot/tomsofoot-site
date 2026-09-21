@@ -67,6 +67,12 @@ input.rb-i,textarea.rb-i,select.rb-i{width:100%;background:var(--field);border:1
 input.rb-i:focus,textarea.rb-i:focus,select.rb-i:focus{border-color:#4a76c9;outline:none}
 textarea.rb-i{resize:vertical;min-height:60px;line-height:1.4}
 .rb-hint{font-size:12px;color:var(--muted);margin:4px 0 0}
+/* Repères de l'image principale : sobres, locaux à ce champ. */
+.rb-hero-help{line-height:1.6;margin-top:7px;color:#afbed2;overflow-wrap:anywhere}
+.rb-hero-help strong{font-weight:600;color:#c8d5e7}
+.rb-hero-notice{line-height:1.55;color:#e1c397;overflow-wrap:anywhere}
+.rb-hero-notice:not(:empty){margin-top:6px;padding-left:9px;border-left:2px solid rgba(225,195,151,.42)}
+.rb-hero-notice:empty{margin:0}
 /* Blocks */
 .rb-block{position:relative;background:#0c1c38;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;transition:border-color .12s,box-shadow .12s}
 .rb-block.sel{border-color:#4a76c9;box-shadow:0 0 0 2px rgba(74,118,201,.25)}
@@ -319,7 +325,12 @@ body:not(.media-open) .rb-media{display:none}
           <div class="full"><label class="rb-l">Chapô</label><textarea class="rb-i" data-h="deck" placeholder="Le résumé d'accroche en une ou deux phrases."></textarea></div>
           <div><label class="rb-l">Auteur</label><input class="rb-i" data-h="author" value="Thomas Giroud"></div>
           <div><label class="rb-l">Date de publication</label><input class="rb-i" type="date" data-h="date"></div>
-          <div class="full"><label class="rb-l">Image principale (déposer ou URL) — affichée à son ratio naturel</label><input class="rb-i" data-h="hero" placeholder="Déposez une image ou collez une URL"></div>
+          <div class="full">
+            <label class="rb-l" for="hero-image">Image principale (déposer ou URL) — affichée à son ratio naturel</label>
+            <input class="rb-i" id="hero-image" data-h="hero" aria-describedby="hero-image-help hero-image-notice" placeholder="Déposez une image ou collez une URL">
+            <p class="rb-hint rb-hero-help" id="hero-image-help">Format conseillé : <strong>1600×900 px — 16:9, paysage</strong> · minimum 1200 px de large.</p>
+            <p class="rb-hint rb-hero-notice" id="hero-image-notice" role="status" aria-live="polite" aria-atomic="true"></p>
+          </div>
           <div><label class="rb-l">Texte alternatif</label><input class="rb-i" data-h="hero_alt" placeholder="Décrit l'image (accessibilité/SEO)"></div>
           <div><label class="rb-l">Crédit photo</label><input class="rb-i" data-h="hero_credit" placeholder="© TomsoFoot"></div>
           <div class="full"><label class="rb-l">Légende de l'image principale</label><input class="rb-i" data-h="hero_caption" placeholder="Légende de la photo"></div>
@@ -850,6 +861,81 @@ const TSF={
 function hintFor(k){return{paragraph:'texte courant',heading:'section',subheading:'sous-section',image:'photo + légende',spacer:'aérer (petit/normal/grand)',quote:'mise en exergue',stats:'chiffres du match',table:'données',video:'YouTube/Twitch',embed:'contenu autorisé',divider:'respiration',related:'recommander un article',continue:'chapitre suivant du dossier'}[k]||'';}
 
 /* ---------- header fields ---------- */
+/* Conseil informatif uniquement : ne modifie ni l'image, ni la publication. */
+const heroImageAdvice = (() => {
+  const field = document.querySelector('[data-h="hero"]');
+  const notice = document.getElementById('hero-image-notice');
+  if (!field || !notice) return { refresh() {} };
+  const idealRatio = 16 / 9;
+  const minWidth = 1200;
+  const ratioTolerance = 0.12; // Tolère les petites différences de cadrage (12 %).
+  let lastValue, revision = 0, timer, dispose = () => {};
+
+  function reset() {
+    revision++;
+    clearTimeout(timer);
+    dispose();
+    dispose = () => {};
+    notice.textContent = '';
+    return revision;
+  }
+
+  function inspect(source, version, temporary = false) {
+    const img = new Image();
+    let timeout;
+    const cleanup = () => {
+      clearTimeout(timeout);
+      img.onload = img.onerror = null;
+      img.removeAttribute('src');
+      if (temporary) URL.revokeObjectURL(source);
+    };
+    dispose = cleanup;
+    img.onload = () => {
+      const w = img.naturalWidth, h = img.naturalHeight;
+      cleanup();
+      dispose = () => {};
+      if (version !== revision || !w || !h) return;
+      const reasons = [];
+      if (w < minWidth) reasons.push('Image un peu petite');
+      if (Math.abs(w / h / idealRatio - 1) > ratioTolerance) reasons.push('format éloigné du 16:9');
+      if (reasons.length) {
+        notice.textContent = reasons.join(' · ') + ' (' + w + '×' + h + ' px) — conseillé : 1600×900 px. Vous pouvez publier quand même.';
+      }
+    };
+    // Une image inaccessible ne doit jamais bloquer l'éditeur ni laisser un ancien message.
+    img.onerror = () => { cleanup(); dispose = () => {}; };
+    timeout = setTimeout(() => { cleanup(); dispose = () => {}; }, 12000);
+    img.src = source;
+  }
+
+  function refresh(force = false) {
+    const value = field.value.trim();
+    if (!force && value === lastValue) return;
+    lastValue = value;
+    const version = reset();
+    if (!value) return;
+    timer = setTimeout(() => {
+      try {
+        const url = new URL(value, document.baseURI);
+        if (!['https:', 'http:', 'blob:'].includes(url.protocol) && !value.startsWith('data:image/')) return;
+        inspect(url.href, version);
+      } catch (_) { /* URL incomplète pendant la saisie : aucun avertissement. */ }
+    }, 250);
+  }
+
+  field.addEventListener('input', () => refresh(true));
+  field.addEventListener('change', () => refresh());
+  // Lecture locale du fichier dès le dépôt, indépendante du téléversement existant.
+  field.addEventListener('drop', event => {
+    const file = event.dataTransfer && event.dataTransfer.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    lastValue = field.value.trim();
+    const version = reset();
+    try { inspect(URL.createObjectURL(file), version, true); } catch (_) {}
+  }, true);
+  return { refresh };
+})();
+
 $$('[data-h]').forEach(inp=>{ const ev = inp.type==='checkbox'?'change':'input'; inp.addEventListener(ev,()=>{ state.header[inp.dataset.h]= inp.type==='checkbox'?inp.checked:inp.value; if(inp.dataset.h==='title' && !slugTouched){ const s=$('[data-h="slug"]'); s.value=slugify(inp.value); state.header.slug=s.value; } update(); autosave(); }); });
 let slugTouched=false; $('[data-h="slug"]').addEventListener('input',()=>slugTouched=true);
 
@@ -1031,7 +1117,7 @@ function previewHTML(){
 }
 /* ---------- aperçu STABLE : iframe initialisé une fois, puis patch ciblé (correction #3) ---------- */
 let upT, pvReady=false;
-function update(force){ clearTimeout(upT); upT=setTimeout(()=>{ doUpdate(force); try{ xtpRender(); }catch(e){} },90); }
+function update(force){ heroImageAdvice.refresh(); clearTimeout(upT); upT=setTimeout(()=>{ doUpdate(force); try{ xtpRender(); }catch(e){} },90); }
 function doUpdate(force){
   const pv=$('#pv'); const doc=pv.contentDocument;
   if(force || !pvReady || !doc || !doc.querySelector('.body')){

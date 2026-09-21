@@ -1,0 +1,13 @@
+/* The supplied poster stays intact; cropping and legibility are handled by the layout. */
+.daily-poster .mystery-player{inset:0;width:100%;height:100%;object-fit:cover;object-position:62% 32%;opacity:1;z-index:-2}
+.daily-poster:before{z-index:-1;background:linear-gradient(90deg,#06132bee 0%,#06132bba 30%,#06132b16 73%),linear-gradient(0deg,#06132b 0%,#06132bda 24%,#06132b00 65%)}
+.daily-poster>.kicker,.daily-poster>h3,.daily-poster>p{text-shadow:0 2px 15px #06132b80}
+.daily-poster .hints>div{background:#0b2443ed}
+[data-style="club"] .game-options>a:first-child img{object-fit:cover;object-position:60% 44%}
+@media(max-width:699px){
+ .daily-poster{padding-top:225px}
+ .daily-poster .mystery-player{height:235px;object-position:center 38%}
+ .daily-poster:before{inset:0 0 auto;height:250px;background:linear-gradient(0deg,#06132b 0%,#06132b6e 18%,#06132b00 60%)}
+ .daily-poster h3{font-size:34px;max-width:none;margin-top:14px}
+ .daily-poster>.kicker,.daily-poster>h3,.daily-poster>p{text-shadow:none}
+}

@@ -1,0 +1,5 @@
+/* 2a : ouvrir la cascade pour montrer les deux silhouettes. */
+#jogadle-card{
+  --player-offset:calc(var(--player-width) * .82);
+  --player-step:calc(var(--player-height) * .30);
+}

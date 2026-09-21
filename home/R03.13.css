@@ -1,0 +1,22 @@
+/* R03.13 : identités des compétitions et des fédérations, sans changer les tableaux. */
+#classements .nation-badge,#standings-dialog .nation-badge{display:inline-flex;align-items:center;justify-content:center;width:27px;height:30px;padding:2px;background:transparent;border:0;flex:none}
+#classements .nation-badge img,#standings-dialog .nation-badge img{width:100%;height:100%;object-fit:contain}
+#classements .league-badge,#standings-dialog .league-badge{display:inline-flex;align-items:center;justify-content:center;flex:none;width:50px;height:50px;padding:5px;border-radius:10px;background:#fff;box-shadow:0 1px 6px #12284a0c}
+#classements .league-badge--white,#standings-dialog .league-badge--white{background:#102548}
+#classements .league-badge img,#standings-dialog .league-badge img{width:100%;height:100%;object-fit:contain}
+#classements .league-title,#standings-dialog #standings-dialog-title{display:flex;align-items:center;gap:12px;min-width:0}
+#classements .league-title>span:last-child,#standings-dialog #standings-dialog-title>span:last-child{min-width:0;overflow-wrap:break-word}
+#classements .standings-leagues button>span{width:24px;height:27px;background:transparent;border:0;padding:1px}
+#classements .standings-leagues button .league-badge img{padding:0}
+#classements .standing-country>.league-badge{width:27px;height:30px;padding:2px}
+#standings-dialog #standings-dialog-title .league-badge{width:66px;height:66px;padding:7px}
+#standings-dialog .standings-back-country{display:flex;align-items:center;justify-content:center;gap:12px}
+#match-center .match-competition{display:flex;align-items:center;gap:9px;line-height:1.45}
+#match-center .match-competition-copy{min-width:0;color:inherit}
+#match-center .match-league-badge{width:36px;height:36px;object-fit:contain;flex:none;padding:4px;border-radius:7px;background:#fff}
+@media(max-width:760px){
+ #classements .league-badge{width:42px;height:42px;padding:4px}
+ #classements .league-title{gap:10px}
+ #standings-dialog #standings-dialog-title .league-badge{width:46px;height:46px;padding:4px}
+ #standings-dialog #standings-dialog-title{gap:10px}
+}

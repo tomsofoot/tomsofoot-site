@@ -1,0 +1,2 @@
+/* 8a : retrait du cercle décoratif du Live. */
+[data-content-id="8a"] .twitch-orbit { display: none; }

@@ -1,0 +1,39 @@
+/* Repères discrets : la marge appartient à la navigation, jamais aux cartes. */
+#game-reminders{--context-bottom-space:0px;position:fixed;z-index:18;display:flex;flex-direction:column;gap:10px;right:18px;top:50%;transform:translateY(-50%);width:144px;height:auto;margin:0;padding:0;pointer-events:none;opacity:.48;transition:opacity .65s ease}
+#game-reminders.is-scrolling{opacity:.76;transition-duration:.25s}
+#game-reminders:focus-within{opacity:1;transition-duration:.18s}
+#game-reminders .context-link{position:relative;display:flex;align-items:center;gap:9px;width:100%;min-height:44px;padding:7px 11px;color:#dce8f3;background:rgba(24,42,60,.26);border:1px solid rgba(161,191,215,.12);border-radius:16px;pointer-events:auto;text-decoration:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .22s ease,border-color .22s ease}
+#game-reminders .context-link[hidden]{display:none!important}
+.context-link>svg{width:14px;height:14px;stroke:#a9c9df;stroke-width:1.5;flex:none}
+.context-copy{display:flex;flex-direction:column;gap:3px;writing-mode:horizontal-tb;min-width:0;text-align:left}
+.context-direction{font:400 9px/1.1 Inter,sans-serif;color:#acbccb;letter-spacing:.015em}
+.context-label{font:500 12px/1.2 Inter,sans-serif;white-space:normal;overflow-wrap:break-word;color:#e2edf5}
+#game-reminders .context-link:focus-visible{outline:2px solid #a9c9df;outline-offset:3px;background:rgba(34,54,75,.8);border-color:rgba(161,191,215,.4)}
+.context-focus-target:focus-visible{outline:2px solid #8cdcff;outline-offset:7px;border-radius:3px}
+.context-section-current>.section-head .kicker{color:#a4e0ff!important}
+.context-sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+body[data-style="club"]:has(dialog[open],.menu-panel:not([hidden])) #game-reminders,
+body[data-style="club"]:has(dialog[open],.menu-panel:not([hidden])) #game-reminders .context-link{visibility:hidden;pointer-events:none}
+@media(min-width:1280px){
+ /* 144 px réservés + 40 px de marge intérieure : au moins 22 px d'air avant les pastilles. */
+ body[data-style="club"] #main{padding-inline-end:144px;--pad:40px}
+ body[data-style="club"] #app>footer{padding-inline-end:144px;--pad:40px}
+}
+@media(hover:hover) and (pointer:fine){
+ #game-reminders:hover{opacity:1;transition-duration:.18s}
+ #game-reminders .context-link:hover{background:rgba(34,54,75,.6);border-color:rgba(161,191,215,.3)}
+}
+@media(max-width:1279px){
+ #game-reminders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;top:auto;right:auto;left:50%;bottom:calc(var(--context-bottom-space) + 9px);transform:translateX(-50%);width:calc(100% - 40px);max-width:316px;padding:0;border:1px solid rgba(161,191,215,.16);border-radius:16px;background:rgba(8,20,34,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+ #game-reminders[data-edge="start"],#game-reminders[data-edge="end"]{grid-template-columns:minmax(0,1fr);max-width:170px}
+ #game-reminders .context-link{width:auto;min-width:0;min-height:44px;gap:8px;padding:6px 10px;background:transparent;border:0;border-radius:15px;backdrop-filter:none;-webkit-backdrop-filter:none}
+ #game-reminders .context-previous:not([hidden])+.context-next:before{content:"";position:absolute;left:0;top:13px;bottom:13px;width:1px;background:rgba(161,191,215,.18)}
+ .context-copy{gap:3px}
+ .context-label{font-size:11px;line-height:1.2}
+ .context-direction{font-size:9px;line-height:1.1}
+ #game-reminders .context-link:focus-visible{outline-offset:-2px}
+ body[data-style="club"]:has(input:focus,textarea:focus,select:focus,[contenteditable="true"]:focus) #game-reminders,
+ body[data-style="club"]:has(input:focus,textarea:focus,select:focus,[contenteditable="true"]:focus) #game-reminders .context-link{visibility:hidden;pointer-events:none}
+ body[data-style="club"] footer{padding-bottom:100px}
+}
+@media(prefers-reduced-motion:reduce){#game-reminders,#game-reminders *{transition:none!important;animation:none!important}}

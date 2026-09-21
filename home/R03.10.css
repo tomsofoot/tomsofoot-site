@@ -1,0 +1,16 @@
+/* 2a : textes en haut, éventail dégagé et centré juste en dessous. */
+#jogadle-card .fc-main{
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr);
+  gap:14px;
+  min-height:0;
+  margin-top:20px;
+  margin-bottom:16px;
+}
+#jogadle-card .fc-copy{align-self:start;width:100%;padding:0}
+#jogadle-card .fc-copy h1{max-width:100%;margin:0 0 10px}
+#jogadle-card .fc-copy p{max-width:100%;margin:0}
+#jogadle-card .fc-player-stack{justify-self:center;align-self:center;margin-right:0}
+@media(max-width:699px){
+  #jogadle-card .fc-main{margin-top:18px;gap:10px;margin-bottom:14px}
+}

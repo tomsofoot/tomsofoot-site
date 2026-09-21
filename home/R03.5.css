@@ -1,0 +1,36 @@
+/* 4a : tous les textes restent dans les 40 % bleus, face à l'image à 60 %. */
+[data-proposal="R03"] .home-editorial #hero-une .hero-inner{
+  width:40%;
+  max-width:40%;
+  min-width:0;
+  padding:28px clamp(20px,2.3vw,36px);
+  overflow-wrap:anywhere;
+}
+[data-proposal="R03"] .home-editorial #hero-une .hero-inner>*{max-width:100%;min-width:0}
+[data-proposal="R03"] .home-editorial #hero-title{
+  font-size:clamp(36px,4.2vw,62px);
+  line-height:1.04;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  hyphens:auto;
+  text-wrap:balance;
+  margin:14px 0 18px;
+}
+[data-proposal="R03"] .home-editorial #hero-deck{
+  font-size:15px;
+  line-height:1.7;
+  font-weight:400;
+  margin:0;
+}
+[data-proposal="R03"] .home-editorial #hero-meta{font-size:11px;line-height:1.6;margin:17px 0}
+[data-proposal="R03"] .home-editorial #hero-une .cta-row{flex-wrap:wrap}
+[data-proposal="R03"] .home-editorial #hero-une .button{max-width:100%;white-space:normal}
+/* Le texte retrouve toute la largeur sous l'image sur petit écran. */
+body[data-reading-mode="smartphone"] .home-editorial #hero-une .hero-inner{width:100%;max-width:100%;padding:24px}
+body[data-reading-mode="smartphone"] .home-editorial #hero-title{font-size:42px}
+body[data-reading-mode="smartphone"] .home-editorial #hero-deck{font-size:14px}
+@media(max-width:900px){
+  [data-proposal="R03"] .home-editorial #hero-une .hero-inner{width:100%;max-width:100%;padding:24px}
+  [data-proposal="R03"] .home-editorial #hero-title{font-size:42px}
+  [data-proposal="R03"] .home-editorial #hero-deck{font-size:14px}
+}

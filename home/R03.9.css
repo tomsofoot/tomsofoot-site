@@ -1,0 +1,18 @@
+/* 2a : les cartes s'ouvrent autour de leur base commune, comme un éventail. */
+#jogadle-card{--player-offset:44px}
+#jogadle-card .fc-player-front,
+#jogadle-card .fc-player-back{transform-origin:50% 100%}
+#jogadle-card .fc-player-back{left:0;top:auto;bottom:0;transform:rotate(20deg)}
+@media(hover:hover) and (pointer:fine){
+  #jogadle-card.is-hovered .fc-player-back{transform:translateY(-4px) rotate(20deg)}
+}
+@media(min-width:1700px){
+  #jogadle-card{--player-offset:calc(var(--player-height) * .28)}
+}
+@media(max-width:699px){
+  #jogadle-card{--player-offset:38px}
+  #jogadle-card .fc-copy h1{font-size:36px}
+}
+@media(prefers-reduced-motion:reduce){
+  #jogadle-card.is-hovered .fc-player-back{transform:rotate(20deg)}
+}

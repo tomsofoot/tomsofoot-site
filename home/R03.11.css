@@ -1,0 +1,16 @@
+/* 2a : cascade diagonale, avec les deux cartes droites et superposées. */
+#jogadle-card{
+  --player-offset:calc(var(--player-width) * .34);
+  --player-step:calc(var(--player-height) * .23);
+}
+#jogadle-card .fc-player-stack{height:calc(var(--player-height) + var(--player-step))}
+#jogadle-card .fc-player-front{left:0;top:auto;bottom:0;transform:none}
+#jogadle-card .fc-player-back{left:var(--player-offset);top:0;bottom:auto;transform:none}
+@media(hover:hover) and (pointer:fine){
+  #jogadle-card.is-hovered .fc-player-front,
+  #jogadle-card.is-hovered .fc-player-back{transform:translateY(-4px)}
+}
+@media(prefers-reduced-motion:reduce){
+  #jogadle-card.is-hovered .fc-player-front,
+  #jogadle-card.is-hovered .fc-player-back{transform:none}
+}

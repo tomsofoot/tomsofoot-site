@@ -1,0 +1,137 @@
+/* Habillage commun aux six compétitions. Zones dans standings-zones.js, statistiques ESPN intactes. */
+#classements,#standings-dialog{--standing-line:#243b581c;--standing-surface:#f6f7f5;--standing-text:#203248;--standing-muted:#526278;--standing-panel:#edf1f3;--standing-rise:#e2edf6}
+#classements .standing-card{background:var(--standing-surface);color:var(--standing-text);border-color:#d2dce4;box-shadow:0 12px 35px #00000018;border-radius:18px}
+#classements .standing-card.is-active{border-color:#bccddd;box-shadow:0 16px 40px #00000026}
+#classements .standing-card:has(.standing-open:hover),#classements .standing-card:has(.standing-open:focus-visible){border-color:#739abb;box-shadow:0 16px 40px #00000026}
+#classements .standing-card-head,#standings-dialog .standings-modal-head{background:linear-gradient(120deg,color-mix(in srgb,var(--league) 5%,#f3f6f6),#edf1f3);color:var(--standing-text);border-bottom:1px solid var(--standing-line)}
+#classements .standing-card-head{padding:22px 20px 20px}
+#classements .standing-card-head::after{display:none}
+#classements .standing-country{color:var(--standing-muted);font-weight:500}
+#classements .standing-country>span{color:#425b73;border-color:#8ca2b950}
+#classements .standing-country small{color:var(--standing-muted)}
+#classements .standing-card h3{font-size:25px;line-height:1.2;margin-top:15px}
+#classements .standing-card-meta{color:var(--standing-muted);font-size:10px;flex-wrap:wrap;margin-top:10px}
+#classements .standing-table-slot{padding:8px 12px;scrollbar-color:#9aaebe var(--standing-panel);overflow:auto;overflow-anchor:none}
+#classements .standings-table,#standings-dialog .standings-table{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;color:var(--standing-text);isolation:isolate}
+#classements .standings-table{font-size:12px}
+#classements .standings-table th,#classements .standings-table td{height:37px;padding:7px 5px}
+#classements .standings-table thead th{height:38px;font-size:10px;background:var(--standing-surface);color:var(--standing-muted);box-shadow:none;top:-8px;z-index:8}
+#classements .standings-table .standing-rank{width:28px;font-size:11px;color:var(--standing-muted)}
+#classements .standings-table .standing-played{width:28px;color:var(--standing-muted)}
+#classements .standings-table .standing-diff{width:36px;color:var(--standing-muted)}
+#classements .standings-table .standing-points{width:35px;font-weight:700;color:#163d64;background:#eaf0f4}
+#classements .standing-club{gap:9px}
+#classements .standing-crest,#classements .standing-crest img{width:22px;height:22px}
+#classements .standings-table .standing-team{font-weight:500}
+#classements .standings-table tbody tr,#standings-dialog .standings-table tbody tr{border:0;position:relative;background:var(--standing-surface)}
+#classements .standings-table tbody tr>* ,#standings-dialog .standings-table tbody tr>*{border-bottom:1px solid var(--standing-line)}
+#classements .standings-table tr[data-zone]:not([data-zone=""])>.standing-rank,#standings-dialog .standings-table tr[data-zone]:not([data-zone=""])>.standing-rank{box-shadow:inset 2px 0 var(--zone);background:color-mix(in srgb,var(--zone) 6%,var(--standing-surface));color:var(--standing-muted)}
+#classements .standing-card-legend,#classements .standing-card-foot,#standings-dialog .standings-modal-legend,#standings-dialog .standings-modal-foot{background:var(--standing-panel);border-color:var(--standing-line)}
+#classements .standing-card-legend:empty,#standings-dialog .standings-modal-legend:empty{display:none}
+#classements .standing-legend{padding:15px 16px;font-size:10px;color:#41556c;line-height:1.5}
+#classements .standing-legend-title{color:var(--standing-muted);font-size:9px;font-weight:600;margin-bottom:11px}
+#classements .standing-legend ul{gap:10px 12px}
+#classements .standing-legend li i,#standings-dialog .standing-legend li i{width:5px;height:5px;border-radius:50%;margin-top:5px;opacity:.8}
+#classements .standing-zone-note,#standings-dialog .standing-zone-note{color:var(--standing-muted);line-height:1.6;font-size:9px}
+#classements .standing-status,#classements .standing-empty{color:var(--standing-muted);font-size:10px}
+#classements .standing-stale .standing-status{color:#76591f}
+#classements .standing-expand{background:#f7f9fa;border-color:#9bb0c35c;color:#315677}
+#classements .standing-card-foot{height:48px}
+#classements .standing-card:has(.standing-open:hover) .standing-expand{background:#e0eaf2;color:#203f5e;transform:none}
+#classements .standings-leagues button{font-weight:500;color:#a0b3c8}
+#classements .standings-leagues button[aria-current=true]{background:#203047;border-color:#9ebcdc33;color:#e5edf6;box-shadow:none}
+#classements .standings-leagues button>span{color:#abc1d7;border-color:#adc9e52a}
+#classements .standings-source{color:#8da1b8;line-height:1.85}
+/* La ligne montante est un seul calque : elle passe devant celles qui descendent. */
+#classements .standings-table .standing-moving,#standings-dialog .standings-table .standing-moving{will-change:transform;z-index:2}
+#classements .standings-table .standing-moving-up,#standings-dialog .standings-table .standing-moving-up{z-index:4;box-shadow:0 3px 18px #5389b52b;outline:1px solid #699abd66;background:var(--standing-rise)}
+#classements .standings-table .standing-moving-down,#standings-dialog .standings-table .standing-moving-down{z-index:1}
+#classements .standings-table .standing-moving-up>*,#standings-dialog .standings-table .standing-moving-up>*{background:var(--standing-rise)}
+/* Le classement agrandi garde la même palette calme et offre des logos plus grands. */
+#standings-dialog{color:var(--standing-text)}
+#standings-dialog .standings-front,#standings-dialog .standings-modal-scroll{background:var(--standing-surface)}
+#standings-dialog .standings-face{box-shadow:0 28px 85px #17304f33,0 0 0 1px #bacbd9}
+#standings-dialog .standings-modal-head{padding:25px 30px 22px}
+#standings-dialog .standings-modal-head h2{font-size:36px;margin:12px 50px 14px 0}
+#standings-dialog .standings-modal-kicker,#standings-dialog .standings-modal-head>div{color:var(--standing-muted)}
+#standings-dialog .standings-modal-scroll{scrollbar-color:#9aaebe var(--standing-panel);overflow-anchor:none}
+#standings-dialog .standings-table-full{font-size:17px;min-width:920px}
+#standings-dialog .standings-table-full th,#standings-dialog .standings-table-full td{height:54px;padding:10px 14px}
+#standings-dialog .standings-table-full thead th{font-size:11px;height:42px;background:var(--standing-panel);color:var(--standing-muted);box-shadow:none;z-index:8}
+#standings-dialog .standings-table-full .standing-rank{width:55px;font-size:14px;color:var(--standing-muted)}
+#standings-dialog .standings-table-full .standing-team{font-weight:500}
+#standings-dialog .standings-table-full .standing-played,#standings-dialog .standings-table-full .standing-won,#standings-dialog .standings-table-full .standing-drawn,#standings-dialog .standings-table-full .standing-lost,#standings-dialog .standings-table-full .standing-for,#standings-dialog .standings-table-full .standing-against{width:67px;color:var(--standing-muted)}
+#standings-dialog .standings-table-full .standing-diff{width:74px;color:var(--standing-muted)}
+#standings-dialog .standings-table-full .standing-points{width:72px;background:#eaf0f4;font-size:18px;font-weight:700;color:#163d64}
+#standings-dialog .standings-table-full thead .standing-points{font-size:11px;background:var(--standing-panel);color:var(--standing-muted)}
+#standings-dialog .standings-table-full .standing-crest,#standings-dialog .standings-table-full .standing-crest img{width:32px;height:32px}
+#standings-dialog .standings-table-full tbody tr:hover{background:#eaf0f4}
+#standings-dialog .standings-modal-legend .standing-legend{font-size:10px;color:#41556c;line-height:1.5;padding:16px 28px}
+#standings-dialog .standing-legend-title{color:var(--standing-muted);font-weight:600;font-size:9px}
+#standings-dialog .standings-modal-foot{color:var(--standing-muted);padding:13px 28px}
+#standings-dialog .standings-modal-source,#standings-dialog .standings-scroll-hint{color:#285b85}
+#standings-dialog .standings-close{border-color:#a7b9c966;background:#f6f8f9e6;color:#344d66}
+#standings-dialog .standings-close:hover{background:#dde7ef}
+#standings-dialog .standings-close:focus-visible,#standings-dialog .standings-modal-scroll:focus-visible{outline:2px solid #315f89;outline-offset:-4px}
+/* Le verso de la rotation et le voile restent clairs eux aussi. */
+#standings-dialog::backdrop{background:#dce5edb8;backdrop-filter:blur(8px);animation:standings-light-backdrop .4s ease-out}
+#standings-dialog .standings-back{background:radial-gradient(ellipse at 50% 80%,color-mix(in srgb,var(--league) 12%,#edf1f3),transparent 85%),#f1f4f5;color:var(--standing-text);border-color:#c3d1dc}
+#standings-dialog .standings-back::after{border-color:#52749626}
+#standings-dialog .standings-back-brand i{border-color:#607e9859}
+#standings-dialog .standings-back-country,#standings-dialog .standings-back-season,#standings-dialog .standings-back-caption{color:var(--standing-muted)}
+#standings-dialog .standings-back-title{text-shadow:none}
+#standings-dialog .standings-pitch{border-color:#52749626;box-shadow:0 0 0 80px #52749605,0 0 0 81px #5274961a,0 0 0 161px #52749605,0 0 0 162px #5274961a}
+#standings-dialog .standings-pitch::before{border-color:#52749626}
+@keyframes standings-light-backdrop{from{background:#dce5ed00;backdrop-filter:blur(0)}to{background:#dce5edb8;backdrop-filter:blur(8px)}}
+@media(max-width:760px){
+ #classements .standings-table th,#classements .standings-table td{height:38px;padding-inline:4px}
+ #classements .standing-table-slot{padding-inline:9px}
+ #classements .standing-club{gap:7px}
+ #classements .standing-card-head{padding:21px 18px 19px}
+ #classements .standing-card h3{font-size:27px}
+ #classements .standing-legend{font-size:10px}
+ #standings-dialog{width:calc(100% - 20px);height:calc(100dvh - 24px)}
+ #standings-dialog .standings-modal-head{padding:20px 17px 17px}
+ #standings-dialog .standings-modal-head h2{font-size:27px;margin:12px 25px 12px 0}
+ #standings-dialog .standings-table-full{font-size:14px;min-width:680px}
+ #standings-dialog .standings-table-full th,#standings-dialog .standings-table-full td{height:50px;padding:9px 7px}
+ #standings-dialog .standings-table-full .standing-rank{width:30px;font-size:12px;left:0;background:var(--standing-surface)}
+ #standings-dialog .standings-table-full .standing-team{width:146px;left:30px;background:var(--standing-surface);box-shadow:4px 0 10px #2749680d}
+ #standings-dialog .standings-table-full .standing-points{width:48px;font-size:15px;right:0;box-shadow:-4px 0 10px #2749680d}
+ #standings-dialog .standings-table-full thead .standing-rank,#standings-dialog .standings-table-full thead .standing-team{background:var(--standing-panel);z-index:9}
+ #standings-dialog .standings-table-full thead .standing-points{z-index:9}
+ #standings-dialog .standings-table-full .standing-played,#standings-dialog .standings-table-full .standing-won,#standings-dialog .standings-table-full .standing-drawn,#standings-dialog .standings-table-full .standing-lost,#standings-dialog .standings-table-full .standing-for,#standings-dialog .standings-table-full .standing-against{width:48px}
+ #standings-dialog .standings-table-full .standing-diff{width:55px}
+ #standings-dialog .standings-table-full .standing-crest,#standings-dialog .standings-table-full .standing-crest img{width:24px;height:24px}
+ #standings-dialog .standings-table-full .standing-club{gap:7px}
+ #standings-dialog .standings-modal-legend .standing-legend{padding:12px 16px;font-size:9px}
+ #standings-dialog .standings-modal-foot{padding:10px 16px;font-size:9px}
+ #standings-dialog .standings-table .standing-moving-up>*{background:var(--standing-rise)}
+}
+@media(prefers-reduced-motion:reduce){
+ #classements .standing-moving,#standings-dialog .standing-moving{transform:none!important;box-shadow:none;outline:none}
+ #standings-dialog::backdrop{animation:none}
+}
+
+/* Un repère monochrome par zone : la couleur n'est jamais le seul indice. */
+#classements .standings-table .standing-rank{width:44px}
+#standings-dialog .standings-table-full .standing-rank{width:66px}
+.standing-rank-value{display:inline-block;min-width:2ch;text-align:right}
+.standing-zone-mark{display:inline-block;width:11px;margin-inline-start:4px;color:#42566e;font:600 9px/1 Inter,sans-serif;text-align:center;vertical-align:1px}
+#standings-dialog .standing-zone-mark{font-size:10px;width:13px;margin-inline-start:6px}
+#classements .standings-table tbody tr[data-zone]:not([data-zone=""])>*,
+#standings-dialog .standings-table tbody tr[data-zone]:not([data-zone=""])>*{background-color:color-mix(in srgb,var(--zone) 4%,var(--standing-surface))}
+#classements .standings-table tbody tr[data-zone]:not([data-zone=""])>.standing-rank,
+#standings-dialog .standings-table tbody tr[data-zone]:not([data-zone=""])>.standing-rank{box-shadow:inset 2px 0 var(--zone);background-color:color-mix(in srgb,var(--zone) 6%,var(--standing-surface));color:var(--standing-muted)}
+#classements .standings-table tbody tr[data-zone][data-zone-pattern="hatched"]>.standing-rank,
+#standings-dialog .standings-table tbody tr[data-zone][data-zone-pattern="hatched"]>.standing-rank{box-shadow:none;background-image:repeating-linear-gradient(135deg,var(--zone) 0 3px,transparent 3px 6px);background-position:left top;background-size:3px 100%;background-repeat:no-repeat}
+.standing-zone-key{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;min-height:17px;border-left:2px solid var(--zone);border-radius:2px;color:#42566e;background:color-mix(in srgb,var(--zone) 6%,transparent);font:600 10px/1 Inter,sans-serif}
+.standing-zone-key[data-pattern="hatched"]{border-left-color:transparent;background-image:repeating-linear-gradient(135deg,var(--zone) 0 3px,transparent 3px 6px);background-position:left top;background-size:3px 100%;background-repeat:no-repeat}
+#classements .standing-legend li,#standings-dialog .standing-legend li{align-items:flex-start;gap:7px}
+#classements .standings-table tbody tr.standing-moving-up[data-zone]>*,
+#standings-dialog .standings-table tbody tr.standing-moving-up[data-zone]>*{background-color:var(--standing-rise)}
+@media(max-width:760px){
+ #standings-dialog .standings-table-full .standing-rank{width:43px;left:0}
+ #standings-dialog .standings-table-full .standing-team{left:43px}
+ #standings-dialog .standing-zone-mark{font-size:9px;width:11px;margin-inline-start:3px}
+}

@@ -1,0 +1,53 @@
+/* Hover accents for the existing Club layout. All decorative layers are hidden at rest. */
+.hover-card{position:relative;--hx:50%;--hy:50%;--rx:0deg;--ry:0deg;transition:box-shadow .45s ease,transform .5s cubic-bezier(.2,.8,.2,1)}
+.hover-decoration{position:absolute;pointer-events:none!important;user-select:none;opacity:0;transition:opacity .3s;z-index:3}
+.hover-edge{inset:0;border-radius:inherit;padding:1.5px;background:radial-gradient(180px circle at var(--hx) var(--hy),#c3fbff 0%,#43bcea 32%,#0a4eb833 75%,transparent);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;z-index:5}
+.hover-film{inset:0;overflow:hidden;border-radius:inherit;background:radial-gradient(230px at var(--hx) var(--hy),#80d6ff1c,transparent 72%)}
+.hover-film:after{content:'';position:absolute;inset:-25%;background:linear-gradient(112deg,transparent 40%,#a7eaff28 45%,#fff6 48%,#d8c5ff33 50%,transparent 55%);transform:translateX(-130%);opacity:0}
+.hover-line{left:15%;right:15%;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#0a4eb8,#8eeaff,#0a4eb8,transparent);transform:scaleX(.05);transform-origin:left;box-shadow:0 -2px 10px #47bde350}
+.hover-card .round-arrow,.hover-card .feature-copy a svg{transition:transform .3s,background .3s,color .3s}
+.optical-host{position:relative}
+.optical-host>img{transition:opacity .4s ease,transform .65s ease!important}
+.hover-card:focus-within>.hover-edge{opacity:.6;background:#0a4eb880}
+.hero[data-hover="lift"]{transform-origin:center;transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .45s ease}
+.hero[data-hover="lift"]>.hover-edge{padding:2px;background:radial-gradient(350px circle at var(--hx) var(--hy),#fff,transparent 70%),linear-gradient(120deg,#bdfaff,#37cbff 38%,#2172ed 68%,#92f3ff)}
+.hero[data-hover="lift"]:focus-within{box-shadow:0 0 0 1px #7ceaff,0 0 22px #42cfff55}
+.doc-image{overflow:hidden}
+.doc-image .play:before,.doc-image .play:after{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid #caf5ffb3;border-left-color:transparent;border-bottom-color:transparent;opacity:0;transform:rotate(-70deg) scale(.82);transition:opacity .3s,transform .85s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.doc-image .play:after{inset:-15px;border-color:#bbdaff75;border-right-color:transparent;border-top-color:transparent;transform:rotate(70deg) scale(.85)}
+@media(hover:hover) and (pointer:fine){
+ .hover-card.is-hovered>.hover-edge{opacity:1}
+ .hover-card.is-hovered .hover-film{opacity:1}
+ .hover-card.is-hovered .hover-film:after{animation:optical-sheen 950ms cubic-bezier(.2,.7,.25,1) both}
+ .hover-card.is-hovered .round-arrow{background:#0a4eb8;color:#fff;transform:translate(2px,-2px)}
+ .hover-card.is-hovered .feature-copy a svg{transform:translateX(4px)}
+ .hover-card[data-hover="prism"].is-hovered{transform:perspective(1000px) translateY(-2px) rotateX(var(--rx)) rotateY(var(--ry));box-shadow:0 15px 32px #0a4eb824}
+ .hover-card[data-hover="prism"] .hover-film{background:radial-gradient(ellipse at var(--hx) var(--hy),#d3f4ff4a,transparent 55%)}
+ .hover-card[data-hover="scan"].is-hovered .hover-film:after{background:linear-gradient(115deg,transparent 45%,#9adeff22 48%,#ddfaff99 49%,#c1d1ff22 51%,transparent 54%);animation-duration:1.15s}
+ .hover-card[data-hover="halo"].is-hovered .hover-film{background:radial-gradient(150px at var(--hx) var(--hy),#abc9ff38,transparent 75%)}
+ .hover-card[data-hover="halo"] .hover-film:after{display:none}
+ .hover-card[data-hover="edge"].is-hovered{box-shadow:0 10px 28px #0a4eb811}
+ .hover-card[data-hover="line"].is-hovered .hover-line{opacity:1;transform:scaleX(1);transition:opacity .3s,transform .7s cubic-bezier(.2,.8,.2,1)}
+ .hover-card[data-hover="line"]>.hover-edge{display:none}
+ .hero[data-hover="lift"].is-hovered{box-shadow:0 30px 65px #06132b3d,0 0 0 1px #85eeff,0 0 25px #37cfff70,0 0 60px #0a4eb833}
+ .hover-card[data-hover="focus"].is-hovered .doc-image .play:before{opacity:1;transform:rotate(135deg) scale(1)}
+ .hover-card[data-hover="focus"].is-hovered .doc-image .play:after{opacity:1;transform:rotate(-135deg) scale(1)}
+ .hover-card[data-hover="focus"].is-hovered .doc-image>img{transform:scale(1.025)}
+ .story.hover-card:hover{transform:none}
+ .story.hover-card:hover img{transform:none}
+}
+@media(min-width:700px) and (hover:hover) and (pointer:fine){
+ .hero[data-hover="lift"].is-hovered{transform:translateY(-7px) scale(1.026)}
+}
+@keyframes optical-sheen{0%{transform:translateX(-80%);opacity:0}20%{opacity:1}100%{transform:translateX(80%);opacity:0}}
+@media(hover:none),(pointer:coarse){
+ .hover-decoration{display:none!important}
+ .hover-card,.hover-card:hover{transform:none!important}
+ .story.hover-card:hover img{transform:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .hover-card,.hover-card.is-hovered{transform:none!important;transition:none!important}
+ .hover-decoration,.doc-image .play:before,.doc-image .play:after{display:none!important}
+ .hover-card img,.hover-card.is-hovered img{opacity:1!important;transform:none!important;transition:none!important}
+ .hover-card.is-hovered{outline:1px solid #0a4eb85c;outline-offset:1px}
+}

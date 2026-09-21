@@ -1,0 +1,142 @@
+/* R03.18 — quatre CTA communs, inspirés de CSS-Glowing-Button.
+   Les autres boutons conservent l'habillage de R03.17. */
+body[data-proposal="R03"] #app .tf-premium-cta {
+  --cta-radius: 12px;
+  --cta-glow-opacity: .32;
+  --cta-glow-scale: .98;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 52px;
+  min-width: min(188px, 100%);
+  max-width: 100%;
+  padding: 11px 16px 11px 20px;
+  border: 0;
+  border-radius: var(--cta-radius);
+  background: linear-gradient(115deg, #8eafffa8, #747cefb8 48%, #b08aefb8);
+  color: #fff;
+  font: 700 13px/1.4 Inter, sans-serif;
+  letter-spacing: .015em;
+  text-decoration: none;
+  text-align: left;
+  text-shadow: 0 1px 2px #06132b50;
+  box-shadow: 0 6px 18px #06132b38, -4px 0 14px #0a4eb829, 4px 0 14px #794acb26;
+  transform: none;
+  translate: none;
+  cursor: pointer;
+  overflow: visible;
+}
+/* Le halo déborde ; la surface intérieure reste nette et le texte bien contrasté. */
+body[data-proposal="R03"] #app .tf-premium-cta::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  z-index: -2;
+  border-radius: inherit;
+  background: linear-gradient(110deg, #0a4eb8 10%, #4059c8 50%, #8654ce 90%);
+  filter: blur(12px);
+  opacity: var(--cta-glow-opacity);
+  transform: scale(var(--cta-glow-scale));
+  transition: opacity 220ms ease, transform 220ms ease;
+  pointer-events: none;
+}
+body[data-proposal="R03"] #app .tf-premium-cta::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: calc(var(--cta-radius) - 1px);
+  background: linear-gradient(180deg, #ffffff0d, transparent 52%),
+    linear-gradient(110deg, #123876, #283c86 52%, #523580);
+  box-shadow: inset 0 1px 0 #ffffff1a, inset 0 -1px 0 #06132b40;
+  pointer-events: none;
+}
+body[data-proposal="R03"] #app .tf-premium-cta > tf-glow-halo { display: none; }
+body[data-proposal="R03"] #app .tf-premium-cta .tf-cta-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  border: 1px solid #ffffff24;
+  border-radius: 50%;
+  background: #ffffff0c;
+  color: #e7edff;
+}
+body[data-proposal="R03"] #app .tf-premium-cta .tf-cta-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform: none;
+  transition: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  body[data-proposal="R03"] #app .tf-premium-cta:hover {
+    --cta-glow-opacity: .72;
+    --cta-glow-scale: 1.05;
+    translate: 0 -3px;
+    box-shadow: 0 9px 23px #06132b45, -5px 0 22px #0a4eb852, 5px 0 22px #8654ce4d;
+  }
+}
+body[data-proposal="R03"] #app .tf-premium-cta:is(:active, :focus-visible) {
+  --cta-glow-opacity: .72;
+  --cta-glow-scale: 1.05;
+  translate: 0 -3px;
+  box-shadow: 0 9px 23px #06132b45, -5px 0 22px #0a4eb852, 5px 0 22px #8654ce4d;
+}
+body[data-proposal="R03"] #app .tf-premium-cta:focus-visible {
+  outline: 2px solid #a6b8f3 !important;
+  outline-offset: 4px !important;
+}
+/* Même espace intérieur sur les cartes récentes et les archives de cette section. */
+body[data-proposal="R03"] #derniers-articles .story-copy {
+  padding: 20px 22px 24px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+body[data-proposal="R03"] #derniers-articles .story-copy > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+body[data-proposal="R03"] #derniers-articles .story-copy .eyebrow {
+  display: block;
+  line-height: 1.6;
+}
+body[data-proposal="R03"] #derniers-articles .story-copy h3 {
+  margin: 10px 0 14px;
+  line-height: 1.18;
+}
+body[data-proposal="R03"] #derniers-articles .story-copy p { margin: 0; }
+@media (max-width: 760px) {
+  body[data-proposal="R03"] #app .tf-premium-cta { width: 100%; }
+  body[data-proposal="R03"] #derniers-articles .story-copy { padding: 20px 20px 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-proposal="R03"] #app .tf-premium-cta,
+  body[data-proposal="R03"] #app .tf-premium-cta::before {
+    transform: none !important;
+    translate: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+@media (forced-colors: active) {
+  body[data-proposal="R03"] #app .tf-premium-cta {
+    color: ButtonText;
+    background: ButtonFace;
+    border: 1px solid ButtonText;
+    text-shadow: none;
+  }
+  body[data-proposal="R03"] #app .tf-premium-cta::before,
+  body[data-proposal="R03"] #app .tf-premium-cta::after { display: none; }
+  body[data-proposal="R03"] #app .tf-premium-cta:focus-visible { outline-color: Highlight !important; }
+}

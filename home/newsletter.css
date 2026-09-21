@@ -1,0 +1,4 @@
+body[data-proposal="R03"] .newsletter-form .newsletter-consent{margin-top:14px;max-width:58ch;font-size:11px;line-height:1.6;color:inherit;opacity:.85}
+body[data-proposal="R03"] .newsletter-consent a{text-decoration:underline;text-underline-offset:3px}
+body[data-proposal="R03"] .newsletter-form [aria-invalid="true"]{outline:2px solid currentColor;outline-offset:3px}
+body[data-proposal="R03"] .newsletter-form button:disabled{opacity:.65;cursor:wait}

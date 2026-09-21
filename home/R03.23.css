@@ -1,0 +1,33 @@
+/* 2d : mêmes marges pour les deux cartes du choix des jeux. */
+body[data-proposal="R03"] #game-choice .game-options > a {
+  --game-card-inset: 24px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: 12px;
+}
+body[data-proposal="R03"] #game-choice .game-options > a > h3 {
+  margin: 22px var(--game-card-inset) 0;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+body[data-proposal="R03"] #game-choice .game-options > a > p {
+  margin: 8px var(--game-card-inset) 22px;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+}
+body[data-proposal="R03"] #game-choice .game-options > a > .button {
+  width: auto;
+  margin: auto var(--game-card-inset) 24px;
+}
+@media (max-width: 760px) {
+  body[data-proposal="R03"] #game-choice .game-options > a {
+    --game-card-inset: 20px;
+  }
+  body[data-proposal="R03"] #game-choice .game-options > a > h3 {
+    margin-top: 20px;
+  }
+  body[data-proposal="R03"] #game-choice .game-options > a > .button {
+    margin-bottom: 20px;
+  }
+}

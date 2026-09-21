@@ -14,7 +14,9 @@ export const SITE          = process.env.SITE_ORIGIN || 'https://tomsofoot.fr';
 export const SUPABASE_URL  = process.env.SUPABASE_URL || '';
 export const SERVICE_ROLE  = process.env.SUPABASE_SERVICE_ROLE || '';
 // Contexte de déploiement Netlify : 'production' | 'deploy-preview' | 'branch-deploy' | 'dev'
-export const NETLIFY_CONTEXT = process.env.CONTEXT || '';
+// Les aperçus envoyés par CLI n'injectent pas toujours CONTEXT au runtime.
+// Ce marqueur serveur ne peut sélectionner QUE le contexte non-production.
+export const NETLIFY_CONTEXT = process.env.CONTEXT || (process.env.TOMSOFOOT_PREVIEW === '1' ? 'deploy-preview' : '');
 // Référence du projet Supabase de PRODUCTION (sous-domaine public, pas un secret).
 export const PROD_PROJECT_REF = 'yubndvqmglttlntkugzm';
 export const ANON          = process.env.SUPABASE_ANON || '';

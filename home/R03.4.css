@@ -1,0 +1,10 @@
+/* 4a : image à 60 % de sa taille précédente, ratio naturel conservé. */
+[data-proposal="R03"] .home-editorial #hero-une .hero-visual{
+  width:60%;
+  justify-self:end;
+  align-self:center;
+}
+body[data-reading-mode="smartphone"] .home-editorial #hero-une .hero-visual{margin-inline:auto}
+@media(max-width:900px){
+  [data-proposal="R03"] .home-editorial #hero-une .hero-visual{margin-inline:auto}
+}

@@ -1,0 +1,17 @@
+/* Le cadre suit la largeur de l'écran ; la marge droite protège les rappels. */
+@media(min-width:1280px){
+  body[data-proposal="R03"] #app{
+    max-width:none;
+    width:calc(100% - 184px);
+    margin-left:30px;
+    margin-right:154px;
+  }
+}
+/* Les visuels et titres des jeux suivent les cartes agrandies, sans allonger les textes. */
+@media(min-width:1700px){
+  [data-proposal="R03"] .home-games .fc-main{grid-template-columns:minmax(0,1fr) clamp(155px,9vw,225px);gap:20px}
+  [data-proposal="R03"] .home-games .fc-player{width:clamp(155px,9vw,225px);height:clamp(240px,14vw,345px)}
+  [data-proposal="R03"] .home-games .fc-copy h1{font-size:clamp(48px,3.1vw,74px)}
+  [data-proposal="R03"] .home-games .fc-copy p{font-size:13px;max-width:250px}
+  [data-proposal="R03"] .home-games .career .feature-copy h3{font-size:clamp(48px,3.1vw,74px)}
+}

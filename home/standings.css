@@ -1,0 +1,221 @@
+/* Club Glacier only. No shared article/hero animation is changed. */
+.standings-section{--standing-line:#dce4ef;scroll-margin-top:24px}
+.standings-heading{align-items:flex-end;margin-bottom:30px}
+.standings-heading h2{font-family:'Archivo Black',Inter,sans-serif;font-size:clamp(32px,3vw,44px);line-height:1.07;letter-spacing:-.04em;max-width:800px}
+.standings-intro{color:#53657c;font-size:13px;line-height:1.8;text-align:right;padding-bottom:3px}
+.standings-toolbar{display:flex;gap:20px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.standings-leagues{display:flex;gap:6px;flex-wrap:wrap}
+.standings-leagues button{display:flex;align-items:center;gap:8px;background:transparent;border:1px solid transparent;padding:10px 13px;border-radius:8px;color:#526079;font-size:12px;font-weight:700;min-height:44px;transition:background .2s,color .2s,border-color .2s}
+.standings-leagues button>span{font-size:9px;letter-spacing:.06em;color:var(--league);border:1px solid #d9e1ec;padding:2px 4px;border-radius:3px}
+.standings-leagues button:hover{background:#fff}
+.standings-leagues button[aria-current=true]{color:#06132b;background:#fff;border-color:#c5d4e9;box-shadow:0 3px 10px #06132b05}
+.standings-season{font-size:11px;font-weight:600;color:#526079;white-space:nowrap}
+.standings-carousel{overflow:hidden;padding:15px 0 0;touch-action:pan-y}
+.standings-stage{position:relative;height:1000px}
+.standing-card{position:absolute;left:0;top:20px;width:calc((100% - 48px)/3);height:928px;display:flex;flex-direction:column;border:1px solid #d1ddeb;border-radius:15px;background:#fff;box-shadow:0 10px 30px #1733540c;overflow:hidden;transform:none;filter:none;transition:left .65s cubic-bezier(.22,.75,.2,1),width .65s cubic-bezier(.22,.75,.2,1),top .65s,height .65s,opacity .4s,border-color .3s,box-shadow .3s;opacity:1}
+.standing-card.is-active{top:8px;height:952px;border-color:#bacde7;box-shadow:0 16px 34px #14375f16}
+.standing-card.is-outside{opacity:0;pointer-events:none}
+.standing-card:has(.standing-open:hover),.standing-card:has(.standing-open:focus-visible){opacity:1;border-color:var(--league);box-shadow:0 14px 34px #0a4eb822,0 0 0 1px var(--league)}
+.standing-card-head{padding:17px 18px 15px;color:#fff;background:radial-gradient(ellipse at 95% 0%,#ffffff1b,transparent 70%),var(--league);position:relative;flex:none}
+.standing-card-head::after{content:'';position:absolute;right:34px;top:-65px;width:140px;height:180px;border:1px solid #ffffff20;transform:rotate(24deg);border-radius:30px;pointer-events:none}
+.standing-country{display:flex;gap:8px;align-items:center;font-size:10px;font-weight:600;letter-spacing:.025em;position:relative;z-index:1;color:#ffffffdc}
+.standing-country>span{font-size:9px;border:1px solid #ffffff6b;border-radius:3px;padding:1px 4px;letter-spacing:.08em;color:#fff}
+.standing-country small{margin-left:auto;font-size:9px;letter-spacing:.08em;color:#ffffffc2}
+.standing-card h3{font-family:'Archivo Black',Inter,sans-serif;font-size:30px;letter-spacing:-.04em;font-weight:400;line-height:1.12;margin-top:12px;position:relative;z-index:1}
+.standing-card-meta{display:flex;gap:8px;align-items:center;color:#ffffffc9;font-size:10px;margin-top:6px}
+.standing-card-meta>span+span::before{content:'·';margin-right:8px}
+.standing-table-slot{flex:1;padding:6px 12px 0;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-color:#9db5d4 #edf3fa;cursor:pointer}
+.standing-table-slot:focus-visible{outline:2px solid #0a4eb8;outline-offset:-3px}
+.standings-table{font-family:Inter,sans-serif;border-collapse:collapse;width:100%;table-layout:fixed;font-size:13px;font-variant-numeric:tabular-nums;line-height:1.2;color:#06132b}
+.standings-table th,.standings-table td{font-weight:400;padding:3px 5px;height:28px;text-align:right;white-space:nowrap}
+.standings-table thead th{font-size:11px;text-transform:uppercase;font-weight:600;color:#526782;height:30px;border-bottom:1px solid var(--standing-line,#dce4ef)}
+.standing-table-slot thead th{position:sticky;top:-6px;z-index:1;background:#fff;box-shadow:0 1px #dce4ef}
+.standings-table abbr{text-decoration:none;cursor:help}
+.standings-table .standing-rank{width:30px;text-align:center;color:#62748e;font-size:14px}
+.standings-table .standing-team{text-align:left;width:auto;min-width:0;font-weight:600}
+.standings-table .standing-played{width:28px;color:#61718a}
+.standings-table .standing-diff{width:42px;color:#61718a}
+.standings-table .standing-points{width:39px;font-weight:800;color:#0a4eb8;background:#f0f5fd}
+.standings-table tbody tr{border-bottom:1px solid #edf1f7}
+.standings-table tbody tr:last-child{border-bottom:0}
+.standing-club{display:flex;align-items:center;gap:7px;min-width:0}
+.standing-club>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.standing-crest{height:18px;width:20px;display:flex;align-items:center;justify-content:center;flex:none}
+.standing-crest img{width:18px;height:18px;object-fit:contain}
+.standing-card-foot{height:44px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;border-top:1px solid #edf1f7;padding:0 18px;background:#f9fbfe}
+.standing-status{font-size:9px;color:#5b6d84;line-height:1.5}
+.standing-status::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#258679;margin-right:6px}
+.standing-stale .standing-status{color:#835c13}
+.standing-stale .standing-status::before{background:#bb841b}
+.standing-expand{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#fff;border:1px solid #d8e2ef;color:var(--league);font-size:16px;transition:background .25s,color .25s,transform .35s}
+.standing-card:has(.standing-open:hover) .standing-expand{background:var(--league);color:#fff;transform:rotate(45deg)}
+.standing-open{position:absolute;top:0;left:0;right:0;height:116px;border:0;border-radius:15px 15px 0 0;background:transparent;z-index:2}
+.standing-open:focus-visible{outline:3px solid #0a4eb8;outline-offset:-5px}
+.standing-open:disabled{cursor:wait}
+.standing-empty{padding:50px 12px;text-align:center;color:#5e6f87;font-size:13px;line-height:1.8}
+.standing-empty>span{font-size:11px}
+.standings-table tr[data-zone]:not([data-zone=""])>.standing-rank{box-shadow:inset 3px 0 var(--zone);color:var(--zone);background:color-mix(in srgb,var(--zone) 8%,white)}
+.standing-card-legend{flex:none;border-top:1px solid #dce4ef;background:#f8fafd;cursor:pointer}
+.standing-legend{padding:12px 15px;font-family:Inter,sans-serif;font-size:9px;line-height:1.4;color:#485e79}
+.standing-legend-title{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#41546e;margin:0 0 9px}
+.standing-legend ul{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.standing-legend li{display:flex;align-items:flex-start;gap:6px;min-width:0}
+.standing-legend li i{height:7px;width:7px;margin-top:3px;border-radius:2px;background:var(--zone);flex:none}
+.standing-legend li b{font-weight:700;white-space:nowrap}
+.standing-zone-note{font-family:Inter,sans-serif;font-size:8px;line-height:1.5;color:#60748e;margin:9px 0 0}
+.standings-navigation{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:-4px;padding-bottom:22px;border-bottom:1px solid #d6e0ed}
+.standings-arrows{display:flex;align-items:center;gap:18px}
+.standings-arrows>button{width:44px;height:44px;border:1px solid #c5d4e7;background:#fff;border-radius:50%;font-size:20px;transition:background .2s,color .2s}
+.standings-arrows>button:hover{color:white;background:#0a4eb8;border-color:#0a4eb8}
+.standings-position{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;min-width:51px}
+.standings-position>span{color:#6a7e96;margin-left:5px;font-weight:500}
+.standings-gesture{font-size:11px;color:#596d86}
+.standings-gesture>span{font-size:17px;margin-left:6px}
+.standings-pause{font-size:15px;background:none;border:0;display:flex;align-items:center;gap:9px;min-height:44px;color:#3b5271;padding:8px}
+.standings-pause>span{font-size:11px}
+.standings-pause:disabled{opacity:.65;cursor:default}
+.standings-source{position:relative;padding-top:18px;padding-right:100px;color:#60718a;font-size:10px;line-height:1.7}
+.standings-source>p:first-child{display:flex;gap:20px;align-items:baseline;margin-bottom:4px}
+.standings-source a{font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.standings-feed-state{font-weight:600;color:#245e5a}
+.standings-feed-state::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:7px}
+.standings-feed-state.has-error{color:#865500}
+.standings-retry{position:absolute;right:0;top:13px;min-height:44px;border:0;background:none;color:#0a4eb8;font-size:11px;font-weight:700}
+.standings-retry:disabled{opacity:.5;cursor:wait}
+.standings-sr{position:absolute!important;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.standing-changed{animation:standing-update 1.8s ease-out}
+@keyframes standing-update{from{background:#d7f2ff}to{background:transparent}}
+/* The two faces rotate as one card. The back rests briefly at 180° for reading. */
+.standings-dialog{--standing-line:#dce4ef;width:min(1360px,calc(100vw - 64px));height:min(1200px,calc(100dvh - 40px));max-width:none;max-height:none;padding:0;border:0;overflow:visible;background:transparent;color:#06132b;perspective:2200px;isolation:isolate}
+.standings-dialog::backdrop{background:#020e25bd;backdrop-filter:blur(8px);animation:standings-backdrop .4s ease-out}
+.standings-flipper{position:relative;width:100%;height:100%;transform-style:preserve-3d}
+.standings-face{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;box-shadow:0 35px 100px #0005,0 0 0 1px #ffffff40}
+.standings-front{display:flex;flex-direction:column;background:#fff;transform:rotateY(0deg)}
+.standings-modal-head{background:radial-gradient(ellipse at 100% 0%,#ffffff1d,transparent 65%),var(--league);color:#fff;padding:26px 30px 23px;flex:none}
+.standings-modal-kicker{text-transform:uppercase;font-size:10px;letter-spacing:.16em;font-weight:700;color:#ffffffd9}
+.standings-modal-head h2{font-family:'Archivo Black',Inter,sans-serif;font-size:clamp(36px,4vw,58px);font-weight:400;margin:10px 45px 15px 0;line-height:1.1;letter-spacing:-.04em}
+.standings-modal-head>div{display:flex;justify-content:space-between;gap:14px;font-size:11px;color:#ffffffdf}
+.standings-modal-status{font-size:10px;text-align:right}
+.standings-modal-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-color:#b7c9de #f6f9fd;background:white;scrollbar-width:thin}
+.standings-table-full{font-size:22px;min-width:900px}
+.standings-table-full th,.standings-table-full td{height:46px;padding:6px 14px}
+.standings-table-full thead th{position:sticky;top:0;z-index:3;background:#eef3fa;height:42px;box-shadow:0 1px #dce4ef;font-size:17px}
+.standings-table-full .standing-rank{width:64px;text-align:center;font-size:20px}
+.standings-table-full .standing-team{width:auto}
+.standings-table-full .standing-played,.standings-table-full .standing-won,.standings-table-full .standing-drawn,.standings-table-full .standing-lost,.standings-table-full .standing-for,.standings-table-full .standing-against{width:65px}
+.standings-table-full .standing-diff{width:78px}
+.standings-table-full .standing-points{width:78px;background:#edf4ff;font-size:25px}
+.standings-table-full thead .standing-points{font-size:17px}
+.standings-table-full tbody tr:hover{background:#f2f7ff}
+.standings-table-full .standing-crest{height:34px;width:42px}
+.standings-table-full .standing-crest img{height:34px;width:34px}
+.standings-table-full .standing-club{gap:13px}
+.standings-table-full .standing-club>span:last-child{white-space:normal;line-height:1.3;overflow:visible;overflow-wrap:anywhere;text-overflow:clip}
+.standings-modal-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:10px;line-height:1.8;color:#53657e;background:#f8fafd;border-top:1px solid #dce4ef;padding:14px 24px;flex:none}
+.standings-modal-source{white-space:nowrap;color:#0a4eb8;text-decoration:underline;text-underline-offset:3px}
+.standings-modal-legend{flex:none;background:#f8fafd;border-top:1px solid #dce4ef}
+.standings-modal-legend .standing-legend{padding:15px 28px;font-size:11px}
+.standings-modal-legend .standing-legend ul{grid-template-columns:repeat(3,1fr);gap:9px 20px}
+.standings-modal-legend .standing-zone-note{font-size:9px}
+.standings-scroll-hint{display:none}
+.standings-close{position:absolute;right:13px;top:13px;width:42px;height:42px;z-index:10;color:white;border:1px solid #ffffff77;background:#06132b6b;backdrop-filter:blur(6px);border-radius:50%;font-size:27px;line-height:1;display:grid;place-items:center;transition:background .2s}
+.standings-close:hover{background:#06132b}
+.standings-close:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.standings-back{transform:rotateY(180deg);background:radial-gradient(ellipse at 50% 80%,var(--league),transparent 85%),#06132b;border:1px solid #ffffff55;color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:38px;isolation:isolate;text-align:center}
+.standings-back::after{content:'';position:absolute;inset:16px;border:1px solid #ffffff24;border-radius:10px;pointer-events:none}
+.standings-back-brand{font-family:'Archivo Black',sans-serif;font-size:15px;letter-spacing:-.04em;display:flex;align-items:center;gap:14px;justify-content:center;z-index:1}
+.standings-back-brand i{font-family:Inter,sans-serif;font-weight:500;font-size:8px;letter-spacing:.18em;font-style:normal;border-left:1px solid #ffffff77;padding-left:14px}
+.standings-back-copy{display:flex;flex-direction:column;gap:28px;align-items:center;position:relative;z-index:1}
+.standings-back-country{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--league-light)}
+.standings-back-title{font-family:'Archivo Black',Inter,sans-serif;font-weight:400;font-size:clamp(44px,7vw,110px);line-height:1.08;letter-spacing:-.04em;max-width:1000px;text-wrap:balance;text-shadow:0 0 40px #ffffff20}
+.standings-back-season{font-size:11px;letter-spacing:.24em;color:#ffffffce}
+.standings-back-caption{font-size:9px;letter-spacing:.22em;color:#ffffffaa;z-index:1}
+.standings-pitch{position:absolute;inset:17% -20%;border:1px solid #ffffff17;transform:rotate(-25deg);border-radius:100%;z-index:-1;box-shadow:0 0 0 80px #ffffff03,0 0 0 81px #ffffff10,0 0 0 161px #ffffff04,0 0 0 162px #ffffff10}
+.standings-pitch::before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px solid #ffffff12}
+.standings-dialog.is-opening .standings-flipper{animation:standings-unfold 1.5s cubic-bezier(.25,.65,.25,1) both;will-change:transform}
+.standings-dialog.is-opening .standings-front{pointer-events:none}
+@keyframes standings-unfold{
+  0%{transform:translate(var(--from-x),var(--from-y)) scale(var(--from-scale)) rotateY(0deg)}
+  32%{transform:translate(0,0) scale(.89) rotateY(150deg)}
+  46%,62%{transform:translate(0,0) scale(.95) rotateY(180deg)}
+  100%{transform:translate(0,0) scale(1) rotateY(360deg)}
+}
+@keyframes standings-backdrop{from{background:#020e2500;backdrop-filter:blur(0)}to{background:#020e25bd;backdrop-filter:blur(8px)}}
+@media(min-width:761px) and (max-width:1099px){
+ .standing-card{width:calc((100% - 30px)/2.15)}
+ .standing-card h3{font-size:28px}
+ .standings-leagues button{padding-inline:8px;font-size:11px}
+ .standings-season{display:none}
+}
+@media(max-width:760px){
+ .standings-heading{display:block;margin-bottom:20px}
+ .standings-heading h2{font-size:clamp(28px,8.2vw,36px)}
+ .standings-intro{margin-top:16px;font-size:12px;line-height:1.6;text-align:left}
+ .standings-intro br{display:none}
+ .standings-toolbar{display:block;margin-bottom:5px}
+ .standings-leagues{gap:5px}
+ .standings-leagues button{padding:8px 9px;font-size:11px;min-height:42px;gap:6px}
+ .standings-leagues button>span{font-size:8px}
+ .standings-season{display:block;margin:14px 0 0;font-size:10px}
+ .standings-carousel{margin-inline:-8px;padding-inline:8px}
+ .standings-stage{height:1020px}
+ .standing-card{width:100%;height:956px;top:20px;transform:none}
+ .standing-card.is-active{height:980px;top:8px}
+ .standing-card-head{padding:18px 18px 16px}
+ .standing-card h3{font-size:30px}
+ .standing-table-slot{padding:6px 10px 0}
+ .standings-table{font-size:13px}
+ .standings-table th,.standings-table td{height:28px}
+ .standing-club{gap:6px}
+ .standings-table .standing-rank{width:29px}
+ .standings-table .standing-played{width:27px}
+ .standings-table .standing-diff{width:38px}
+ .standings-table .standing-points{width:36px}
+ .standing-status{font-size:9px}
+ .standings-navigation{gap:10px;padding-bottom:15px}
+ .standings-arrows{gap:12px}
+ .standings-gesture{display:none}
+ .standings-pause{gap:5px;padding:6px 0;max-width:113px;text-align:left;line-height:1.4}
+ .standings-pause>span{font-size:10px}
+ .standings-source{padding-right:0;font-size:9px}
+ .standings-source>p:first-child{display:block;padding-right:70px}
+ .standings-source>p:first-child>span{display:block;margin-bottom:7px}
+ .standings-retry{font-size:10px}
+ .standings-dialog{width:calc(100vw - 20px);height:calc(100dvh - 36px)}
+ .standings-face{border-radius:15px}
+ .standings-modal-head{padding:24px 18px 18px}
+ .standings-modal-head h2{font-size:clamp(26px,8.6vw,34px);margin-top:16px;margin-right:24px}
+ .standings-modal-head>div{display:block;font-size:10px}
+ .standings-modal-status{display:block;text-align:left;margin-top:6px;font-size:9px}
+ .standings-modal-kicker{font-size:9px;padding-right:30px;display:block}
+ .standings-close{right:10px;top:10px;width:37px;height:37px}
+ .standings-table-full{min-width:710px;font-size:17px}
+ .standings-table-full th,.standings-table-full td{height:40px;padding:6px 9px}
+ .standings-table-full thead th{font-size:14px}
+ .standings-table-full .standing-crest,.standings-table-full .standing-crest img{width:26px;height:26px}
+ .standings-table-full .standing-club{gap:8px}
+ .standings-table-full .standing-rank{width:32px;font-size:15px;position:sticky;left:0;z-index:2;background:#fff}
+ .standings-table-full .standing-team{width:205px;position:sticky;left:32px;z-index:2;background:#fff;box-shadow:4px 0 7px #0b295c08}
+ .standings-table-full thead .standing-rank,.standings-table-full thead .standing-team{background:#eef3fa;z-index:4}
+ .standings-table-full .standing-played,.standings-table-full .standing-won,.standings-table-full .standing-drawn,.standings-table-full .standing-lost,.standings-table-full .standing-for,.standings-table-full .standing-against{width:47px}
+ .standings-table-full .standing-diff{width:60px}
+ .standings-table-full .standing-points{width:55px;font-size:20px;position:sticky;right:0;z-index:2;box-shadow:-4px 0 7px #0b295c08}
+ .standings-table-full thead .standing-points{z-index:4;font-size:14px}
+ .standings-scroll-hint{display:block;color:#0a4eb8;margin-bottom:5px;font-weight:600}
+ .standings-modal-foot{display:block;padding:11px 16px;font-size:9px;line-height:1.6}
+ .standings-modal-source{display:inline-block;margin-top:5px}
+ .standings-modal-legend .standing-legend{padding:10px 16px;font-size:9px}
+ .standings-modal-legend .standing-legend ul{grid-template-columns:1fr 1fr;gap:6px 12px}
+ .standings-modal-legend .standing-zone-note{font-size:8px}
+ .standings-back{padding:32px 23px}
+ .standings-back-brand{font-size:12px;gap:8px}
+ .standings-back-brand i{font-size:7px;padding-left:8px}
+ .standings-back-copy{gap:24px}
+ .standings-back-title{font-size:clamp(30px,10vw,42px)}
+ .standings-back-country{font-size:10px}
+ .standings-back-caption{font-size:8px;letter-spacing:.13em}
+}
+@media(prefers-reduced-motion:reduce){
+ .standing-card,.standing-expand,.standings-leagues button,.standings-arrows>button{transition:none}
+ .standing-changed,.standings-dialog.is-opening .standings-flipper,.standings-dialog::backdrop{animation:none}
+}

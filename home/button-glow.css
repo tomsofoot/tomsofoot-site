@@ -1,0 +1,81 @@
+/* TomsoFoot : halo commun aux commandes, sans modifier leur format.
+   Inspiration : github.com/JamshidElmi/CSS-Glowing-Button. */
+:where(.tf-glow-button) {
+  position: relative;
+  isolation: isolate;
+}
+body .tf-glow-button {
+  --glow-color: #0a4eb8;
+  --glow-accent: #7956cb;
+  --glow-size: 12px;
+  --glow-opacity: 0;
+  --glow-scale: 1;
+  transition: box-shadow 200ms ease, translate 200ms ease, transform 200ms ease,
+    background-color 200ms ease, border-color 200ms ease, color 200ms ease,
+    opacity 200ms ease !important;
+}
+/* Couche dédiée : les ::before existants (icônes, séparateurs) restent intacts.
+   Un élément décoratif hors flux ne change ni la largeur ni les espaces flex. */
+body .tf-glow-button > tf-glow-halo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+}
+body .tf-glow-button > tf-glow-halo::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, var(--glow-color), transparent 35%),
+    radial-gradient(ellipse at 78% 65%, var(--glow-accent), transparent 60%);
+  filter: blur(12px);
+  opacity: var(--glow-opacity);
+  transform: scale(var(--glow-scale));
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+/* Un seul soulèvement pour les CTA qui avaient déjà un translateY au survol. */
+body .button.tf-glow-button { transform: none; }
+@media (hover: hover) and (pointer: fine) {
+  body .tf-glow-button:not(:disabled):not([aria-disabled="true"]):hover {
+    --glow-opacity: .38;
+    --glow-scale: 1.05;
+    translate: 0 -3px;
+    box-shadow: var(--tf-rest-shadow, 0 0 0 transparent),
+      0 2px calc(var(--glow-size) * 1.6) rgb(10 78 184 / .25),
+      0 0 12px rgb(121 86 203 / .2);
+  }
+}
+/* :active fonctionne aussi sans survol, sur écran tactile. */
+body .tf-glow-button:not(:disabled):not([aria-disabled="true"]):is(:active, :focus-visible) {
+  --glow-opacity: .38;
+  --glow-scale: 1.05;
+  translate: 0 -3px;
+  box-shadow: var(--tf-rest-shadow, 0 0 0 transparent),
+    0 2px calc(var(--glow-size) * 1.6) rgb(10 78 184 / .25),
+    0 0 12px rgb(121 86 203 / .2);
+}
+body .tf-glow-button:focus-visible {
+  outline: 2px solid #648fe8 !important;
+  outline-offset: 3px !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body .tf-glow-button,
+  body .tf-glow-button:is(:hover, :active, :focus-visible) {
+    translate: none !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  body .tf-glow-button > tf-glow-halo::before {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+@media (forced-colors: active) {
+  body .tf-glow-button > tf-glow-halo { display: none; }
+  body .tf-glow-button:focus-visible { outline-color: Highlight !important; }
+}

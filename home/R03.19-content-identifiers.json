@@ -1,0 +1,163 @@
+[
+  {
+    "code": "1a",
+    "name": "Les classements — Toutes les places comptent",
+    "selector": "#classements",
+    "type": "bloc"
+  },
+  {
+    "code": "1b",
+    "name": "Classement déplié",
+    "selector": "#standings-dialog",
+    "type": "fenetre"
+  },
+  {
+    "code": "2a",
+    "name": "Jogadle — Le joueur du jour",
+    "selector": "#jogadle-card",
+    "type": "bloc"
+  },
+  {
+    "code": "2b",
+    "name": "Mode Carrière",
+    "selector": "#mode-carriere",
+    "type": "bloc"
+  },
+  {
+    "code": "2c",
+    "name": "Ensemble Jeux — Choisissez votre terrain",
+    "selector": "#formats",
+    "type": "groupe",
+    "children": [
+      "2a",
+      "2b"
+    ]
+  },
+  {
+    "code": "2d",
+    "name": "Fenêtre de choix des jeux",
+    "selector": "#game-choice",
+    "type": "fenetre"
+  },
+  {
+    "code": "3a",
+    "name": "Match en direct",
+    "selector": "#match-center",
+    "type": "bloc"
+  },
+  {
+    "code": "3b",
+    "name": "Fiche détaillée d’un match",
+    "selector": "#match-detail-dialog",
+    "type": "fenetre"
+  },
+  {
+    "code": "4a",
+    "name": "À la une",
+    "selector": "#editorial",
+    "type": "bloc",
+    "children": [
+      "4b"
+    ]
+  },
+  {
+    "code": "4b",
+    "name": "TomsoFoot maintenant — Bandeau défilant",
+    "selector": ".now-rail",
+    "type": "sous-bloc"
+  },
+  {
+    "code": "5a",
+    "name": "Derniers articles",
+    "selector": "#derniers-articles",
+    "type": "bloc"
+  },
+  {
+    "code": "5b",
+    "name": "Parcourir par compétition — Rubriques et archives",
+    "selector": ".article-explorer",
+    "type": "bloc"
+  },
+  {
+    "code": "6a",
+    "name": "Les documentaires",
+    "selector": "#videos",
+    "type": "bloc"
+  },
+  {
+    "code": "7a",
+    "name": "Coup d’envoi — YouTube",
+    "selector": "#coup-denvoi",
+    "type": "bloc"
+  },
+  {
+    "code": "8a",
+    "name": "Le Live TomsoFoot — Twitch",
+    "selector": "#live",
+    "type": "bloc"
+  },
+  {
+    "code": "9a",
+    "name": "Newsletter — Le vestiaire TomsoFoot",
+    "selector": "#newsletter",
+    "type": "bloc"
+  },
+  {
+    "code": "10a",
+    "name": "Manifeste — Notre vision",
+    "selector": "#vision",
+    "type": "bloc"
+  },
+  {
+    "code": "10b",
+    "name": "Pied de page",
+    "selector": "#app > footer",
+    "type": "bloc"
+  },
+  {
+    "code": "11a",
+    "name": "Bandeau d’annonce en haut",
+    "selector": "#cms-bandeau",
+    "type": "navigation"
+  },
+  {
+    "code": "11b",
+    "name": "En-tête — Logo, menu et modes de lecture",
+    "selector": ".site-header",
+    "type": "navigation",
+    "children": [
+      "11c",
+      "11d"
+    ]
+  },
+  {
+    "code": "11c",
+    "name": "Liens de navigation ordinateur",
+    "selector": ".desktop-nav",
+    "type": "navigation"
+  },
+  {
+    "code": "11d",
+    "name": "Menu déroulant",
+    "selector": "#menu-panel",
+    "type": "navigation"
+  },
+  {
+    "code": "11e",
+    "name": "Onglets mobiles en haut",
+    "selector": ".mobile-tabs",
+    "type": "navigation"
+  },
+  {
+    "code": "11f",
+    "name": "Barre de navigation mobile en bas",
+    "selector": ".bottom-nav",
+    "type": "navigation"
+  },
+  {
+    "code": "12a",
+    "name": "Rappels contextuels Précédent / Suivant",
+    "selector": "#game-reminders",
+    "type": "navigation"
+  }
+]

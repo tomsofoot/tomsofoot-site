@@ -9,6 +9,7 @@
 //
 // N'affecte AUCUNE autre fonctionnalité (lecteur PDF, jeux, classements, API matchs).
 
+import {dbSafety} from './lib/x-core.mjs';
 const SUPABASE_URL  = process.env.SUPABASE_URL  || 'https://yubndvqmglttlntkugzm.supabase.co';
 const SUPABASE_ANON = process.env.SUPABASE_ANON || 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
 const SITE = process.env.SITE_ORIGIN || 'https://tomsofoot.fr';
@@ -220,11 +221,12 @@ function page(a, blocks, labels, isPreview, hc){
   + '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'
   + '<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:ital,wght@0,700;0,800;1,800&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">'
   + '<script type="application/ld+json">'+JSON.stringify(ld).replace(/</g,'\\u003c')+'</script>'
-  + '<style>'+CSS+'</style></head><body>'
+  + '<style>'+CSS+'</style>'
+  + '<link rel="stylesheet" href="/article-reading.css?v=1"><script defer src="/article-reading.js?v=1"></script></head><body>'
   + (isPreview?'<div class="a-preview-bar">Aperçu privé — brouillon/programmé non public</div>':'')
   + header()
   + '<main class="a-main">'
-  + '<article class="a-article">'
+  + '<article class="a-article" data-article-id="'+esc(a.id)+'" data-private-preview="'+Boolean(isPreview)+'">'
   +   '<div class="a-head">'
   +     (kicker?'<p class="a-kicker"'+colorStyle(hc.kicker)+'>'+esc(kicker)+'</p>':'')
   +     '<h1 class="a-title"'+colorStyle(hc.title)+'>'+esc(a.title)+'</h1>'
@@ -329,6 +331,9 @@ function copy(){ try{ navigator.clipboard.writeText(location.href); }catch(e){} 
 `;
 
 export default async (req) => {
+  // Les aperçus utilisent les copies publiques locales, jamais la base de production.
+  try {dbSafety(SUPABASE_URL,process.env.CONTEXT || 'dev');}
+  catch {return json(503,{error:'database_preview_access_refused'});}
   const u = new URL(req.url);
   let slug = (u.searchParams.get('slug') || u.pathname.replace(/^\/articles\/?/, '')).replace(/\/+$/,'').toLowerCase();
   slug = slug.replace(/[^a-z0-9-]/g,'');

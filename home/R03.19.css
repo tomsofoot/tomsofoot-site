@@ -1,0 +1,190 @@
+/* 5b : un bloc autonome, ouvert sous les documentaires, aux marges régulières. */
+body[data-proposal="R03"] #archives-explorer {
+  margin-block: 32px 44px;
+  padding: 0 28px 30px;
+  box-sizing: border-box;
+  border: 1px solid #9eafd3;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f3f7ff, #edf2fb);
+  color: #142f53;
+  min-width: 0;
+}
+body[data-proposal="R03"] #archives-explorer > summary {
+  padding: 26px 0;
+  min-height: 94px;
+  gap: 22px;
+  font-size: 22px;
+  line-height: 1.35;
+}
+body[data-proposal="R03"] #archives-explorer > summary > span:first-child { min-width: 0; }
+body[data-proposal="R03"] #archives-explorer > summary small {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #536583;
+}
+body[data-proposal="R03"] #archives-explorer .rubrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 18px;
+  padding: 0 0 28px;
+  margin: 0;
+  border: 0;
+}
+body[data-proposal="R03"] #archives-explorer .rgroup {
+  min-width: 0;
+  padding: 22px;
+  background: #ffffffd9;
+  border: 1px solid #bac9e6;
+  border-radius: 14px;
+}
+body[data-proposal="R03"] #archives-explorer .rgroup h2 {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: .055em;
+  color: #26416a;
+}
+body[data-proposal="R03"] #archives-explorer .rgroup > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+body[data-proposal="R03"] #archives-explorer .rgroup a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 11px 15px;
+  border: 1px solid #bdcce7;
+  border-radius: 10px;
+  background: #f1f5ff;
+  color: #224574;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  text-decoration: none;
+}
+body[data-proposal="R03"] #archives-explorer .national-directory {
+  margin-top: 16px;
+  padding: 0;
+  border: 1px solid #bdcce7;
+  border-radius: 10px;
+  background: #f7f9ff;
+}
+body[data-proposal="R03"] #archives-explorer .national-directory > summary {
+  padding: 14px;
+  min-height: 46px;
+}
+body[data-proposal="R03"] #archives-explorer .national-directory-body { padding: 0 14px 16px; }
+body[data-proposal="R03"] #archives-explorer .national-directory-list { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+body[data-proposal="R03"] #archives-explorer .national-directory-list li { padding: 11px 12px; gap: 12px; }
+body[data-proposal="R03"] #archives-explorer .archive-section { padding: 28px 0 0; }
+body[data-proposal="R03"] #archives-explorer .archive-section > .section-head { margin-bottom: 24px; gap: 14px; }
+body[data-proposal="R03"] #archives-explorer .archive-filters { gap: 10px; margin-bottom: 28px; }
+body[data-proposal="R03"] #archives-explorer .archive-filters button {
+  padding: 12px 16px;
+  min-height: 46px;
+  gap: 12px;
+  max-width: 100%;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  border-color: #9fb4d7;
+}
+/* Ces cartes ne sont plus descendantes de #derniers-articles : conserver leur confort. */
+body[data-proposal="R03"] #archives-explorer .story-copy { padding: 22px 24px 26px; min-width: 0; }
+body[data-proposal="R03"] #archives-explorer .story-copy > * { min-width: 0; max-width: 100%; overflow-wrap: break-word; }
+body[data-proposal="R03"] #archives-explorer .story-copy .eyebrow { display: block; line-height: 1.6; }
+body[data-proposal="R03"] #archives-explorer .story-copy h3 { margin: 10px 0 14px; line-height: 1.18; }
+body[data-proposal="R03"] #archives-explorer .story-copy p { margin: 0; }
+body[data-proposal="R03"] #archives-explorer .archive-grid .medium { gap: 0; }
+body[data-proposal="R03"] #archives-explorer .archive-grid .medium .story-image { min-width: 0; width: 100%; max-width: 100%; }
+
+/* Halo plus ample sur les commandes, sans changer leurs dimensions. */
+body[data-proposal="R03"] .tf-glow-button { --glow-size: 20px; }
+body[data-proposal="R03"] .tf-glow-button > tf-glow-halo::before { inset: -8px; filter: blur(16px); }
+/* Dans les sous-cartes étroites, le halo peint sans agrandir la zone défilable. */
+body[data-proposal="R03"] #archives-explorer :is(summary, .rgroup a, .archive-filters button) > tf-glow-halo::before { inset: 0; }
+body[data-proposal="R03"] #archives-explorer :is(summary, .rgroup a, .archive-filters button) > tf-glow-halo { overflow: clip; }
+@media (hover: hover) and (pointer: fine) {
+  body[data-proposal="R03"] .tf-glow-button:not(:disabled):not([aria-disabled="true"]):hover {
+    --glow-opacity: .58;
+    box-shadow: var(--tf-rest-shadow, 0 0 transparent), 0 4px 32px #0a4eb866, 0 0 24px #7956cb52;
+  }
+}
+body[data-proposal="R03"] .tf-glow-button:not(:disabled):not([aria-disabled="true"]):is(:active, :focus-visible) {
+  --glow-opacity: .58;
+  box-shadow: var(--tf-rest-shadow, 0 0 transparent), 0 4px 32px #0a4eb866, 0 0 24px #7956cb52;
+}
+/* Les quatre CTA gardent exactement le même traitement entre eux. */
+body[data-proposal="R03"] #app .tf-premium-cta {
+  --cta-glow-opacity: .44;
+  background: linear-gradient(115deg, #a9c1fff0, #939bf2eb 48%, #c09bf4eb);
+  box-shadow: 0 7px 20px #06132b45, -5px 0 20px #0a4eb83d, 5px 0 20px #8654ce3d;
+}
+body[data-proposal="R03"] #app .tf-premium-cta::before { inset: -5px; filter: blur(16px); }
+body[data-proposal="R03"] #app .tf-premium-cta::after { inset: 1.5px; }
+@media (hover: hover) and (pointer: fine) {
+  body[data-proposal="R03"] #app .tf-premium-cta:hover {
+    --cta-glow-opacity: .92;
+    box-shadow: 0 10px 26px #06132b52, -7px 0 34px #0a4eb875, 7px 0 34px #8654ce70;
+  }
+}
+body[data-proposal="R03"] #app .tf-premium-cta:is(:active, :focus-visible) {
+  --cta-glow-opacity: .92;
+  box-shadow: 0 10px 26px #06132b52, -7px 0 34px #0a4eb875, 7px 0 34px #8654ce70;
+}
+/* Contours nets hors mise en page : pas de décalage des cartes ni de leurs colonnes. */
+body[data-proposal="R03"] #app :is(#hero-une, #jogadle-card, #mode-carriere, #newsletter, .story, .standing-card, .match-card, .doc-feature, .doc-next button, .kickoff-channel, .twitch-stage, .game-options > a, .rgroup, .national-directory, .national-directory-list li, .hints > div) {
+  outline: 2px solid #7494c6a8;
+  outline-offset: -2px;
+}
+body[data-proposal="R03"] #app .story { background: #fff; border-radius: 12px; }
+/* Les grands liens-cartes reçoivent la lumière à l'extérieur, pas sur le texte. */
+body[data-proposal="R03"] #app :is(.story, .doc-next button, .doc-image, .latest-video-play, .standing-open, .match-open) > tf-glow-halo { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  body[data-proposal="R03"] #app :is(#hero-une, #jogadle-card, #mode-carriere, #newsletter, .story, .standing-card, .match-card, .doc-feature, .doc-next button, .kickoff-channel, .twitch-stage, .game-options > a, .rgroup, .national-directory-list li, .hints > div):hover {
+    outline-color: #797cd9;
+    outline-width: 2px;
+    box-shadow: 0 12px 30px #19356526, -5px 0 32px #0a4eb833, 5px 0 32px #8654ce33;
+  }
+}
+body[data-proposal="R03"] #app :is(#hero-une, #jogadle-card, #mode-carriere, #newsletter, .story, .standing-card, .match-card, .doc-feature, .kickoff-channel, .twitch-stage, .game-options > a, .rgroup):focus-within {
+  outline-color: #797cd9;
+  box-shadow: 0 12px 30px #19356526, -5px 0 32px #0a4eb833, 5px 0 32px #8654ce33;
+}
+body[data-proposal="R03"] :is(#game-choice, #standings-dialog, #match-detail-dialog) { border-color: #8497cf; border-width: 2px; }
+/* Les reflets existants passent dans la même famille bleu-violet. */
+body[data-proposal="R03"] #app .hover-edge {
+  padding: 2px;
+  background: linear-gradient(115deg, #6192f5c7, #a584e8c7);
+}
+body[data-proposal="R03"] #app .hover-film { background: radial-gradient(230px at var(--hx) var(--hy), #777fe926, transparent 72%); }
+body[data-proposal="R03"] #app .hover-line { background: linear-gradient(90deg, transparent, #0a4eb8, #8e69d5, transparent); box-shadow: 0 -2px 14px #7956cb66; }
+@media (max-width: 900px) {
+  body[data-proposal="R03"] #archives-explorer .rubrics { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  body[data-proposal="R03"] #archives-explorer { margin-block: 24px 32px; padding: 0 16px 22px; border-radius: 15px; }
+  body[data-proposal="R03"] #archives-explorer > summary { padding: 22px 2px; font-size: 18px; gap: 14px; }
+  body[data-proposal="R03"] #archives-explorer .rgroup { padding: 18px; }
+  body[data-proposal="R03"] #archives-explorer .story-copy { padding: 20px 20px 24px; }
+  body[data-proposal="R03"] #archives-explorer .archive-grid { gap: 24px; }
+  body[data-proposal="R03"] #archives-explorer .archive-filters button { padding: 11px 14px; font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-proposal="R03"] #app .tf-premium-cta,
+  body[data-proposal="R03"] #app .tf-premium-cta::before,
+  body[data-proposal="R03"] .tf-glow-button,
+  body[data-proposal="R03"] .tf-glow-button > tf-glow-halo::before {
+    translate: none !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+@media (forced-colors: active) {
+  body[data-proposal="R03"] #app :is(.story, .rgroup, .national-directory, .national-directory-list li) { outline-color: CanvasText; }
+  body[data-proposal="R03"] #app .tf-premium-cta { background: ButtonFace; }
+}

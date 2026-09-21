@@ -1,0 +1,93 @@
+/* R03.16 : seuls les sept intitulés précisés sont agrandis. */
+@font-face{font-family:'Enforce TomsoFoot';src:url('assets/Enforce.otf') format('opentype');font-weight:400;font-style:normal;font-display:swap}
+/* Enforce conservée, aux tailles de titres antérieures à R03.15. */
+body[data-proposal="R03"] #jogadle-card .fc-copy h1,
+body[data-proposal="R03"] #mode-carriere .feature-copy h3{
+ font-family:'Enforce TomsoFoot','Barlow Condensed',sans-serif;font-weight:400;font-style:normal;
+ line-height:1.08;letter-spacing:0;max-width:100%;white-space:normal;overflow-wrap:normal;word-break:normal;text-wrap:balance;
+}
+body[data-proposal="R03"] #mode-carriere .feature-copy h3{font-size:min(44px,15.4cqw)}
+@media(min-width:1700px){body[data-proposal="R03"] #mode-carriere .feature-copy h3{font-size:min(74px,15.4cqw)}}
+/* Les sept repères demandés, sans toucher aux titres d'articles et de formats. */
+body[data-proposal="R03"] #editorial .r03-editorial-heading .kicker{font-size:17px;line-height:1.4;letter-spacing:.055em}
+body[data-proposal="R03"] #editorial .r03-editorial-heading h2{font-size:21px;line-height:1.3;letter-spacing:.04em}
+body[data-proposal="R03"] #editorial #hero-kicker{font-size:16px;line-height:1.4;letter-spacing:.055em}
+body[data-proposal="R03"] .r03-games-heading .kicker{font-size:16px;line-height:1.4;letter-spacing:.055em}
+body[data-proposal="R03"] .r03-games-heading h2{font-size:24px;line-height:1.3;font-weight:700}
+body[data-proposal="R03"] #derniers-articles>.section-head .kicker,
+body[data-proposal="R03"] #classements .standings-heading .kicker{font-size:16px;line-height:1.4;letter-spacing:.075em}
+body[data-proposal="R03"] .r03-editorial-heading>div,
+body[data-proposal="R03"] .r03-games-heading>div{min-width:0;max-width:100%;gap:10px 16px}
+/* Verre bleu : images et silhouettes conservées derrière un contour poli. */
+body[data-proposal="R03"] #jogadle-card,
+body[data-proposal="R03"] #mode-carriere{
+ border:1px solid #d3ecff85;border-radius:27px;
+ box-shadow:inset 0 1px 1px #ffffff90,inset 0 -1px 2px #a8d6ff55,0 14px 35px #14375825;
+ overflow:hidden;
+}
+body[data-proposal="R03"] #jogadle-card::after,
+body[data-proposal="R03"] #mode-carriere::before{
+ content:'';display:block;position:absolute;inset:0;width:auto;pointer-events:none;z-index:4;
+ border-radius:inherit;transform:none;
+ background:radial-gradient(ellipse at var(--hx,12%) 0%,#ffffff30,transparent 45%),linear-gradient(125deg,#e9f8ff10,transparent 35%,transparent 74%,#c2e6ff18);
+ box-shadow:inset 0 0 0 1px #ffffff50,inset 4px 4px 9px #e6f5ff14,inset -3px -4px 9px #9dcfff20;
+}
+body[data-proposal="R03"] #mode-carriere .feature-copy{
+ position:relative;margin:14px;padding:23px 20px;width:calc(100% - 28px);max-width:calc(100% - 28px);container-type:inline-size;
+ background:linear-gradient(135deg,#d9eeff28,#06284c99 65%,#6d9ab636);
+ border:1px solid #e1f4ff70;border-radius:21px;
+ -webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);
+ box-shadow:inset 0 1px #ffffff75,inset 0 -1px #c0e4ff25,0 8px 25px #02122522;
+}
+body[data-proposal="R03"] #jogadle-card .hints>div{
+ background:linear-gradient(145deg,#fafffff5,#deeeffdf);border-color:#ffffffb8;border-radius:15px;
+ -webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);
+ box-shadow:inset 0 1px 1px #fff,inset 0 -1px 1px #b5d3ee75,0 5px 14px #00132920;
+}
+body[data-proposal="R03"] #jogadle-card .fc-player-image{
+ background:linear-gradient(135deg,#aedaff90,#3577a058 44%,#0c2b4999);
+ -webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);
+}
+body[data-proposal="R03"] #jogadle-card .fc-player{background:linear-gradient(135deg,#e6fbff,#69cfff 25%,#ffffffba 49%,#145485 72%,#d7f4ff)}
+/* 1a : le verre habille la carte ; les cellules conservent un fond clair stable. */
+body[data-proposal="R03"] #classements .standings-carousel{
+ background:radial-gradient(ellipse at 12% 18%,#b9dbf94d,transparent 45%),radial-gradient(ellipse at 88% 70%,#c3e7f74d,transparent 45%);
+ border-radius:30px;
+}
+body[data-proposal="R03"] #classements .standing-card{
+ --standing-surface:#f6f9fc;--standing-panel:#edf5fbb5;
+ background:linear-gradient(135deg,#ffffffb8,#deebf4a3 60%,#ffffffd4);
+ border:1px solid #ffffffd9;border-radius:27px;
+ -webkit-backdrop-filter:blur(20px) saturate(135%);backdrop-filter:blur(20px) saturate(135%);
+ box-shadow:inset 0 1px 2px #fff,inset 0 -1px 2px #bacfe855,0 9px 26px #204a7024;
+}
+body[data-proposal="R03"] #classements .standing-card.is-active{border-color:#a6c4db;box-shadow:inset 0 1px 2px #fff,inset 1px 0 2px #fff,0 14px 34px #204a7030}
+body[data-proposal="R03"] #classements .standing-card-head{background:linear-gradient(125deg,#ffffffdb,#edf6fc66 62%,#c4dced69);border-bottom-color:#8caac330}
+body[data-proposal="R03"] #classements .standing-card-legend,
+body[data-proposal="R03"] #classements .standing-card-foot{background:linear-gradient(135deg,#f9fcffd9,#dcebf68c)}
+body[data-proposal="R03"] #classements .standing-card::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:9;border-radius:inherit;box-shadow:inset 1px 1px 2px #ffffffc9,inset -1px -1px 2px #aacce459}
+
+
+@media(max-width:760px){
+ body[data-proposal="R03"] #editorial .r03-editorial-heading .kicker{font-size:14px;letter-spacing:.035em}
+ body[data-proposal="R03"] #editorial .r03-editorial-heading h2{font-size:18px!important;line-height:1.3}
+ body[data-proposal="R03"] #editorial #hero-kicker{font-size:14px;letter-spacing:.035em}
+ body[data-proposal="R03"] .r03-games-heading .kicker{font-size:14px}
+ body[data-proposal="R03"] .r03-games-heading h2{font-size:20px!important;line-height:1.3}
+ body[data-proposal="R03"] .r03-games-heading{flex-wrap:wrap;align-items:flex-start;row-gap:10px}
+ body[data-proposal="R03"] .r03-games-heading>div{gap:6px 12px}
+ body[data-proposal="R03"] #derniers-articles>.section-head .kicker,
+ body[data-proposal="R03"] #classements .standings-heading .kicker{font-size:14px}
+ body[data-proposal="R03"] #mode-carriere{min-height:370px}
+ body[data-proposal="R03"] #mode-carriere .feature-copy{margin:12px;padding:20px 15px;width:calc(100% - 24px);max-width:calc(100% - 24px)}
+ body[data-proposal="R03"] #mode-carriere .feature-copy h3{font-size:min(40px,15.4cqw)}
+}
+@media(prefers-reduced-transparency:reduce){
+ body[data-proposal="R03"] #mode-carriere .feature-copy{background:#102a47;backdrop-filter:none;-webkit-backdrop-filter:none}
+ body[data-proposal="R03"] #jogadle-card .hints>div{background:#edf5fd;backdrop-filter:none;-webkit-backdrop-filter:none}
+ body[data-proposal="R03"] #classements .standing-card{background:#f2f7fb;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-proposal="R03"] #jogadle-card::after,
+ body[data-proposal="R03"] #mode-carriere::before{background:linear-gradient(135deg,#ffffff12,transparent 55%,#c2e6ff12)}
+}

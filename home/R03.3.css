@@ -1,0 +1,57 @@
+/* 4a : même affichage au ratio naturel que dans la régie. */
+[data-proposal="R03"] .home-editorial #hero-une{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  min-height:0;
+  align-items:stretch;
+  background:#06132b;
+}
+[data-proposal="R03"] .home-editorial #hero-une .hero-visual{
+  position:relative;
+  inset:auto;
+  grid-area:1 / 1;
+  align-self:start;
+  width:100%;
+  height:auto;
+  min-height:0;
+  z-index:0;
+}
+[data-proposal="R03"] .home-editorial #hero-une .hero-visual img{
+  position:static;
+  display:block;
+  width:100%;
+  height:auto;
+  min-height:0;
+  max-height:none;
+  aspect-ratio:auto;
+  object-fit:contain;
+  object-position:center;
+  opacity:1;
+}
+[data-proposal="R03"] .home-editorial #hero-une::after{
+  grid-area:1 / 1;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(90deg,#041538ed,#052150b3 38%,#06132b00 80%),linear-gradient(0deg,#06132b80,transparent 65%);
+}
+[data-proposal="R03"] .home-editorial #hero-une .hero-inner{
+  grid-area:1 / 1;
+  align-self:center;
+  position:relative;
+  z-index:2;
+  width:100%;
+}
+/* Seul le choix explicite « couverture 16:9 » autorise un recadrage. */
+[data-proposal="R03"] .home-editorial #hero-une[data-image-fit="cover"] .hero-visual{aspect-ratio:16 / 9}
+[data-proposal="R03"] .home-editorial #hero-une[data-image-fit="cover"] .hero-visual img{height:100%;object-fit:cover}
+[data-proposal="R03"] .home-editorial #hero-une[data-image-missing] .hero-visual{display:none}
+[data-proposal="R03"] .home-editorial #hero-une[data-image-missing]::after{display:none}
+/* Le choix smartphone du site conserve aussi l'image entière. */
+body[data-reading-mode="smartphone"] .home-editorial #hero-une{display:flex;flex-direction:column}
+body[data-reading-mode="smartphone"] .home-editorial #hero-une::after{display:none}
+body[data-reading-mode="smartphone"] .home-editorial #hero-une .hero-inner{max-width:none;background:#06132b}
+@media(max-width:900px){
+  [data-proposal="R03"] .home-editorial #hero-une{display:flex;flex-direction:column}
+  [data-proposal="R03"] .home-editorial #hero-une::after{display:none}
+  [data-proposal="R03"] .home-editorial #hero-une .hero-inner{max-width:none;background:#06132b}
+}

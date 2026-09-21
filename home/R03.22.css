@@ -1,0 +1,31 @@
+/* 1a : un halo bleu autour du cadre au survol, aucun balayage intérieur. */
+body[data-proposal="R03"] #classements .standing-open.tf-glow-button,
+body[data-proposal="R03"] #classements .standing-open.tf-glow-button:is(:hover, :active, :focus-visible) {
+  box-shadow:none;
+  translate:none;
+  transform:none;
+}
+body[data-proposal="R03"] #classements .standing-card::before {
+  content:none;
+  display:none;
+  animation:none;
+}
+@media(hover:hover) and (pointer:fine) {
+  body[data-proposal="R03"] #app #classements .standing-card:hover {
+    border-color:#6c9fe9;
+    outline-color:#6098ed;
+    box-shadow:0 0 0 1px #729fff, 0 0 20px #246fe56b,
+      0 0 36px #246fe536, 0 12px 28px #19356526,
+      inset 0 0 0 1px #ffffffa8;
+  }
+}
+/* Le focus reste lisible au clavier ; le halo est réservé à la souris. */
+body[data-proposal="R03"] #app #classements .standing-card:focus-within:not(:hover) {
+  outline-color:#6098ed;
+  box-shadow:inset 0 1px 2px #fff, inset 0 -1px 2px #bacfe855, 0 9px 26px #204a7024;
+}
+@media(prefers-reduced-motion:reduce) {
+  body[data-proposal="R03"] #app #classements .standing-card {
+    transition:none!important;
+  }
+}

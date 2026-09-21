@@ -1,0 +1,19 @@
+[data-proposal="R03"] #jogadle-card .hints>div.has-national-logo{grid-template-columns:28px minmax(0,1fr)}
+[data-proposal="R03"] #jogadle-card .hints .national-logo{grid-row:1/3;align-self:center;width:28px;height:32px;object-fit:contain;filter:none;transform:none}
+.national-article-teams{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:9px 0 0;color:inherit;font:600 11px/1.4 Inter,sans-serif}
+.national-article-team{display:inline-flex;align-items:center;gap:5px}
+.national-article-team img{width:22px;height:25px;object-fit:contain;transform:none!important;filter:none!important}
+.national-directory{width:100%;margin-top:16px;border-top:1px solid #cbd9e9;padding-top:12px;color:#16345b}
+.national-directory summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;font:700 12px/1.5 Inter,sans-serif;cursor:pointer;padding:7px 0}
+.national-directory summary::-webkit-details-marker{display:none}
+.national-directory[open] summary span{transform:rotate(45deg)}
+.national-directory :focus-visible{outline:2px solid #147aff;outline-offset:4px}
+.national-directory-body{display:block!important;padding-top:12px}
+.national-directory label{display:block;font:600 11px/1.5 Inter,sans-serif;margin-bottom:7px}
+.national-directory input{box-sizing:border-box;width:100%;min-width:0;background:#fff;color:#092144;border:1px solid #bdcfe3;border-radius:7px;padding:10px 12px;font:13px Inter,sans-serif}
+.national-directory-count{font-size:10px;color:#5b6d82;margin:9px 0}
+.national-directory-list{list-style:none;margin:0;padding:0;max-height:310px;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;overscroll-behavior:contain}
+.national-directory-list li{display:flex;align-items:center;min-width:0;gap:7px;padding:8px;background:#fff;border:1px solid #e0e8f2;border-radius:6px;font:600 11px/1.4 Inter,sans-serif}
+.national-directory-list img{width:32px;height:36px;object-fit:contain;flex:none}
+.national-directory-list span{overflow-wrap:anywhere}
+@media(max-width:1000px) and (min-width:700px){.national-directory-list{grid-template-columns:1fr}}

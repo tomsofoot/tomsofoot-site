@@ -1,0 +1,31 @@
+/* Bloc 7a : miniature en pleine largeur, contenu et lecteur existants conservés. */
+[data-proposal="R03"] #coup-denvoi .latest-video,
+[data-proposal="R03"] #coup-denvoi .latest-video:has(iframe){
+  display:flex;
+  flex-direction:column;
+  gap:11px;
+  align-items:stretch;
+}
+[data-proposal="R03"] #coup-denvoi .latest-video-media{
+  width:100%;
+  aspect-ratio:16/9;
+  border-radius:6px;
+}
+[data-proposal="R03"] #coup-denvoi .latest-video-play-icon{
+  width:49px;
+  height:49px;
+  font-size:19px;
+}
+[data-proposal="R03"] #coup-denvoi .latest-video-duration{
+  right:9px;
+  bottom:9px;
+  padding:3px 6px;
+  font-size:10px;
+}
+[data-proposal="R03"] #coup-denvoi .youtube-metrics{margin:0;gap:8px 13px;font-size:10px}
+[data-proposal="R03"] #coup-denvoi .latest-video h3{font-size:22px;line-height:1.15;margin:0}
+[data-proposal="R03"] #coup-denvoi .latest-video-watch{font-size:10px;align-self:flex-start}
+@media(max-width:699px){
+  [data-proposal="R03"] #coup-denvoi .latest-video h3{font-size:22px}
+  [data-proposal="R03"] #coup-denvoi .latest-video-play-icon{width:44px;height:44px;font-size:17px}
+}
