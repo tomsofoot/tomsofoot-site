@@ -1,0 +1,12 @@
+/* Un repère de marque accessible pendant la réponse réseau, sans écran masqué. */
+.home-start{padding:24px clamp(20px,4vw,64px);min-height:220px;color:#10284d;background:#f5f8ff;border-radius:16px;}
+.home-start .tf-brand{color:#06132b;text-decoration:none;}
+.home-start p{margin:16px 0;}
+.home-start-status{font-size:14px;color:#526680;}
+.home-start>a:last-child,.home-load-error a{color:#0a4eb8;text-underline-offset:3px;}
+.home-load-error{padding:24px;background:#f5f8ff;color:#10284d;}
+/* Le format naturel reste autoritaire une fois l'image reçue (aucun recadrage). */
+[data-proposal="R03"] .home-editorial #hero-une .hero-visual img{aspect-ratio:auto 16 / 9;}
+/* Réserve l'espace du documentaire : les données tardives restent dans leur bloc. */
+#docs-root[aria-busy="true"]{min-height:450px;}
+@media(max-width:700px){#docs-root[aria-busy="true"]{min-height:620px;}}

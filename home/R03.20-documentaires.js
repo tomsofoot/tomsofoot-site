@@ -1,7 +1,14 @@
 (() => {
+  // Le module se monte une seule fois, à réception des données secondaires.
+  let started=false;
+  function start(){
   'use strict';
   const root=document.getElementById('docs-root'), data=window.TF_DATA;
-  if(!root)return; if(!data?.docs?.videos?.length){root.innerHTML='<p>Les documentaires sont momentanément indisponibles. <a href="https://www.youtube.com/@Tomso-Foot">Voir la chaîne YouTube ↗</a></p>';return;}
+  if(!root||started)return;
+  if(!data?.docs?.videos?.length && window.TF_HOME?.secondaryPending){root.setAttribute('aria-busy','true');root.innerHTML='<p role="status">Les documentaires se chargent…</p>';return;}
+  root.setAttribute('aria-busy','false');
+  if(!data?.docs?.videos?.length){root.innerHTML='<p>Les documentaires sont momentanément indisponibles. <a href="https://www.youtube.com/@Tomso-Foot">Voir la chaîne YouTube ↗</a></p>';return;}
+  started=true;
   const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const asset=url=>data.assets[url] || url, pad=n=>String(n).padStart(2,'0');
   const channelId='UCdM1YrE1qIwEzro69wuRtlQ', channel=`https://www.youtube.com/channel/${channelId}/videos`;
@@ -22,7 +29,7 @@
     const v=current(), count=selected?feed.videos.length:originals.length;
     const position=selected?feed.videos.findIndex(item=>item.id===selected.id)+1:index+1;
     const format=selected?'Vidéo':'Documentaire';
-    root.innerHTML=`<div class="doc-layout"><div class="doc-feature"><a class="doc-image" href="${escape(v.url)}"><img src="${escape(asset(v.thumbnail))}" alt="${escape(v.title)}"><span class="play">${play}</span>${v.duration?`<span class="duration">${escape(v.duration)}</span>`:''}</a><div class="doc-copy"><span class="kicker">${selected?'À suivre sur la chaîne':'Documentaire à la une'}</span><h3 id="doc-title">${escape(v.title)}</h3><p class="meta">${escape(metadata(v))}</p><a class="button primary" id="doc-watch" href="${escape(v.url)}">${selected?'Regarder la vidéo':'Regarder le film'} ${play}</a></div></div><aside class="doc-next"></aside></div><div class="doc-band"><div><span>Format</span><strong>${format}</strong></div>${views(v)?`<div><span>Vues</span><strong>${escape(views(v))}</strong></div>`:''}${v.duration?`<div><span>Durée</span><strong>${escape(v.duration)}</strong></div>`:''}<div class="doc-navigation"><span id="doc-pos">${pad(position)} / ${pad(count)}</span><button type="button" data-doc-prev aria-label="${selected?'Vidéo':'Documentaire'} précédent">←</button><button type="button" data-doc-next aria-label="${selected?'Vidéo':'Documentaire'} suivant">→</button></div></div>`;
+    root.innerHTML=`<div class="doc-layout"><div class="doc-feature"><a class="doc-image" href="${escape(v.url)}"><img loading="lazy" decoding="async" src="${escape(asset(v.thumbnail))}" alt="${escape(v.title)}"><span class="play">${play}</span>${v.duration?`<span class="duration">${escape(v.duration)}</span>`:''}</a><div class="doc-copy"><span class="kicker">${selected?'À suivre sur la chaîne':'Documentaire à la une'}</span><h3 id="doc-title">${escape(v.title)}</h3><p class="meta">${escape(metadata(v))}</p><a class="button primary" id="doc-watch" href="${escape(v.url)}">${selected?'Regarder la vidéo':'Regarder le film'} ${play}</a></div></div><aside class="doc-next"></aside></div><div class="doc-band"><div><span>Format</span><strong>${format}</strong></div>${views(v)?`<div><span>Vues</span><strong>${escape(views(v))}</strong></div>`:''}${v.duration?`<div><span>Durée</span><strong>${escape(v.duration)}</strong></div>`:''}<div class="doc-navigation"><span id="doc-pos">${pad(position)} / ${pad(count)}</span><button type="button" data-doc-prev aria-label="${selected?'Vidéo':'Documentaire'} précédent">←</button><button type="button" data-doc-next aria-label="${selected?'Vidéo':'Documentaire'} suivant">→</button></div></div>`;
     renderQueue();
   }
   root.addEventListener('click',event=>{
@@ -70,4 +77,7 @@
   new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible && !feed)refresh();},{rootMargin:'600px'}).observe(root);
   setInterval(()=>{if(visible && !document.hidden)refresh();},300000);
   root.addEventListener('focusout',()=>{requestAnimationFrame(()=>{if(!root.querySelector('.doc-next')?.contains(document.activeElement))renderQueue();});});
+  }
+  window.addEventListener('tomsofoot:home-secondary',start,{once:true});
+  start();
 })();

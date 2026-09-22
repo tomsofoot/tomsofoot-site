@@ -3435,7 +3435,7 @@ html=f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 {page_bg_css}
 {ea_css}
 {share_css}
-</style></head>
+</style><link rel="icon" href="/favicon.ico?v=logo-original-20260921" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=logo-original-20260921"><link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png?v=logo-original-20260921"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=logo-original-20260921"></head>
 <body>
 <div class="jogadle-app" id="jogadle" data-level="amateur">
   <header class="game-header">

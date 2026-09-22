@@ -22,7 +22,7 @@ async function sb(path, token){
 function fmtDate(iso){ if(!iso) return ''; try{ return new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Paris'}).format(new Date(iso)); }catch(e){ return ''; } }
 
 function header(){
-  return '<header class="d-topbar"><a class="d-brand" href="/">TOMSO<span>FOOT</span></a>'
+  return '<header class="d-topbar"><a class="d-brand tf-brand" href="/"><img class="tf-brand-mark" src="/assets/brand/logotf3.png" width="48" height="48" alt=""><span class="tf-brand-name">TomsoFoot</span></a>'
    + '<nav class="d-nav"><a href="/">Accueil</a><a href="/articles/">Articles</a><a href="/magazine/lecteur.html">Le journal</a></nav></header>';
 }
 function footer(){ return '<footer class="d-footer"><p>© TomsoFoot — Le football, notre passion.</p></footer>'; }
@@ -61,7 +61,7 @@ function page(d, chapters, labels, journal, isPreview){
   + '<meta property="og:description" content="'+esc(desc)+'"><meta property="og:url" content="'+esc(url)+'">'
   + '<meta property="og:image" content="'+esc(ogimg)+'"><meta property="og:site_name" content="TomsoFoot">'
   + '<meta name="twitter:card" content="summary_large_image">'
-  + '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'
+  + '<link rel="icon" href="/favicon.ico?v=logo-original-20260921" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=logo-original-20260921"><link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png?v=logo-original-20260921"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=logo-original-20260921"><link rel="stylesheet" href="/assets/css/tomsofoot-brand.css?v=logo-original-20260921">'
   + '<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">'
   + '<script type="application/ld+json">'+JSON.stringify(ld).replace(/</g,'\\u003c')+'</script>'
   + '<style>'+CSS+'</style></head><body>'

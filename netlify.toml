@@ -5,7 +5,7 @@
   # (production + deploy-preview). Régénère mode-carriere/index.html + game.js + assets.
   # Additif : ne touche à aucune autre route/fichier du site. Si le build échoue,
   # Netlify conserve automatiquement le dernier déploiement en ligne (la prod ne casse pas).
-  command = "python3 -m pip install --quiet Pillow && cp mc-src/* /tmp/ && mkdir -p mode-carriere/assets && JOGADLE_ASSETS_OUT=\"$PWD/mode-carriere/assets\" JOGADLE_MODE=prod python3 mc-src/build_full.py && cp /tmp/Jogadle2-Mode-Carriere-PROD.html mode-carriere/index.html && cp /tmp/game.js mode-carriere/game.js"
+  command = "node tools/build-home.mjs && python3 -m pip install --quiet Pillow && cp mc-src/* /tmp/ && mkdir -p mode-carriere/assets && JOGADLE_ASSETS_OUT=\"$PWD/mode-carriere/assets\" JOGADLE_MODE=prod python3 mc-src/build_full.py && cp /tmp/Jogadle2-Mode-Carriere-PROD.html mode-carriere/index.html && cp /tmp/game.js mode-carriere/game.js"
 
 [build.environment]
   PYTHON_VERSION = "3.11"
@@ -47,3 +47,9 @@
   from = "/articles/:slug"
   to = "/.netlify/functions/article?slug=:slug"
   status = 200
+
+# Fichiers nommés par leur empreinte : cache long sans risque de version périmée.
+[[headers]]
+  for = "/home/dist/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

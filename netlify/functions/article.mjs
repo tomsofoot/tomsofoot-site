@@ -9,7 +9,7 @@
 //
 // N'affecte AUCUNE autre fonctionnalité (lecteur PDF, jeux, classements, API matchs).
 
-import {dbSafety} from './lib/x-core.mjs';
+import {assertPublicReadSafe} from './lib/x-core.mjs';
 const SUPABASE_URL  = process.env.SUPABASE_URL  || 'https://yubndvqmglttlntkugzm.supabase.co';
 const SUPABASE_ANON = process.env.SUPABASE_ANON || 'sb_publishable_8x7te6dRypwXn_vR5hyf9A_rh6h-JBZ';
 const SITE = process.env.SITE_ORIGIN || 'https://tomsofoot.fr';
@@ -218,7 +218,7 @@ function page(a, blocks, labels, isPreview, hc){
   + '<meta name="twitter:title" content="'+escAttr(title)+'">'
   + '<meta name="twitter:description" content="'+escAttr(desc)+'">'
   + '<meta name="twitter:image" content="'+escAttr(ogimg)+'">'
-  + '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'
+  + '<link rel="icon" href="/favicon.ico?v=logo-original-20260921" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=logo-original-20260921"><link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png?v=logo-original-20260921"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=logo-original-20260921"><link rel="stylesheet" href="/assets/css/tomsofoot-brand.css?v=logo-original-20260921">'
   + '<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:ital,wght@0,700;0,800;1,800&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">'
   + '<script type="application/ld+json">'+JSON.stringify(ld).replace(/</g,'\\u003c')+'</script>'
   + '<style>'+CSS+'</style>'
@@ -253,7 +253,7 @@ function page(a, blocks, labels, isPreview, hc){
 }
 
 function header(){
-  return '<header class="a-topbar"><a class="a-brand" href="/">TOMSO<span>FOOT</span></a>'
+  return '<header class="a-topbar"><a class="a-brand tf-brand" href="/"><img class="tf-brand-mark" src="/assets/brand/logotf3.png" width="48" height="48" alt=""><span class="tf-brand-name">TomsoFoot</span></a>'
    + '<nav class="a-nav"><a href="/">Accueil</a><a href="/articles/">Articles</a><a href="/magazine/lecteur.html">Le journal</a></nav></header>';
 }
 function aside(labels){
@@ -331,8 +331,9 @@ function copy(){ try{ navigator.clipboard.writeText(location.href); }catch(e){} 
 `;
 
 export default async (req) => {
-  // Les aperçus utilisent les copies publiques locales, jamais la base de production.
-  try {dbSafety(SUPABASE_URL,process.env.CONTEXT || 'dev');}
+  // Lecture SEULE d'un article publié (données publiques) : autorisée même en aperçu.
+  // L'écriture/l'accès privilégié reste protégé ailleurs (assertDbSafe / sbAdmin).
+  try {assertPublicReadSafe();}
   catch {return json(503,{error:'database_preview_access_refused'});}
   const u = new URL(req.url);
   let slug = (u.searchParams.get('slug') || u.pathname.replace(/^\/articles\/?/, '')).replace(/\/+$/,'').toLowerCase();

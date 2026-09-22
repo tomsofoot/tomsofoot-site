@@ -87,6 +87,20 @@ export function dbSafety(url, ctx) {
 }
 export function assertDbSafe() { return dbSafety(SUPABASE_URL, NETLIFY_CONTEXT); }
 
+// ---------------------------------------------------------------------------
+// Lecture SEULE de contenus PUBLICS (articles publiés, compétitions, genres…)
+// via la clé ANON. Ces données sont déjà publiques sur le site : les lire depuis
+// un aperçu est sans risque. Cette garde reste « fail-closed » sur l'absence
+// d'URL, mais N'INTERDIT PAS la base de prod en contexte non-production, afin que
+// les aperçus affichent le vrai contenu publié.
+// IMPORTANT : réservé aux lectures ANON de données publiques. Tout accès privilégié
+// (service_role / écriture / admin) DOIT continuer à passer par sbAdmin / assertDbSafe,
+// qui restent protégés (aucune écriture en prod depuis un aperçu).
+export function assertPublicReadSafe() {
+  if (!SUPABASE_URL) { const e = new Error('config_error: SUPABASE_URL manquant (fail-closed, aucune connexion)'); e.status = 500; e.code = 'NO_SUPABASE_URL'; throw e; }
+  return { ref: projectRef(SUPABASE_URL), ctx: NETLIFY_CONTEXT || '(inconnu)' };
+}
+
 // Une clé Supabase service_role LÉGACY est un JWT (commence par « ey… ») ; une nouvelle
 // clé secrète « sb_secret_… » ne l'est PAS. PostgREST/Kong autorise le rôle via l'en-tête
 // `apikey` ; on n'ajoute `Authorization: Bearer` QUE pour un JWT (sinon un sb_secret_ en

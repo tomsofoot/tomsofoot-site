@@ -13,6 +13,6 @@
       }
     } catch { /* Un repère indisponible ne gêne jamais le fonctionnement du site. */ }
   }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', identify, {once:true});
-  else identify();
+  if(window.TF_HOME?.assembling)window.addEventListener('tomsofoot:home-ready',identify,{once:true});
+  else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',identify,{once:true});else identify();
 })();

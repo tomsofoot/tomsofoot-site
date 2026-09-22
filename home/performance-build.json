@@ -1,0 +1,13 @@
+{
+  "assets": {
+    "css": "home/dist/home.505f149ad250a951.css",
+    "app": "home/dist/home.97711f416a57cafa.js",
+    "loader": "home/dist/loader.403dc34eb75d80f7.js"
+  },
+  "scripts": 35,
+  "styles": 39,
+  "bytes": {
+    "js": 788527,
+    "css": 220940
+  }
+}

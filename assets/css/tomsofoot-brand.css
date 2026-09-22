@@ -1,0 +1,17 @@
+/* Identité originale fournie par Thomas : aucune reconstruction du logo. */
+.tf-brand { display:inline-flex; align-items:center; gap:10px; vertical-align:middle; }
+img.tf-brand-mark { display:block; flex:0 0 auto; width:48px; height:48px; max-width:none; object-fit:contain; object-position:center; border:0; border-radius:0; background:none; filter:none; transform:none; }
+.tf-brand-name { white-space:nowrap; }
+[data-proposal="R03"] .logo.tf-brand { gap:10px; }
+[data-proposal="R03"] .header-main .logo.tf-brand { padding-block:6px 2px; }
+[data-proposal="R03"] footer .logo.tf-brand .tf-brand-mark { width:48px; height:48px; }
+.a-brand.tf-brand,.x-brand.tf-brand,.d-brand.tf-brand { gap:9px; }
+.a-brand.tf-brand .tf-brand-mark,.x-brand.tf-brand .tf-brand-mark,.d-brand.tf-brand .tf-brand-mark { width:40px; height:40px; }
+.a-brand.tf-brand .tf-brand-name,.x-brand.tf-brand .tf-brand-name,.d-brand.tf-brand .tf-brand-name { color:inherit; }
+.rb-brand.tf-brand .tf-brand-mark,.brand.tf-brand .tf-brand-mark,.t.tf-brand .tf-brand-mark { width:36px; height:36px; }
+@media(max-width:699px) {
+  [data-proposal="R03"] .header-main .logo.tf-brand { padding-block:6px; }
+  [data-proposal="R03"] .header-main .tf-brand-mark { width:44px; height:44px; }
+  .a-brand.tf-brand,.x-brand.tf-brand,.d-brand.tf-brand { gap:6px; }
+  .a-brand.tf-brand .tf-brand-mark,.x-brand.tf-brand .tf-brand-mark,.d-brand.tf-brand .tf-brand-mark { width:32px; height:32px; }
+}

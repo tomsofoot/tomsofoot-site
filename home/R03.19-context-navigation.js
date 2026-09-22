@@ -117,5 +117,6 @@
     window.addEventListener('hashchange',schedule);window.addEventListener('popstate',schedule);
     measureBottom();observe();
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+  if(window.TF_HOME?.assembling)window.addEventListener('tomsofoot:home-ready',init,{once:true});
+  else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
