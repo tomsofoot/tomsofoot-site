@@ -1,0 +1,57 @@
+{
+  "fps": 60,
+  "duration": 8,
+  "ticks": [
+    0.86,
+    1.79,
+    3.16
+  ],
+  "reveal": 3.25,
+  "clashes": [
+    0.86,
+    1.79,
+    3.16
+  ],
+  "amounts": [
+    1,
+    2,
+    3,
+    5,
+    7,
+    10
+  ],
+  "demoResult": 10,
+  "eliminations": [
+    {
+      "at": 0.86,
+      "indices": [
+        0,
+        2
+      ],
+      "fade": 0.12
+    },
+    {
+      "at": 1.79,
+      "indices": [
+        1,
+        3
+      ],
+      "fade": 0.12
+    },
+    {
+      "at": 3.16,
+      "indices": [
+        4
+      ],
+      "fade": 0.08
+    }
+  ],
+  "buttonStyle": "segments",
+  "effects": [
+    "neon",
+    "light-trails",
+    "shockwaves",
+    "sparks",
+    "gold-reveal"
+  ]
+}
