@@ -1,0 +1,115 @@
+/* TomsoFoot — « Défie ton pote » : fenêtre d'animation responsive.
+   Mobile : plein écran (hauteur dynamique 100dvh, zones sûres, commandes ≥ 44 px).
+   Mobile paysage : commandes regroupées sur une ligne pour laisser la hauteur au canvas.
+   Tablette / ordinateur : fenêtre centrée aux dimensions maîtrisées. */
+@font-face { font-family: DefiSans; src: url("../defi-pote/polices/DejaVuSans-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: DefiSans; src: url("../defi-pote/polices/DejaVuSans-Bold-latin.woff2") format("woff2"); font-weight: 700 900; font-style: normal; font-display: swap; }
+
+html.dp-lock, html.dp-lock body { overflow: hidden; }
+
+.dp-overlay {
+  --dp-bg: #001725;
+  --dp-ink: #f6f9fc;
+  --dp-muted: #9aabb5;
+  --dp-line: #35576b;
+  --dp-neon: #56f994;
+  --dp-gold: #ffe00b;
+  position: fixed; inset: 0; z-index: 2147483000;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 6, 12, .82);
+  -webkit-tap-highlight-color: transparent;
+}
+.dp-dialog {
+  position: relative; box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  grid-template-areas: "snd . cls" "stage stage stage" "info info info" "act act act" "brand brand brand";
+  width: 100vw; height: 100vh; height: 100dvh;
+  padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  gap: 6px 8px;
+  color: var(--dp-ink); background: radial-gradient(120% 80% at 50% 45%, #003552 0%, #00121e 70%, #00050b 100%);
+  font-family: DefiSans, Arial, sans-serif;
+  outline: none;
+}
+.dp-top { display: contents; }
+.dp-sound { grid-area: snd; justify-self: start; }
+.dp-close { grid-area: cls; justify-self: end; width: 44px; padding: 0; }
+.dp-stage { grid-area: stage; align-self: stretch; justify-self: stretch; position: relative; min-width: 0; min-height: 0; overflow: hidden; cursor: pointer; border-radius: 14px; background: var(--dp-bg); }
+.dp-canvas { position: absolute; left: 0; top: 0; display: block; }
+.dp-info { grid-area: info; min-width: 0; text-align: center; }
+.dp-actions { grid-area: act; display: flex; justify-content: center; }
+.dp-brand { grid-area: brand; text-align: center; font: italic 900 22px/1 DefiSans, Arial, sans-serif; color: #b0b8c0; letter-spacing: .02em; padding-bottom: 2px; }
+
+.dp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-width: 44px; min-height: 44px; padding: 0 14px; box-sizing: border-box;
+  border-radius: 12px; border: 1px solid var(--dp-line); background: #0c2433; color: var(--dp-ink);
+  font: 700 15px/1 DefiSans, Arial, sans-serif; cursor: pointer; touch-action: manipulation;
+}
+.dp-btn svg { width: 22px; height: 22px; flex: none; }
+.dp-btn:hover { background: #12334a; }
+.dp-btn:focus-visible { outline: 3px solid var(--dp-neon); outline-offset: 2px; }
+.dp-btn[disabled] { opacity: .45; cursor: default; }
+.dp-btn[aria-pressed="true"] { border-color: #3dffb0; color: #d6fff1; }
+.dp-primary { min-width: 168px; background: var(--dp-gold); color: #10222c; border-color: #fff0a2; font-size: 16px; letter-spacing: .02em; }
+.dp-primary:hover { background: #fff04d; }
+
+.dp-players { display: flex; align-items: baseline; justify-content: center; gap: 10px; margin: 2px 0 0; font-size: 15px; font-weight: 700; color: var(--dp-muted); min-width: 0; }
+.dp-player { display: inline-flex; align-items: baseline; gap: 6px; min-width: 0; max-width: 44%; }
+.dp-name { color: var(--dp-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.dp-pts { flex: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dp-vs { flex: none; font-style: italic; font-weight: 900; color: #6df3a3; text-transform: uppercase; font-size: 13px; }
+.dp-status { margin: 4px 0 0; min-height: 2.6em; font-size: 14px; line-height: 1.3; color: #d7e3ea; } /* 2 lignes réservées : pas de saut de mise en page à la révélation */
+.dp-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.dp-media { display: none; }
+
+/* Repli texte : plan refusé, canvas indisponible. */
+.dp-fallback .dp-stage { display: none; }
+.dp-fallback { grid-template-rows: auto 1fr auto auto auto; }
+.dp-fallback .dp-info { align-self: center; }
+.dp-fallback .dp-status { font-size: 20px; color: var(--dp-ink); }
+
+/* Très petits écrans : on garde les libellés lisibles en compactant les marges. */
+@media (max-width: 360px) {
+  .dp-dialog { gap: 4px 6px; }
+  .dp-btn-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .dp-sound { width: 44px; padding: 0; }
+  .dp-players { font-size: 14px; gap: 8px; }
+  .dp-brand { font-size: 18px; }
+}
+
+/* Mobile paysage : une seule ligne de commandes sous l'animation. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .dp-dialog {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "stage stage stage stage" "snd info act cls";
+    align-items: center;
+  }
+  .dp-brand { display: none; }
+  .dp-info { text-align: left; }
+  .dp-players { justify-content: flex-start; margin: 0; font-size: 14px; }
+  .dp-status { margin: 2px 0 0; min-height: 1.3em; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dp-primary { min-width: 120px; }
+}
+
+/* Tablette et ordinateur : fenêtre centrée. */
+@media (min-width: 700px) and (min-height: 560px) {
+  .dp-dialog {
+    width: min(92vw, 1240px);
+    height: min(90vh, calc(min(92vw, 1240px) * .36 + 190px));
+    height: min(90dvh, calc(min(92vw, 1240px) * .36 + 190px));
+    padding: 14px 16px 12px;
+    border-radius: 22px; border: 1px solid #1d3d52;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 0 0 1px rgba(86, 249, 148, .06);
+  }
+  .dp-stage { border-radius: 16px; }
+}
+@media (min-width: 700px) and (min-height: 560px) and (orientation: portrait) {
+  .dp-dialog { width: min(92vw, 720px); height: min(90vh, 1060px); height: min(90dvh, 1060px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dp-btn { transition: none; }
+}
